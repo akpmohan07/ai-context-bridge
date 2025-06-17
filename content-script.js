@@ -1,3 +1,5 @@
+console.log("Content script loaded at", new Date().toISOString());
+
 function createFloatingButton() {
     const btn = document.createElement("button");
     btn.textContent = "Summarize & Continue";
@@ -20,8 +22,6 @@ function createFloatingButton() {
   }
   
   async function summarizeLastMessage() {
-    window.scrollTo(0, document.body.scrollHeight);
-    await new Promise(r => setTimeout(r, 500));
   
     const articles = [...document.querySelectorAll("article")];
     const userMessages = articles.filter(article =>
@@ -40,15 +40,14 @@ function createFloatingButton() {
     const textarea = lastUserMessage.querySelector("textarea");
     if (!textarea) return alert("❌ Editable textarea not found");
   
-    textarea.value = "You will receive this summary as the first message in a new conversation so you can continue seamlessly. Please condense only the messages in this chat into a single, well-structured paragraph of no more than 50 words (or 300 characters). Focus on the main objectives, key actions or decisions taken, challenges resolved, and the immediate next steps—everything required to fully preserve the context and resume the conversation accurately and efficiently.";
+    textarea.value = "You will receive this summary as the first message in a new conversation so you can continue seamlessly. Please condense only the messages in this chat into a single, well-structured paragraph of no more than 100 words (or 2000 characters). Focus on the main objectives, key actions or decisions taken, challenges resolved, and the immediate next steps—everything required to fully preserve the context and resume the conversation accurately and efficiently.";
     textarea.dispatchEvent(new Event("input", { bubbles: true }));
   
     await new Promise(r => setTimeout(r, 300));
     const sendButton = document.querySelector('button.btn.btn-primary');
+    chrome.runtime.sendMessage({ action: "enableListener" });
     sendButton?.click();
-    await new Promise(r => setTimeout(r, 10000));
-    openLastChatGPTReply();
-
+    console.log("Button clicked At: ", new Date().toISOString());
   }
 
 
@@ -56,7 +55,6 @@ function createFloatingButton() {
   async function openLastChatGPTReply() {
     console.log("openLastChatGPTReply")
     window.scrollTo(0, document.body.scrollHeight);
-    await new Promise(r => setTimeout(r, 500));
   
     const articles = [...document.querySelectorAll("article")];
     const chatGPTReplies = articles.filter(article =>
