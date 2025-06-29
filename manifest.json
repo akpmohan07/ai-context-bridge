@@ -1,0 +1,32 @@
+{
+    "manifest_version": 3,
+    "name": "AI Context Bridge",
+    "version": "1.0",
+    "description": "Auto-summarize ChatGPT conversations when reaching token limits.",
+    "permissions": [
+      "scripting",
+      "activeTab",
+      "webRequest"
+    ],
+    "host_permissions": [
+      "https://chatgpt.com/*"
+    ],
+    "content_scripts": [
+      {
+        "matches": [
+          "https://chatgpt.com/c/*"
+        ],
+        "js": [
+          "content-script.js"
+        ],
+        "run_at": "document_idle"
+      }
+    ],
+    "action": {
+      "default_title": "Context Bridge"
+    },
+    "background": {
+    "service_worker": "background.js"
+    }
+  }
+  
