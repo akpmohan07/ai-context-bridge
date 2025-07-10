@@ -40,7 +40,15 @@ function createFloatingButton() {
     const textarea = lastUserMessage.querySelector("textarea");
     if (!textarea) return alert("❌ Editable textarea not found");
   
-    textarea.value = "You will receive this summary as the first message in a new conversation so you can continue seamlessly. Please condense only the messages in this chat into a single, well-structured paragraph of no more than 100 words (or 2000 characters). Focus on the main objectives, key actions or decisions taken, challenges resolved, and the immediate next steps—everything required to fully preserve the context and resume the conversation accurately and efficiently.";
+    textarea.value = `
+    You will receive this summary as the first message in a new conversation to continue seamlessly. Please condense this conversation into a focused, context-rich summary of no more than 200 words.
+      Include ONLY the essential information needed to continue productively:
+      - Current topic/objective and your role
+      - Key decisions made and problems solved  
+      - Current state/progress and immediate next steps
+      - Any specific requirements, constraints, or preferences established
+
+      Format as a single, well-structured paragraph optimized for immediate context understanding. Assume the user is the one who worked on the task and is continuing the conversation.`;
     textarea.dispatchEvent(new Event("input", { bubbles: true }));
   
     await new Promise(r => setTimeout(r, 300));
@@ -72,7 +80,7 @@ function createFloatingButton() {
     if (!replyText) return alert("❌ Reply text is empty");
   
     // Encode and open in new tab
-    var query = "This is a continuation of the previous chat. "+  encodeURIComponent(replyText);
+    var query = "This is a continuation of a previous conversation. Here's the essential context: "+  encodeURIComponent(replyText) + "Please acknowledge you understand the context and we can continue where we left off.  Assume the user is the one who worked on the task and is continuing the conversation.";
     const url = `https://chatgpt.com/?q=${query}`;
     console.log(replyText)
     window.open(url, "_blank");
