@@ -30,6 +30,20 @@ We've all been there:
 - 🔒 **100% private** - all processing happens locally
 - 🌐 **Cross-platform** - works across multiple AI platforms
 
+## 💡 Inspired By
+
+I was hitting ChatGPT conversation limits and searching for solutions when I found this Reddit thread:
+
+> *"...possible edit your last message so it generates a new response with what you want"*
+> 
+> — [u/khanto0](https://www.reddit.com/r/ChatGPTPro/comments/1fejyuj/comment/m4og0z1/?utm_source=share&utm_medium=web3x&utm_name=web3xcss&utm_term=1&utm_content=share_button)
+
+That's when it clicked: ask ChatGPT to summarize the conversation, then start fresh with that context.
+
+It worked manually, but was tedious. So I automated it.
+
+**Thanks to u/khanto0 for the original workaround that inspired this extension!**
+
 ## 🎬 Demo
 
 *[Demo GIF/Video placeholder - showing the extension in action]*
@@ -175,6 +189,7 @@ class NewPlatform extends BasePlatform {
     }
 }
 ```
+
 
 ## 📊 Market Context
 
