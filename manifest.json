@@ -6,7 +6,8 @@
     "permissions": [
       "scripting",
       "activeTab",
-      "webRequest"
+      "webRequest",
+      "tabs"
     ],
     "host_permissions": [
       "https://chatgpt.com/*"
@@ -20,6 +21,10 @@
           "content-script.js"
         ],
         "run_at": "document_idle"
+      },
+      {
+        "matches": ["https://claude.ai/*"],
+        "js": ["claude-content-script.js"]
       }
     ],
     "action": {
