@@ -1,28 +1,28 @@
-let shouldListen = false;
+let listeningTabId = null;
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.action === "enableListener") {
-    shouldListen = true;
+    listeningTabId = message.tabId;
+    console.log("Background: enableListener received for tabId:", listeningTabId);
+  }
+  if (message.action === "getTabId") {
+    sendResponse({ tabId: sender.tab.id });
   }
 });
 
 chrome.webRequest.onCompleted.addListener(
   (details) => {
-   
-    if (!shouldListen) {
-        console.log("Not an user Action, so skipping this event")
-        return;
+    if (listeningTabId !== null) {
+      chrome.tabs.get(listeningTabId, (tab) => {
+        if (tab && tab.url && tab.url.startsWith("https://chatgpt.com/")) {
+          chrome.tabs.sendMessage(listeningTabId, { event: "conversation_completed" });
+          console.log("Sent 'conversation_completed' to tab:", listeningTabId, tab.url);
+        } else {
+          console.log("Tab not found or not a ChatGPT page:", listeningTabId, tab ? tab.url : "no tab");
+        }
+        listeningTabId = null;
+      });
     }
-
-    console.log("Conversation API completed:", details);
-
-    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-      if (tabs.length > 0) {
-        chrome.tabs.sendMessage(tabs[0].id, { event: "conversation_completed" });
-      }
-    });
-
-    shouldListen = false;
   },
   { urls: ["https://chatgpt.com/backend-api/f/conversation"] }
 );
