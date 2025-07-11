@@ -2,7 +2,7 @@
     "manifest_version": 3,
     "name": "AI Context Bridge",
     "version": "1.0",
-    "description": "Auto-summarize ChatGPT conversations when reaching token limits.",
+    "description": "One-click context transfer between ChatGPT and Claude. Never lose conversation context when switching AI platforms again.",
     "permissions": [
       "scripting",
       "activeTab",
@@ -28,7 +28,7 @@
       }
     ],
     "action": {
-      "default_title": "Context Bridge"
+      "default_title": "AI Context Bridge - Transfer context between AI platforms"
     },
     "background": {
     "service_worker": "background.js"
