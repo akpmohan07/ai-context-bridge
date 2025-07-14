@@ -46,6 +46,8 @@ It worked manually, but was tedious. So I automated it.
 
 ## 🎬 Demo
 
+<img width="918" height="833" alt="Screenshot 2025-07-12 at 2 51 44 AM" src="https://github.com/user-attachments/assets/dad44d1b-9720-41fb-af15-b584219ac7b9" />
+
 *[Demo GIF/Video placeholder - showing the extension in action]*
 
 ## 🚀 Quick Start
