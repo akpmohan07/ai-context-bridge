@@ -242,9 +242,7 @@ This project is licensed under the Apache License 2.0 - see the [LICENSE](LICENS
 
 ## 📧 Contact & Support
 
-- **Issues**: [GitHub Issues](https://github.com/yourusername/ai-context-bridge/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/yourusername/ai-context-bridge/discussions)
-- **Twitter**: [@yourusername](https://twitter.com/yourusername)
+- **Issues**: [[GitHub Issues](https://github.com/yourusername/ai-context-bridge/issues)](https://github.com/akpmohan07/ai-context-bridge/issues)
 
 ---
 
