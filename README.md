@@ -53,7 +53,7 @@ It worked manually, but was tedious. So I automated it.
 ## 🚀 Quick Start
 
 ### Option 1: Chrome Web Store (Recommended)
-*Coming soon - extension under review*
+https://chromewebstore.google.com/detail/ai-context-bridge/kjgmboacclalfjgcmooplnpimjalikfo
 
 ### Option 2: Manual Installation
 
