@@ -10,34 +10,41 @@
       "tabs"
     ],
     "host_permissions": [
-      "https://chatgpt.com/*"
+      "https://chatgpt.com/*",
+      "https://www.reddit.com/*"
     ],
     "content_scripts": [
       {
-        "matches": [
-          "https://chatgpt.com/c/*"
-        ],
+        "matches": ["https://chatgpt.com/c/*"],
         "js": [
+          "src/ai-platforms/base.js",
+          "src/ai-platforms/claude.js",
+          "src/ai-platforms/chatgpt.js",
+          "src/ui/base.js",
+          "src/ui/floating-button.js",
           "content-script.js"
         ],
         "run_at": "document_idle"
       },
       {
         "matches": ["https://claude.ai/*"],
-        "js": ["claude-content-script.js"]
+        "js": [
+          "src/ai-platforms/base.js",
+          "src/ai-platforms/claude.js",
+          "claude-content-script.js"
+        ]
       }
     ],
     "action": {
       "default_title": "AI Context Bridge - Transfer context between AI platforms"
     },
     "background": {
-    "service_worker": "background.js"
+      "service_worker": "background.js"
     },
     "icons": {
-    "16": "icons/16-icon.png",
-    "32": "icons/32-icon.png", 
-    "48": "icons/48-icon.png",
-    "128": "icons/128-icon.png"
+      "16": "icons/16-icon.png",
+      "32": "icons/32-icon.png",
+      "48": "icons/48-icon.png",
+      "128": "icons/128-icon.png"
+    }
   }
-  }
-  
