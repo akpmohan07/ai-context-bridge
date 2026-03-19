@@ -1,3 +1,4 @@
+
 console.log("Content script loaded at", new Date().toISOString());
 
 // Simplified dropdown creation function
@@ -602,6 +603,20 @@ async function openLastChatGPTReply(destination = 'chatgpt', message = '') {
         window.open(url, "_blank");
     }
 }
+
+
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+    if (message.action === 'runFocusCheck') {
+        console.log('Received event to run focus check');
+        const focusSession = new FocusSession();
+        focusSession.loadExistingSession();
+        focusSession.checkCurrentPageContent();
+    }
+});
+
+
+
+
 
 // Initialize the extension
 createFloatingButton();

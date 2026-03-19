@@ -1,4 +1,5 @@
 let listeningTabId = null;
+let focusSessions = {};  // Store focus sessions by window ID
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.action === "enableListener") {
@@ -26,3 +27,20 @@ chrome.webRequest.onCompleted.addListener(
   },
   { urls: ["https://chatgpt.com/backend-api/f/conversation"] }
 );
+
+chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
+      chrome.storage.local.set({ focusEnabled: true });
+    if (changeInfo.status === 'complete') {
+        chrome.storage.local.get('focusEnabled', ({ focusEnabled }) => {
+
+            console.log('Focus Enabled:', focusEnabled);
+            if (focusEnabled) {
+                // Send a message to the content scri
+                 const currentWindow = chrome.windows.getCurrent();
+                chrome.tabs.sendMessage(tabId, { action: 'runFocusCheck', windowId: currentWindow.id  });
+            }
+        });
+    }
+});
+
+

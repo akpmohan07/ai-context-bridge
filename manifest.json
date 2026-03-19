@@ -4,10 +4,12 @@
     "version": "1.0",
     "description": "One-click context transfer between ChatGPT and Claude. Never lose conversation context when switching AI platforms again.",
     "permissions": [
+      "windows",
       "scripting",
       "activeTab",
       "webRequest",
-      "tabs"
+      "tabs",
+      "storage"
     ],
     "host_permissions": [
       "https://chatgpt.com/*"
@@ -15,9 +17,13 @@
     "content_scripts": [
       {
         "matches": [
-          "https://chatgpt.com/c/*"
+          "<all_urls>"
         ],
         "js": [
+          "js/BaseFeature.js",
+          "js/features/FocusSession.js",
+          "js/constants.js",
+          "js/FeatureManager.js",
           "content-script.js"
         ],
         "run_at": "document_idle"
@@ -28,6 +34,7 @@
       }
     ],
     "action": {
+      "default_popup": "popup.html",
       "default_title": "AI Context Bridge - Transfer context between AI platforms"
     },
     "background": {
