@@ -4,6 +4,7 @@
 // body       {string}   main content / original post text
 // sourceUrl  {string}   URL of the source page
 // platform   {string}   platform identifier e.g. "reddit", "hackernews"
+// community  {string}   community/channel name e.g. "r/python", optional
 // items      {Item[]}   ordered sub-content (comments, replies, etc.)
 //                       empty array for plain articles with no discussion
 //
@@ -14,8 +15,8 @@
 //   depth    {number}   nesting level — 0 = top-level
 //   children {Item[]}   nested replies
 
-function createContentDocument({ title = '', body = '', sourceUrl = '', platform = '', items = [] } = {}) {
-    return { title, body, sourceUrl, platform, items };
+function createContentDocument({ title = '', body = '', sourceUrl = '', platform = '', community = '', items = [] } = {}) {
+    return { title, body, sourceUrl, platform, community, items };
 }
 
 function createItem({ author = '', score = 0, text = '', depth = 0, children = [] } = {}) {

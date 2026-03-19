@@ -18,6 +18,13 @@ class UIInjector {
         throw new Error('buildItems() must be implemented');
     }
 
+    // OPTIONAL — override to also search descendants of an added node
+    // Returns the element to inject into, or null
+    findTarget(node) {
+        if (this.isTargetNode(node)) return node;
+        return null;
+    }
+
     // PROVIDED — starts a MutationObserver watching for the target element
     observe(actions) {
         if (this._observer) return;
@@ -26,9 +33,8 @@ class UIInjector {
             for (const mutation of mutations) {
                 for (const node of mutation.addedNodes) {
                     if (node.nodeType !== Node.ELEMENT_NODE) continue;
-                    if (this.isTargetNode(node)) {
-                        this.inject(node, actions);
-                    }
+                    const target = this.findTarget(node);
+                    if (target) this.inject(target, actions);
                 }
             }
         });

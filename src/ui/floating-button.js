@@ -22,7 +22,7 @@ class FloatingButton extends UIInjector {
                 <div class="cb-dropdown-menu" id="cb-menu" style="display: none;">
                     <div class="cb-section">
                         <div class="cb-option" data-action="all-context">
-                            <span>🚀 h Summarize and Continue in New Chat</span>
+                            <span>🚀 Summarize and Continue in New Chat</span>
                             <span class="cb-action-icon">→</span>
                         </div>
                         <div class="cb-option" data-action="claude-opinion">

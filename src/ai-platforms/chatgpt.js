@@ -34,7 +34,8 @@ class ChatGPTPlatform extends AIPlatform {
             if (!replyText) return;
 
             if (this._pendingAction === 'claude') {
-                claudePlatform.openWithContext(replyText);
+                const message = `I'm sharing a summary of my conversation with ChatGPT. Please review it and provide your perspective, suggestions, or corrections as another AI assistant.\n\nSummary:\n${replyText}`;
+                claudePlatform.openWithContext(message);
             } else {
                 this.openWithContext(replyText);
             }

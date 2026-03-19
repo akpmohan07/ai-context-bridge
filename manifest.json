@@ -33,6 +33,23 @@
           "src/ai-platforms/claude.js",
           "claude-content-script.js"
         ]
+      },
+      {
+        "matches": ["https://www.reddit.com/r/*/comments/*"],
+        "js": [
+          "src/core/schema.js",
+          "src/core/budget.js",
+          "src/core/formatter.js",
+          "src/utils/clipboard.js",
+          "src/ai-platforms/base.js",
+          "src/ai-platforms/claude.js",
+          "src/content-sources/base.js",
+          "src/ui/base.js",
+          "src/ui/menu-injector.js",
+          "src/content-sources/reddit.js",
+          "reddit-content-script.js"
+        ],
+        "run_at": "document_idle"
       }
     ],
     "action": {
