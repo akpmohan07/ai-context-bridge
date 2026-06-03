@@ -11,7 +11,9 @@
     ],
     "host_permissions": [
       "https://chatgpt.com/*",
-      "https://www.reddit.com/*"
+      "https://www.reddit.com/*",
+      "https://medium.com/*",
+      "https://*.medium.com/*"
     ],
     "content_scripts": [
       {
@@ -31,8 +33,33 @@
         "js": [
           "src/ai-platforms/base.js",
           "src/ai-platforms/claude.js",
+          "src/presence/triggers/base.js",
+          "src/presence/triggers/sent.js",
+          "src/presence/triggers/stop-button.js",
+          "src/presence/sounds/registry.js",
+          "src/presence/sounds/breath.js",
+          "src/presence/sounds/hum.js",
+          "src/presence/sounds/chime.js",
+          "src/presence/state-machine.js",
+          "src/presence/config.js",
+          "src/presence/presence.js",
           "claude-content-script.js"
         ]
+      },
+      {
+        "matches": ["https://medium.com/*/*", "https://*.medium.com/*"],
+        "js": [
+          "src/core/schema.js",
+          "src/core/budget.js",
+          "src/core/formatter.js",
+          "src/utils/clipboard.js",
+          "src/ai-platforms/base.js",
+          "src/ai-platforms/claude.js",
+          "src/content-sources/base.js",
+          "src/content-sources/medium.js",
+          "medium-content-script.js"
+        ],
+        "run_at": "document_idle"
       },
       {
         "matches": ["https://www.reddit.com/r/*/comments/*"],

@@ -8,8 +8,9 @@ class ClaudePlatform extends AIPlatform {
         window.open(`${this.baseUrl}/new?q=${encodeURIComponent(text)}`, '_blank');
     }
 
-    // Injected on claude.ai — auto-sends the pre-filled ?q= message
+    // Injected on claude.ai — auto-sends only when URL has a pre-filled ?q= param
     injectUI() {
+        if (!new URLSearchParams(window.location.search).has('q')) return;
         let attempts = 0;
         const interval = setInterval(() => {
             const inputBox = document.querySelector('div[contenteditable="true"]');
