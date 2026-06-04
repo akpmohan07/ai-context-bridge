@@ -7,7 +7,8 @@
       "scripting",
       "activeTab",
       "webRequest",
-      "tabs"
+      "tabs",
+      "storage"
     ],
     "host_permissions": [
       "https://chatgpt.com/*",
@@ -43,6 +44,7 @@
           "src/presence/state-machine.js",
           "src/presence/config.js",
           "src/presence/presence.js",
+          "src/time/message-timer.js",
           "claude-content-script.js"
         ]
       },
