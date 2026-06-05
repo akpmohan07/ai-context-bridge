@@ -43,14 +43,35 @@ class RedditMenuInjector extends MenuInjector {
         const wrapper = document.createElement('div');
         wrapper.style.cssText = 'position: relative; display: inline-flex; align-items: center;';
 
-        // Match Reddit's native overflow button style
         const button = document.createElement('button');
-        button.setAttribute('rpl', '');
         button.setAttribute('aria-label', 'Open with AI');
         button.setAttribute('aria-haspopup', 'menu');
-        button.innerHTML = '🤖&nbsp;<span style="font-size:10px;opacity:0.6;margin-left:4px">▼</span>';
-        button.className = 'button-small button-plain items-center justify-center button inline-flex';
-        button.style.cssText = 'padding: 0 8px; gap: 4px; width: auto; min-width: 44px;';
+        button.innerHTML = 'Claude <span style="font-size:10px;margin-left:2px">▼</span>';
+        button.style.cssText = `
+            background: #10a37f;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 500;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            box-shadow: 0 2px 8px rgba(16,163,127,0.25);
+            transition: all 0.2s ease;
+            white-space: nowrap;
+        `;
+        button.addEventListener('mouseenter', () => {
+            button.style.background = '#0d9f6b';
+            button.style.boxShadow = '0 4px 12px rgba(16,163,127,0.4)';
+        });
+        button.addEventListener('mouseleave', () => {
+            button.style.background = '#10a37f';
+            button.style.boxShadow = '0 2px 8px rgba(16,163,127,0.25)';
+        });
 
         const dropdown = this._buildDropdown(actions);
         wrapper.appendChild(button);
@@ -89,51 +110,63 @@ class RedditMenuInjector extends MenuInjector {
             padding: 4px 0;
         `;
 
-        dropdown.appendChild(this._createItem('🤖', 'Open in Claude', async () => {
-            this._showNotification('🤖 Opening in Claude…');
+        dropdown.appendChild(this._createItem('Open in Claude', '#10a37f', 'linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%)', async () => {
+            dropdown.style.display = 'none';
+            this._showNotification('Opening in Claude…');
             await actions.openInClaude();
-        }, dropdown));
+        }));
 
-        dropdown.appendChild(this._createItem('📋', 'Copy for AI', async () => {
+        dropdown.appendChild(this._createItem('Copy for AI', '#f59e0b', 'linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%)', async () => {
+            dropdown.style.display = 'none';
             await actions.copyForAI();
-            this._showNotification('📋 Copied to clipboard!');
-        }, dropdown));
+            this._showNotification('Copied to clipboard!');
+        }));
 
         return dropdown;
     }
 
-    _createItem(icon, label, onClick, dropdown) {
+    _createItem(label, accentColor, bgGradient, onClick) {
         const item = document.createElement('div');
         item.setAttribute('role', 'menuitem');
         item.style.cssText = `
             display: flex;
             align-items: center;
-            gap: 10px;
-            padding: 10px 16px;
+            justify-content: space-between;
+            padding: 10px 14px;
+            margin: 4px;
+            border-radius: 6px;
             cursor: pointer;
-            font-size: 14px;
+            font-size: 13px;
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
             font-weight: 500;
             color: #1c1c1c;
             white-space: nowrap;
-            transition: background 0.1s ease;
+            background: ${bgGradient};
+            border: 1px solid ${accentColor}33;
+            transition: all 0.15s ease;
         `;
-
-        const iconEl = document.createElement('span');
-        iconEl.style.cssText = 'font-size: 16px; width: 20px; text-align: center; flex-shrink: 0;';
-        iconEl.textContent = icon;
 
         const labelEl = document.createElement('span');
         labelEl.textContent = label;
 
-        item.appendChild(iconEl);
-        item.appendChild(labelEl);
+        const arrow = document.createElement('span');
+        arrow.textContent = '→';
+        arrow.style.cssText = `
+            background: ${accentColor};
+            color: white;
+            padding: 3px 7px;
+            border-radius: 50%;
+            font-size: 11px;
+            font-weight: bold;
+        `;
 
-        item.addEventListener('mouseenter', () => item.style.background = '#f6f7f8');
-        item.addEventListener('mouseleave', () => item.style.background = '');
+        item.appendChild(labelEl);
+        item.appendChild(arrow);
+
+        item.addEventListener('mouseenter', () => item.style.opacity = '0.85');
+        item.addEventListener('mouseleave', () => item.style.opacity = '1');
         item.addEventListener('click', (e) => {
             e.stopPropagation();
-            dropdown.style.display = 'none';
             onClick();
         });
         return item;

@@ -1,7 +1,8 @@
 const reddit = new RedditSource();
 const claude = new ClaudePlatform();
 
-if (reddit.isMatch()) {
+chrome.storage.sync.get({ redditEnabled: true }, (result) => {
+    if (!result.redditEnabled || !reddit.isMatch()) return;
     reddit.injectUI({
         openInClaude: async () => {
             const text = await reddit.getFormattedContent();
@@ -14,4 +15,4 @@ if (reddit.isMatch()) {
             await Clipboard.copy(message);
         }
     });
-}
+});

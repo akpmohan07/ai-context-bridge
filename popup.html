@@ -7,7 +7,6 @@
 
     body {
       width: 280px;
-      padding: 16px;
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
       background: #fff;
       color: #1a1a1a;
@@ -17,28 +16,55 @@
       display: flex;
       align-items: center;
       gap: 10px;
-      margin-bottom: 16px;
-      padding-bottom: 14px;
-      border-bottom: 1px solid #f0f0f0;
+      padding: 14px 16px;
+      background: #10a37f;
     }
 
-    .header img {
+    .header-icon {
+      background: #fff;
+      border-radius: 6px;
       width: 28px;
       height: 28px;
-      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .header-icon img {
+      width: 20px;
+      height: 20px;
     }
 
     .header-text {
       font-size: 14px;
       font-weight: 600;
-      color: #1a1a1a;
+      color: #fff;
+    }
+
+    .body {
+      padding: 8px 16px 12px;
+    }
+
+    .section-label {
+      font-size: 10px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      color: #aaa;
+      margin: 10px 0 2px;
     }
 
     .setting-row {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 10px 0;
+      padding: 7px 0;
+      border-bottom: 1px solid #f3f3f3;
+    }
+
+    .setting-row:last-child {
+      border-bottom: none;
     }
 
     .setting-info {
@@ -55,7 +81,7 @@
     .setting-desc {
       font-size: 11px;
       color: #888;
-      margin-top: 2px;
+      margin-top: 1px;
     }
 
     /* Toggle switch */
@@ -106,19 +132,75 @@
 </head>
 <body>
   <div class="header">
-    <img src="icons/48-icon.png" alt="">
+    <div class="header-icon">
+      <img src="icons/48-icon.png" alt="">
+    </div>
     <span class="header-text">AI Context Bridge</span>
   </div>
 
-  <div class="setting-row">
-    <div class="setting-info">
-      <div class="setting-label">Ambient Sounds</div>
-      <div class="setting-desc">Subtle audio feedback on claude.ai</div>
+  <div class="body">
+
+    <div class="section-label">claude.ai</div>
+
+    <div class="setting-row">
+      <div class="setting-info">
+        <div class="setting-label">Ambient Sounds</div>
+        <div class="setting-desc">Audio feedback during conversation</div>
+      </div>
+      <label class="toggle">
+        <input type="checkbox" id="soundsEnabled">
+        <span class="slider"></span>
+      </label>
     </div>
-    <label class="toggle">
-      <input type="checkbox" id="soundsEnabled">
-      <span class="slider"></span>
-    </label>
+
+    <div class="setting-row">
+      <div class="setting-info">
+        <div class="setting-label">Message Timer</div>
+        <div class="setting-desc">Inject time context on send</div>
+      </div>
+      <label class="toggle">
+        <input type="checkbox" id="timerEnabled">
+        <span class="slider"></span>
+      </label>
+    </div>
+
+    <div class="section-label">ChatGPT</div>
+
+    <div class="setting-row">
+      <div class="setting-info">
+        <div class="setting-label">Transfer Button</div>
+        <div class="setting-desc">Floating button on conversation pages</div>
+      </div>
+      <label class="toggle">
+        <input type="checkbox" id="chatgptEnabled">
+        <span class="slider"></span>
+      </label>
+    </div>
+
+    <div class="section-label">Content Sources</div>
+
+    <div class="setting-row">
+      <div class="setting-info">
+        <div class="setting-label">Reddit → Claude</div>
+        <div class="setting-desc">Menu on Reddit thread pages</div>
+      </div>
+      <label class="toggle">
+        <input type="checkbox" id="redditEnabled">
+        <span class="slider"></span>
+      </label>
+    </div>
+
+    <div class="setting-row">
+      <div class="setting-info">
+        <div class="setting-label">Medium → Claude</div>
+        <div class="setting-desc">Button on Medium articles</div>
+      </div>
+      <label class="toggle">
+        <input type="checkbox" id="mediumEnabled">
+        <span class="slider"></span>
+      </label>
+    </div>
+
   </div>
 
   <script src="popup.js"></script>

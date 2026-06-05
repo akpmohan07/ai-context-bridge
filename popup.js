@@ -1,9 +1,19 @@
-const toggle = document.getElementById('soundsEnabled');
+const DEFAULTS = {
+  soundsEnabled:  false,
+  timerEnabled:   true,
+  chatgptEnabled: true,
+  redditEnabled:  true,
+  mediumEnabled:  true,
+};
 
-chrome.storage.sync.get({ soundsEnabled: false }, (result) => {
-  toggle.checked = result.soundsEnabled;
+chrome.storage.sync.get(DEFAULTS, (result) => {
+  for (const key of Object.keys(DEFAULTS)) {
+    document.getElementById(key).checked = result[key];
+  }
 });
 
-toggle.addEventListener('change', () => {
-  chrome.storage.sync.set({ soundsEnabled: toggle.checked });
-});
+for (const key of Object.keys(DEFAULTS)) {
+  document.getElementById(key).addEventListener('change', (e) => {
+    chrome.storage.sync.set({ [key]: e.target.checked });
+  });
+}

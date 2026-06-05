@@ -37,43 +37,35 @@ class MediumToolbarInjector {
         const dropdown = this._buildDropdown(actions);
         document.body.appendChild(dropdown);
 
-        // Match Medium's toolbar button style: circular, icon + small label beneath
         const button = document.createElement('button');
         button.setAttribute('aria-label', 'Open with AI');
         button.setAttribute('aria-haspopup', 'menu');
+        button.innerHTML = 'Claude <span style="font-size:10px;margin-left:2px">▼</span>';
         button.style.cssText = `
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            gap: 2px;
-            background: none;
+            background: #10a37f;
+            color: white;
             border: none;
+            padding: 6px 14px;
+            border-radius: 6px;
             cursor: pointer;
-            padding: 8px;
-            border-radius: 50%;
-            color: rgba(41, 41, 41, 1);
+            font-size: 13px;
+            font-weight: 500;
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-            transition: background 0.1s ease;
-        `;
-
-        const icon = document.createElement('span');
-        icon.textContent = '🤖';
-        icon.style.cssText = 'font-size: 24px; line-height: 1; display: block;';
-
-        const label = document.createElement('div');
-        label.textContent = 'AI';
-        label.style.cssText = `
-            font-size: 11px;
-            color: rgba(41, 41, 41, 0.6);
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            box-shadow: 0 2px 8px rgba(16,163,127,0.25);
+            transition: all 0.2s ease;
             white-space: nowrap;
         `;
-
-        button.appendChild(icon);
-        button.appendChild(label);
-
-        button.addEventListener('mouseenter', () => button.style.background = 'rgba(0,0,0,0.06)');
-        button.addEventListener('mouseleave', () => button.style.background = 'none');
+        button.addEventListener('mouseenter', () => {
+            button.style.background = '#0d9f6b';
+            button.style.boxShadow = '0 4px 12px rgba(16,163,127,0.4)';
+        });
+        button.addEventListener('mouseleave', () => {
+            button.style.background = '#10a37f';
+            button.style.boxShadow = '0 2px 8px rgba(16,163,127,0.25)';
+        });
 
         button.addEventListener('click', (e) => {
             e.stopPropagation();
@@ -114,50 +106,61 @@ class MediumToolbarInjector {
             padding: 4px 0;
         `;
 
-        dropdown.appendChild(this._createItem('🤖', 'Open in Claude', async () => {
+        dropdown.appendChild(this._createItem('Open in Claude', '#10a37f', 'linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%)', async () => {
             dropdown.style.display = 'none';
-            this._showNotification('🤖 Opening in Claude…');
+            this._showNotification('Opening in Claude…');
             await actions.openInClaude();
         }));
 
-        dropdown.appendChild(this._createItem('📋', 'Copy for AI', async () => {
+        dropdown.appendChild(this._createItem('Copy for AI', '#f59e0b', 'linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%)', async () => {
             dropdown.style.display = 'none';
             await actions.copyForAI();
-            this._showNotification('📋 Copied to clipboard!');
+            this._showNotification('Copied to clipboard!');
         }));
 
         return dropdown;
     }
 
-    _createItem(icon, label, onClick) {
+    _createItem(label, accentColor, bgGradient, onClick) {
         const item = document.createElement('div');
         item.setAttribute('role', 'menuitem');
         item.style.cssText = `
             display: flex;
             align-items: center;
-            gap: 10px;
-            padding: 10px 16px;
+            justify-content: space-between;
+            padding: 10px 14px;
+            margin: 4px;
+            border-radius: 6px;
             cursor: pointer;
-            font-size: 14px;
+            font-size: 13px;
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
             font-weight: 500;
             color: #1c1c1c;
             white-space: nowrap;
-            transition: background 0.1s ease;
+            background: ${bgGradient};
+            border: 1px solid ${accentColor}33;
+            transition: all 0.15s ease;
         `;
-
-        const iconEl = document.createElement('span');
-        iconEl.style.cssText = 'font-size: 16px; width: 20px; text-align: center; flex-shrink: 0;';
-        iconEl.textContent = icon;
 
         const labelEl = document.createElement('span');
         labelEl.textContent = label;
 
-        item.appendChild(iconEl);
-        item.appendChild(labelEl);
+        const arrow = document.createElement('span');
+        arrow.textContent = '→';
+        arrow.style.cssText = `
+            background: ${accentColor};
+            color: white;
+            padding: 3px 7px;
+            border-radius: 50%;
+            font-size: 11px;
+            font-weight: bold;
+        `;
 
-        item.addEventListener('mouseenter', () => item.style.background = '#f5f5f5');
-        item.addEventListener('mouseleave', () => item.style.background = '');
+        item.appendChild(labelEl);
+        item.appendChild(arrow);
+
+        item.addEventListener('mouseenter', () => item.style.opacity = '0.85');
+        item.addEventListener('mouseleave', () => item.style.opacity = '1');
         item.addEventListener('click', (e) => {
             e.stopPropagation();
             onClick();

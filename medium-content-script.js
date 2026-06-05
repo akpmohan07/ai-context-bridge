@@ -1,7 +1,8 @@
 const medium = new MediumSource();
 const claude = new ClaudePlatform();
 
-if (medium.isMatch()) {
+chrome.storage.sync.get({ mediumEnabled: true }, (result) => {
+    if (!result.mediumEnabled || !medium.isMatch()) return;
     medium.injectUI({
         openInClaude: async () => {
             const text = await medium.getFormattedContent();
@@ -14,4 +15,4 @@ if (medium.isMatch()) {
             await Clipboard.copy(message);
         }
     });
-}
+});
