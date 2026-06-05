@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      width: 280px;
+      padding: 16px;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #fff;
+      color: #1a1a1a;
+    }
+
+    .header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 16px;
+      padding-bottom: 14px;
+      border-bottom: 1px solid #f0f0f0;
+    }
+
+    .header img {
+      width: 28px;
+      height: 28px;
+      border-radius: 6px;
+    }
+
+    .header-text {
+      font-size: 14px;
+      font-weight: 600;
+      color: #1a1a1a;
+    }
+
+    .setting-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 0;
+    }
+
+    .setting-info {
+      flex: 1;
+      margin-right: 12px;
+    }
+
+    .setting-label {
+      font-size: 13px;
+      font-weight: 500;
+      color: #1a1a1a;
+    }
+
+    .setting-desc {
+      font-size: 11px;
+      color: #888;
+      margin-top: 2px;
+    }
+
+    /* Toggle switch */
+    .toggle {
+      position: relative;
+      display: inline-block;
+      width: 40px;
+      height: 22px;
+      flex-shrink: 0;
+    }
+
+    .toggle input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .slider {
+      position: absolute;
+      inset: 0;
+      background: #ddd;
+      border-radius: 22px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .slider::before {
+      content: '';
+      position: absolute;
+      width: 16px;
+      height: 16px;
+      left: 3px;
+      top: 3px;
+      background: #fff;
+      border-radius: 50%;
+      transition: transform 0.2s;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+    }
+
+    input:checked + .slider {
+      background: #10a37f;
+    }
+
+    input:checked + .slider::before {
+      transform: translateX(18px);
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <img src="icons/48-icon.png" alt="">
+    <span class="header-text">AI Context Bridge</span>
+  </div>
+
+  <div class="setting-row">
+    <div class="setting-info">
+      <div class="setting-label">Ambient Sounds</div>
+      <div class="setting-desc">Subtle audio feedback on claude.ai</div>
+    </div>
+    <label class="toggle">
+      <input type="checkbox" id="soundsEnabled">
+      <span class="slider"></span>
+    </label>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

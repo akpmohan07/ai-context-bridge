@@ -34,6 +34,7 @@
         "js": [
           "src/ai-platforms/base.js",
           "src/ai-platforms/claude.js",
+          "src/presence/config.js",
           "src/presence/triggers/base.js",
           "src/presence/triggers/sent.js",
           "src/presence/triggers/stop-button.js",
@@ -42,7 +43,6 @@
           "src/presence/sounds/hum.js",
           "src/presence/sounds/chime.js",
           "src/presence/state-machine.js",
-          "src/presence/config.js",
           "src/presence/presence.js",
           "src/time/message-timer.js",
           "claude-content-script.js"
@@ -82,7 +82,8 @@
       }
     ],
     "action": {
-      "default_title": "AI Context Bridge - Transfer context between AI platforms"
+      "default_title": "AI Context Bridge - Transfer context between AI platforms",
+      "default_popup": "popup.html"
     },
     "background": {
       "service_worker": "background.js"

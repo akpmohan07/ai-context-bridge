@@ -5,7 +5,7 @@ class PresenceLayer {
       new StopButtonTrigger(),
     ];
     this._sm = new PresenceStateMachine(this._onTransition.bind(this));
-    this._enabled = true;
+    this._enabled = false;
   }
 
   init() {
