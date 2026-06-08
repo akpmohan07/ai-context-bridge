@@ -1,43 +1,102 @@
 {
     "manifest_version": 3,
     "name": "AI Context Bridge",
-    "version": "1.0",
+    "version": "1.1",
     "description": "One-click context transfer between ChatGPT and Claude. Never lose conversation context when switching AI platforms again.",
     "permissions": [
       "scripting",
       "activeTab",
       "webRequest",
-      "tabs"
+      "tabs",
+      "storage"
     ],
     "host_permissions": [
-      "https://chatgpt.com/*"
+      "https://chatgpt.com/*",
+      "https://www.reddit.com/*",
+      "https://medium.com/*",
+      "https://*.medium.com/*"
     ],
     "content_scripts": [
       {
-        "matches": [
-          "https://chatgpt.com/c/*"
-        ],
+        "matches": ["https://chatgpt.com/*"],
         "js": [
+          "src/ui/theme.js",
+          "src/ai-platforms/base.js",
+          "src/ai-platforms/claude.js",
+          "src/ai-platforms/chatgpt.js",
+          "src/ui/base.js",
+          "src/ui/floating-button.js",
           "content-script.js"
         ],
         "run_at": "document_idle"
       },
       {
         "matches": ["https://claude.ai/*"],
-        "js": ["claude-content-script.js"]
+        "js": [
+          "src/ai-platforms/base.js",
+          "src/ai-platforms/claude.js",
+          "src/presence/config.js",
+          "src/presence/triggers/base.js",
+          "src/presence/triggers/sent.js",
+          "src/presence/triggers/stop-button.js",
+          "src/presence/sounds/registry.js",
+          "src/presence/sounds/breath.js",
+          "src/presence/sounds/hum.js",
+          "src/presence/sounds/chime.js",
+          "src/presence/state-machine.js",
+          "src/presence/presence.js",
+          "src/time/message-timer.js",
+          "claude-content-script.js"
+        ]
+      },
+      {
+        "matches": ["https://medium.com/*/*", "https://*.medium.com/*"],
+        "js": [
+          "src/ui/theme.js",
+          "src/core/schema.js",
+          "src/core/budget.js",
+          "src/core/formatter.js",
+          "src/utils/clipboard.js",
+          "src/ai-platforms/base.js",
+          "src/ai-platforms/claude.js",
+          "src/ai-platforms/chatgpt.js",
+          "src/content-sources/base.js",
+          "src/content-sources/medium.js",
+          "medium-content-script.js"
+        ],
+        "run_at": "document_idle"
+      },
+      {
+        "matches": ["https://www.reddit.com/r/*/comments/*"],
+        "js": [
+          "src/ui/theme.js",
+          "src/core/schema.js",
+          "src/core/budget.js",
+          "src/core/formatter.js",
+          "src/utils/clipboard.js",
+          "src/ai-platforms/base.js",
+          "src/ai-platforms/claude.js",
+          "src/ai-platforms/chatgpt.js",
+          "src/content-sources/base.js",
+          "src/ui/base.js",
+          "src/ui/menu-injector.js",
+          "src/content-sources/reddit.js",
+          "reddit-content-script.js"
+        ],
+        "run_at": "document_idle"
       }
     ],
     "action": {
-      "default_title": "AI Context Bridge - Transfer context between AI platforms"
+      "default_title": "AI Context Bridge - Transfer context between AI platforms",
+      "default_popup": "popup.html"
     },
     "background": {
-    "service_worker": "background.js"
+      "service_worker": "background.js"
     },
     "icons": {
-    "16": "icons/16-icon.png",
-    "32": "icons/32-icon.png", 
-    "48": "icons/48-icon.png",
-    "128": "icons/128-icon.png"
+      "16": "icons/16-icon.png",
+      "32": "icons/32-icon.png",
+      "48": "icons/48-icon.png",
+      "128": "icons/128-icon.png"
+    }
   }
-  }
-  

@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="header">
+    <div class="header-icon">
+      <img src="icons/48-icon.png" alt="">
+    </div>
+    <span class="header-text">AI Context Bridge</span>
+  </div>
+
+  <div class="body">
+
+    <div class="section-label" data-accent="sources">Sources</div>
+
+    <div class="setting-row">
+      <div class="setting-info">
+        <div class="setting-label">Reddit</div>
+        <div class="setting-desc">Discuss any thread with AI</div>
+      </div>
+      <label class="toggle">
+        <input type="checkbox" id="redditEnabled">
+        <span class="slider"></span>
+      </label>
+    </div>
+
+    <div class="setting-row">
+      <div class="setting-info">
+        <div class="setting-label">Medium</div>
+        <div class="setting-desc">Discuss any article with AI</div>
+      </div>
+      <label class="toggle">
+        <input type="checkbox" id="mediumEnabled">
+        <span class="slider"></span>
+      </label>
+    </div>
+
+    <div class="section-label" data-accent="claude">Claude.ai</div>
+
+    <div class="setting-row">
+      <div class="setting-info">
+        <div class="setting-label">Ambient Sounds</div>
+        <div class="setting-desc">Audio presence during conversations</div>
+      </div>
+      <label class="toggle">
+        <input type="checkbox" id="soundsEnabled">
+        <span class="slider"></span>
+      </label>
+    </div>
+
+    <div class="setting-row">
+      <div class="setting-info">
+        <div class="setting-label">Time Awareness</div>
+        <div class="setting-desc">Claude knows how long since your last message</div>
+      </div>
+      <label class="toggle">
+        <input type="checkbox" id="timerEnabled">
+        <span class="slider"></span>
+      </label>
+    </div>
+
+    <div class="section-label" data-accent="chatgpt">ChatGPT</div>
+
+    <div class="setting-row">
+      <div class="setting-info">
+        <div class="setting-label">Continue in Claude</div>
+        <div class="setting-desc">Pick up any ChatGPT conversation in Claude</div>
+      </div>
+      <label class="toggle">
+        <input type="checkbox" id="chatgptEnabled">
+        <span class="slider"></span>
+      </label>
+    </div>
+
+  </div>
+
+  <script src="src/ui/theme.js"></script>
+  <script src="popup.js"></script>
+</body>
+</html>

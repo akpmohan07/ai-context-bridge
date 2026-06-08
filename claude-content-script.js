@@ -1,15 +1,17 @@
-// Auto-send pre-filled message on Claude's /new?q= page
-(function autoSendIfPrefilled() {
-    let attempts = 0;
-    const maxAttempts = 30;
-    const interval = setInterval(() => {
-        const inputBox = document.querySelector('div[contenteditable="true"]');
-        const sendButton = document.querySelector('button[aria-label="Send message"]');
-        if (inputBox && sendButton && inputBox.innerText.trim().length > 0 && !sendButton.disabled) {
-            sendButton.click();
-            clearInterval(interval);
-        } else if (++attempts > maxAttempts) {
-            clearInterval(interval);
-        }
-    }, 200);
-})(); 
+const claude = new ClaudePlatform();
+claude.injectUI();
+
+const presence = new PresenceLayer();
+presence.init();
+
+chrome.storage.sync.get({ soundsEnabled: false, timerEnabled: true }, (result) => {
+  presence.setEnabled(result.soundsEnabled);
+  MessageTimer.setEnabled(result.timerEnabled);
+});
+
+chrome.storage.onChanged.addListener((changes) => {
+  if (changes.soundsEnabled !== undefined) presence.setEnabled(changes.soundsEnabled.newValue);
+  if (changes.timerEnabled !== undefined) MessageTimer.setEnabled(changes.timerEnabled.newValue);
+});
+
+MessageTimer.init();
