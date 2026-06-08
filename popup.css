@@ -126,3 +126,28 @@ input:checked + .slider {
 input:checked + .slider::before {
     transform: translateX(18px);
 }
+
+.footer {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 10px 16px;
+    border-top: 1px solid var(--popup-border);
+    font-size: 11px;
+    color: var(--popup-text-weak);
+}
+
+.footer-dot {
+    opacity: 0.5;
+}
+
+.footer-link {
+    color: var(--popup-text-weak);
+    text-decoration: none;
+    transition: color 0.15s ease;
+}
+
+.footer-link:hover {
+    color: var(--popup-text);
+}

@@ -1,5 +1,5 @@
 const MessageTimer = (() => {
-    const THRESHOLD_MS = 15 * 60 * 1000;
+    const THRESHOLD_MS = 30 * 60 * 1000;
 
     function formatElapsed(ms) {
         const d = Math.floor(ms / 86400000);
