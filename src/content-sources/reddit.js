@@ -16,16 +16,19 @@ class RedditMenuInjector extends MenuInjector {
     observe(actions) {
         if (this._observer) return;
 
-        document.querySelectorAll('shreddit-post-overflow-menu').forEach(el => {
-            this._injectButton(el, actions);
-        });
+        const existing = document.querySelector('shreddit-post-overflow-menu');
+        if (existing && this._injectButton(existing, actions)) return;
 
         this._observer = new MutationObserver((mutations) => {
             for (const mutation of mutations) {
                 for (const node of mutation.addedNodes) {
                     if (node.nodeType !== Node.ELEMENT_NODE) continue;
                     const target = this.findTarget(node);
-                    if (target) this._injectButton(target, actions);
+                    if (target && this._injectButton(target, actions)) {
+                        this._observer.disconnect();
+                        this._observer = null;
+                        return;
+                    }
                 }
             }
         });
@@ -34,7 +37,8 @@ class RedditMenuInjector extends MenuInjector {
     }
 
     _injectButton(overflowEl, actions) {
-        if (this._injected.has(overflowEl)) return;
+        if (this._injected.has(overflowEl)) return false;
+        if (overflowEl.closest('shreddit-comments-page-ad, shreddit-feed-promotable-item, [data-adunit]')) return false;
         this._injected.add(overflowEl);
 
         const asyncLoader = overflowEl.closest('shreddit-async-loader') || overflowEl.parentElement;
@@ -46,9 +50,9 @@ class RedditMenuInjector extends MenuInjector {
         const button = document.createElement('button');
         button.setAttribute('aria-label', 'Open with AI');
         button.setAttribute('aria-haspopup', 'menu');
-        button.innerHTML = 'Claude <span style="font-size:10px;margin-left:2px">▼</span>';
+        button.innerHTML = 'Open in AI <span style="font-size:10px;margin-left:2px">▼</span>';
         button.style.cssText = `
-            background: #10a37f;
+            background: ${Theme.ui.triggerBg};
             color: white;
             border: none;
             padding: 6px 12px;
@@ -60,17 +64,17 @@ class RedditMenuInjector extends MenuInjector {
             display: inline-flex;
             align-items: center;
             gap: 4px;
-            box-shadow: 0 2px 8px rgba(16,163,127,0.25);
+            box-shadow: 0 2px 8px ${Theme.ui.triggerBg}40;
             transition: all 0.2s ease;
             white-space: nowrap;
         `;
         button.addEventListener('mouseenter', () => {
-            button.style.background = '#0d9f6b';
-            button.style.boxShadow = '0 4px 12px rgba(16,163,127,0.4)';
+            button.style.background = Theme.ui.triggerHoverBg;
+            button.style.boxShadow = `0 4px 12px ${Theme.ui.triggerBg}66`;
         });
         button.addEventListener('mouseleave', () => {
-            button.style.background = '#10a37f';
-            button.style.boxShadow = '0 2px 8px rgba(16,163,127,0.25)';
+            button.style.background = Theme.ui.triggerBg;
+            button.style.boxShadow = `0 2px 8px ${Theme.ui.triggerBg}40`;
         });
 
         const dropdown = this._buildDropdown(actions);
@@ -89,7 +93,8 @@ class RedditMenuInjector extends MenuInjector {
             button.setAttribute('aria-expanded', 'false');
         });
 
-        asyncLoader.parentElement.insertBefore(wrapper, asyncLoader);
+        asyncLoader.insertBefore(wrapper, overflowEl);
+        return true;
     }
 
     _buildDropdown(actions) {
@@ -101,22 +106,28 @@ class RedditMenuInjector extends MenuInjector {
             right: 0;
             margin-top: 4px;
             z-index: 9999;
-            background: white;
-            border: 1px solid #edeff1;
+            background: ${Theme.ui.dropdownBg};
+            border: 1px solid ${Theme.ui.dropdownBorder};
             border-radius: 8px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.14);
-            min-width: 180px;
+            box-shadow: 0 4px 20px ${Theme.ui.shadow};
+            min-width: 210px;
             overflow: hidden;
             padding: 4px 0;
         `;
 
-        dropdown.appendChild(this._createItem('Open in Claude', '#10a37f', 'linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%)', async () => {
+        dropdown.appendChild(this._createItem('Open in Claude', Theme.claude.accent, `linear-gradient(135deg, ${Theme.claude.bg} 0%, ${Theme.claude.bgTo} 100%)`, async () => {
             dropdown.style.display = 'none';
             this._showNotification('Opening in Claude…');
             await actions.openInClaude();
         }));
 
-        dropdown.appendChild(this._createItem('Copy for AI', '#f59e0b', 'linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%)', async () => {
+        dropdown.appendChild(this._createItem('Open in ChatGPT', Theme.chatgpt.accent, `linear-gradient(135deg, ${Theme.chatgpt.bg} 0%, ${Theme.chatgpt.bgTo} 100%)`, async () => {
+            dropdown.style.display = 'none';
+            this._showNotification('Opening in ChatGPT…');
+            await actions.openInChatGPT();
+        }));
+
+        dropdown.appendChild(this._createItem('Copy for AI', Theme.copy.accent, `linear-gradient(135deg, ${Theme.copy.bg} 0%, ${Theme.copy.bgTo} 100%)`, async () => {
             dropdown.style.display = 'none';
             await actions.copyForAI();
             this._showNotification('Copied to clipboard!');
@@ -139,7 +150,7 @@ class RedditMenuInjector extends MenuInjector {
             font-size: 13px;
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
             font-weight: 500;
-            color: #1c1c1c;
+            color: ${Theme.ui.text};
             white-space: nowrap;
             background: ${bgGradient};
             border: 1px solid ${accentColor}33;
@@ -163,8 +174,16 @@ class RedditMenuInjector extends MenuInjector {
         item.appendChild(labelEl);
         item.appendChild(arrow);
 
-        item.addEventListener('mouseenter', () => item.style.opacity = '0.85');
-        item.addEventListener('mouseleave', () => item.style.opacity = '1');
+        item.addEventListener('mouseenter', () => {
+            item.style.opacity = '0.92';
+            item.style.transform = 'translateX(3px)';
+            item.style.boxShadow = `0 3px 10px ${accentColor}40`;
+        });
+        item.addEventListener('mouseleave', () => {
+            item.style.opacity = '1';
+            item.style.transform = 'translateX(0)';
+            item.style.boxShadow = 'none';
+        });
         item.addEventListener('click', (e) => {
             e.stopPropagation();
             onClick();
@@ -182,8 +201,8 @@ class RedditMenuInjector extends MenuInjector {
             top: 20px;
             left: 50%;
             transform: translateX(-50%) translateY(-8px);
-            background: #1c1c1c;
-            color: white;
+            background: ${Theme.ui.toastBg};
+            color: ${Theme.ui.toastText};
             padding: 10px 20px;
             border-radius: 20px;
             font-size: 14px;

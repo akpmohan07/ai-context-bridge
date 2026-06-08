@@ -20,6 +20,7 @@
       {
         "matches": ["https://chatgpt.com/*"],
         "js": [
+          "src/ui/theme.js",
           "src/ai-platforms/base.js",
           "src/ai-platforms/claude.js",
           "src/ai-platforms/chatgpt.js",
@@ -51,12 +52,14 @@
       {
         "matches": ["https://medium.com/*/*", "https://*.medium.com/*"],
         "js": [
+          "src/ui/theme.js",
           "src/core/schema.js",
           "src/core/budget.js",
           "src/core/formatter.js",
           "src/utils/clipboard.js",
           "src/ai-platforms/base.js",
           "src/ai-platforms/claude.js",
+          "src/ai-platforms/chatgpt.js",
           "src/content-sources/base.js",
           "src/content-sources/medium.js",
           "medium-content-script.js"
@@ -66,12 +69,14 @@
       {
         "matches": ["https://www.reddit.com/r/*/comments/*"],
         "js": [
+          "src/ui/theme.js",
           "src/core/schema.js",
           "src/core/budget.js",
           "src/core/formatter.js",
           "src/utils/clipboard.js",
           "src/ai-platforms/base.js",
           "src/ai-platforms/claude.js",
+          "src/ai-platforms/chatgpt.js",
           "src/content-sources/base.js",
           "src/ui/base.js",
           "src/ui/menu-injector.js",
