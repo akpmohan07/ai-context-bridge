@@ -1,255 +1,111 @@
-# 🔗 AI Context Bridge
+# AI Context Bridge
 
-> Never lose context when AI conversations hit limits. One-click continuation with intelligent token reuse.
+> One click sends Reddit threads, Medium articles & ChatGPT conversations to Claude or ChatGPT. No copy-paste, full context preserved.
 
-[![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
-[![Chrome Extension](https://img.shields.io/badge/Chrome-Extension-green.svg)](https://developer.chrome.com/docs/extensions/)
-[![Open Source](https://img.shields.io/badge/Open%20Source-%E2%9D%A4-red.svg)](https://github.com/yourusername/ai-context-bridge)
+<a href="https://opensource.org/licenses/Apache-2.0" target="_blank">![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)</a>
+<a href="https://chromewebstore.google.com/detail/ai-context-bridge/kjgmboacclalfjgcmooplnpimjalikfo" target="_blank">![Chrome Extension](https://img.shields.io/badge/Chrome_Extension-v1.2-green)</a>
 
-## 🚀 The Problem
+## Screenshots
 
-We've all been there:
+| Reddit | Medium |
+|--------|--------|
+| ![Reddit](assets/screenshots/Reddit_final.png) | ![Medium](assets/screenshots/Medium_final.png) |
 
-```
-🤖 Deep conversation with ChatGPT about complex project
-📝 3 hours of back-and-forth, perfect context built up
-🚫 "You've reached the maximum length for this conversation"
-😤 Start new chat → Blank screen → Lost everything
-⏰ Waste 30+ minutes trying to recreate context
-```
+| ChatGPT | Claude.ai |
+|---------|-----------|
+| ![ChatGPT](assets/screenshots/ChatGpt_final.png) | ![Claude](assets/screenshots/Claude_final.png) |
 
-**AI Context Bridge eliminates this pain forever.**
+| Popup |
+|-------|
+| ![Popup](assets/screenshots/Popup.png) |
 
-## ✨ The Solution
+## What it does
 
-**One-click context continuation** that intelligently reuses tokens from your previous conversation:
+AI Context Bridge is a Chrome extension that bridges content from the web into your AI conversations — without copy-pasting.
 
-- 🔄 **Automatic context extraction** from ChatGPT, Claude & more
-- 🎯 **Intelligent token reuse** - preserve essential context, eliminate redundancy  
-- 🚀 **One-click continuation** - seamless transition to new chat
-- 🔒 **100% private** - all processing happens locally
-- 🌐 **Cross-platform** - works across multiple AI platforms
+**Sources → Destinations:**
+- Reddit thread → Claude or ChatGPT
+- Medium article → Claude or ChatGPT
+- ChatGPT conversation → Claude (summarize & continue, or get a second opinion)
 
-## 💡 Inspired By
+Plus two extras on Claude.ai:
+- **Ambient sounds** — subtle audio presence during conversations
+- **Time awareness** — Claude knows how long since your last message
 
-I was hitting ChatGPT conversation limits and searching for solutions when I found this Reddit thread:
+## Installation
 
-> *"...possible edit your last message so it generates a new response with what you want"*
-> 
-> — [u/khanto0](https://www.reddit.com/r/ChatGPTPro/comments/1fejyuj/comment/m4og0z1/?utm_source=share&utm_medium=web3x&utm_name=web3xcss&utm_term=1&utm_content=share_button)
+**Chrome Web Store (recommended):**
+<a href="https://chromewebstore.google.com/detail/ai-context-bridge/kjgmboacclalfjgcmooplnpimjalikfo" target="_blank">Install AI Context Bridge</a>
 
-That's when it clicked: ask ChatGPT to summarize the conversation, then start fresh with that context.
+**Manual:**
+1. Clone or download this repo
+2. Open `chrome://extensions/` → enable Developer mode
+3. Click "Load unpacked" → select this folder
 
-It worked manually, but was tedious. So I automated it.
+## Features
 
-**Thanks to u/khanto0 for the original workaround that inspired this extension!**
+### Sources
 
-## 🎬 Demo
+**Reddit**
+An "Open in AI ▼" button appears on any Reddit thread. Click to choose:
+- Open in Claude — sends the full thread with top comments
+- Open in ChatGPT — same, but opens in ChatGPT
+- Copy for AI — copies formatted context to clipboard
 
-<img width="918" height="833" alt="Screenshot 2025-07-12 at 2 51 44 AM" src="https://github.com/user-attachments/assets/dad44d1b-9720-41fb-af15-b584219ac7b9" />
+**Medium**
+Same dropdown appears on any Medium article.
 
-*[Demo GIF/Video placeholder - showing the extension in action]*
+### ChatGPT
 
-## 🚀 Quick Start
+A floating button appears on ChatGPT conversations:
+- **Summarize and Continue** — asks ChatGPT to summarize the conversation, then opens Claude with that summary pre-loaded
+- **Get Claude's Opinion** — sends the conversation to Claude for a second take
 
-### Option 1: Chrome Web Store (Recommended)
-https://chromewebstore.google.com/detail/ai-context-bridge/kjgmboacclalfjgcmooplnpimjalikfo
+### Claude.ai
 
-### Option 2: Manual Installation
+**Ambient Sounds** — plays subtle background audio (breath, hum, chime) while Claude is thinking or responding. Toggle in the popup.
 
-1. **Download the latest release**
-   ```bash
-   git clone https://github.com/yourusername/ai-context-bridge.git
-   # OR download ZIP from releases
-   ```
+**Time Awareness** — automatically prepends a time context tag to your message when you've been away for 30+ minutes. Claude knows it's been a while. Toggle in the popup.
 
-2. **Load in Chrome**
-   - Open Chrome → `chrome://extensions/`
-   - Enable "Developer mode" (top right)
-   - Click "Load unpacked"
-   - Select the `ai-context-bridge` folder
+## Privacy
 
-3. **Start using**
-   - Visit ChatGPT or Claude
-   - Look for the floating "Continue Chat" button
-   - Hit conversation limits? Click the button!
+All processing is local. The extension reads page content only when you click a button. No data is sent to any server. No tracking.
 
-## 📖 How It Works
+## Architecture
 
-### Current Features
-
-✅ **Summarize and Continue in New Chat**
-- Automatically reads your entire conversation
-- Extracts key context, decisions, and current state
-- Opens new chat with optimized context pre-loaded
-
-### Coming Soon
-
-🔄 **Topic-Specific Context Extraction**
-- Filter conversations by specific topics
-- "Continue only React debugging context"
-- Multiple focused conversations from one chat
-
-🤔 **Cross-Platform Second Opinions**
-- Get Claude's opinion on ChatGPT conversations
-- Transfer context seamlessly between AI platforms
-- Compare different AI approaches
-
-🔖 **Context Bookmarking**
-- Save important conversation moments
-- Reuse contexts across different projects
-- Build your personal context library
-
-## 🛠️ Technical Architecture
-
-### Platform Support
-- ✅ **ChatGPT** (chat.openai.com)
-- 🔄 **Claude** (claude.ai) - Coming soon
-- 📋 **More platforms** - Extensible plugin system
-
-### Tech Stack
-- **Frontend**: JavaScript ES6+, Chrome Extension API
-- **Backend**: Python FastAPI (local server)
-- **AI Integration**: OpenAI API for context summarization
-- **Storage**: SQLite (local, private)
-- **Architecture**: Modular, platform-agnostic design
-
-### File Structure
 ```
 ai-context-bridge/
-├── manifest.json              # Extension configuration
-├── content-script.js          # Main conversation interaction
-├── background.js              # Service worker & API monitoring
-├── src/
-│   ├── core/                  # Universal context handling
-│   ├── platforms/             # Platform-specific implementations
-│   └── ui/                    # Shared UI components
-└── assets/                    # Icons and styles
+├── manifest.json
+├── background.js                  # Service worker — monitors ChatGPT API responses
+├── content-script.js              # ChatGPT page
+├── claude-content-script.js       # Claude.ai page
+├── reddit-content-script.js       # Reddit pages
+├── medium-content-script.js       # Medium pages
+├── popup.html / popup.js / popup.css
+└── src/
+    ├── core/                      # schema, budget trimmer, formatter
+    ├── ai-platforms/              # claude.js, chatgpt.js
+    ├── content-sources/           # reddit.js, medium.js
+    ├── ui/                        # theme.js, floating-button.js, menu-injector.js
+    ├── presence/                  # ambient sound state machine
+    └── time/                      # message-timer.js
 ```
 
-## 🎯 Use Cases
+See <a href="CLAUDE.md" target="_blank">CLAUDE.md</a> for full architecture details and contribution guide.
 
-**For Developers:**
-- Debug complex issues across multiple ChatGPT sessions
-- Maintain context in long architectural discussions
-- Seamlessly switch between coding help and design questions
+## Contributing
 
-**For Content Creators:**
-- Continue writing projects without losing creative flow
-- Maintain character consistency in storytelling
-- Preserve research context across sessions
+1. Fork the repo
+2. Make changes — no build step, pure JS loaded directly by Chrome
+3. Reload the extension in `chrome://extensions/` to test
+4. Submit a pull request
 
-**For Researchers:**
-- Keep complex analysis context intact
-- Continue literature discussions without repetition
-- Maintain methodology context across research phases
+## License
 
-## 🤝 Contributing
-
-We welcome contributions! Here's how to get started:
-
-1. **Fork the repository**
-2. **Create a feature branch**
-   ```bash
-   git checkout -b feature/amazing-feature
-   ```
-3. **Make your changes**
-4. **Test thoroughly**
-5. **Submit a pull request**
-
-### Development Setup
-
-```bash
-# Clone the repo
-git clone https://github.com/yourusername/ai-context-bridge.git
-cd ai-context-bridge
-
-# Install dependencies (if any)
-npm install
-
-# Load extension in Chrome for testing
-# (Follow manual installation steps above)
-```
-
-### Adding New Platforms
-
-The extension is designed for easy platform integration:
-
-```javascript
-// Example: Adding support for new AI platform
-class NewPlatform extends BasePlatform {
-    isCurrentPlatform() {
-        return window.location.hostname.includes('newai.com');
-    }
-    
-    getConversationData() {
-        // Platform-specific conversation extraction
-    }
-    
-    openNewChatWithContext(context) {
-        // Platform-specific new chat creation
-    }
-}
-```
-
-
-## 📊 Market Context
-
-**The Problem is Real:**
-- 59% of professionals report productivity loss from context switching
-- Users spend 59 minutes daily searching for information across tools
-- Existing solutions are incomplete and expensive ($9-19/month)
-
-**Our Advantage:**
-- ✅ Fully automated context preservation
-- ✅ Cross-platform compatibility
-- ✅ Open-source and privacy-focused
-- ✅ Token optimization and cost savings
-
-## 🗺️ Roadmap
-
-### v1.0 - Context Continuity (Current)
-- [x] ChatGPT conversation reading
-- [x] Automated context transfer
-- [x] One-click continuation
-- [ ] Chrome Web Store release
-
-### v1.1 - Topic Filtering
-- [ ] Specific topic extraction
-- [ ] AI-powered topic detection
-- [ ] Multiple context management
-
-### v1.2 - Cross-Platform
-- [ ] Claude platform support
-- [ ] Cross-platform context transfer
-- [ ] Second opinion features
-
-### v2.0 - Advanced Features
-- [ ] Context bookmarking
-- [ ] Conversation branching
-- [ ] Team collaboration features
-- [ ] Analytics and optimization
-
-## 📝 License
-
-This project is licensed under the Apache License 2.0 - see the [LICENSE](LICENSE) file for details.
-
-## 🙏 Acknowledgments
-
-- Inspired by daily frustrations with AI conversation limits
-- Built for the community of AI power users and developers
-- Thanks to all beta testers and contributors
-
-## 📧 Contact & Support
-
-- **Issues**: [[GitHub Issues](https://github.com/yourusername/ai-context-bridge/issues)](https://github.com/akpmohan07/ai-context-bridge/issues)
+Apache 2.0 — see <a href="LICENSE" target="_blank">LICENSE</a>
 
 ---
 
-⭐ **Star this repo** if AI Context Bridge saves you time! It helps others discover the project.
+Made with ❤️ for the AI community
 
-🔥 **Share your experience** - we'd love to hear how the extension improves your AI workflow!
-
----
-
-*Made with ❤️ for the AI community*
+Product Engineer: <a href="https://www.linkedin.com/in/mohankumarsm/" target="_blank">Mohan</a> · Developer: <a href="https://github.com/claude" target="_blank">Claude Code</a> · <a href="https://github.com/akpmohan07/ai-context-bridge/issues" target="_blank">GitHub Issues</a>

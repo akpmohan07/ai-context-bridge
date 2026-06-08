@@ -2,7 +2,7 @@
     "manifest_version": 3,
     "name": "AI Context Bridge",
     "version": "1.2",
-    "description": "One-click context transfer between ChatGPT and Claude. Never lose conversation context when switching AI platforms again.",
+    "description": "One click sends Reddit threads, Medium articles & ChatGPT conversations to Claude or ChatGPT. No copy-paste, full context preserved.",
     "permissions": [
       "scripting",
       "activeTab",
