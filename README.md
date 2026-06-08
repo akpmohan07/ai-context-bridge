@@ -2,8 +2,8 @@
 
 > One click sends Reddit threads, Medium articles & ChatGPT conversations to Claude or ChatGPT. No copy-paste, full context preserved.
 
-[![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
-[![Chrome Extension](https://img.shields.io/badge/Chrome_Extension-v1.2-green)](https://chromewebstore.google.com/detail/ai-context-bridge/kjgmboacclalfjgcmooplnpimjalikfo)
+<a href="https://opensource.org/licenses/Apache-2.0" target="_blank">![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)</a>
+<a href="https://chromewebstore.google.com/detail/ai-context-bridge/kjgmboacclalfjgcmooplnpimjalikfo" target="_blank">![Chrome Extension](https://img.shields.io/badge/Chrome_Extension-v1.2-green)</a>
 
 ## Screenshots
 
@@ -35,7 +35,7 @@ Plus two extras on Claude.ai:
 ## Installation
 
 **Chrome Web Store (recommended):**
-[Install AI Context Bridge](https://chromewebstore.google.com/detail/ai-context-bridge/kjgmboacclalfjgcmooplnpimjalikfo)
+<a href="https://chromewebstore.google.com/detail/ai-context-bridge/kjgmboacclalfjgcmooplnpimjalikfo" target="_blank">Install AI Context Bridge</a>
 
 **Manual:**
 1. Clone or download this repo
@@ -91,7 +91,7 @@ ai-context-bridge/
     └── time/                      # message-timer.js
 ```
 
-See [CLAUDE.md](CLAUDE.md) for full architecture details and contribution guide.
+See <a href="CLAUDE.md" target="_blank">CLAUDE.md</a> for full architecture details and contribution guide.
 
 ## Contributing
 
@@ -102,10 +102,10 @@ See [CLAUDE.md](CLAUDE.md) for full architecture details and contribution guide.
 
 ## License
 
-Apache 2.0 — see [LICENSE](LICENSE)
+Apache 2.0 — see <a href="LICENSE" target="_blank">LICENSE</a>
 
 ---
 
 Made with ❤️ for the AI community
 
-Product Engineer: [Mohan](https://mohanverse.dev) · Developer: [Claude Code](https://claude.ai/code) · [GitHub Issues](https://github.com/akpmohan07/ai-context-bridge/issues)
+Product Engineer: <a href="https://www.linkedin.com/in/mohankumarsm/" target="_blank">Mohan</a> · Developer: <a href="https://github.com/claude" target="_blank">Claude Code</a> · <a href="https://github.com/akpmohan07/ai-context-bridge/issues" target="_blank">GitHub Issues</a>
