@@ -3,7 +3,7 @@
 > One click sends Reddit threads, Medium articles & ChatGPT conversations to Claude or ChatGPT. No copy-paste, full context preserved.
 
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
-[![Chrome Extension](https://img.shields.io/badge/Chrome-Extension-v1.2-green.svg)](https://chromewebstore.google.com/detail/ai-context-bridge/icplenefpnfiefifeieocmjffejmlcdh)
+[![Chrome Extension](https://img.shields.io/badge/Chrome_Extension-v1.2-green)](https://chromewebstore.google.com/detail/ai-context-bridge/kjgmboacclalfjgcmooplnpimjalikfo)
 
 ## Screenshots
 
@@ -35,7 +35,7 @@ Plus two extras on Claude.ai:
 ## Installation
 
 **Chrome Web Store (recommended):**
-[Install AI Context Bridge](https://chromewebstore.google.com/detail/ai-context-bridge/icplenefpnfiefifeieocmjffejmlcdh)
+[Install AI Context Bridge](https://chromewebstore.google.com/detail/ai-context-bridge/kjgmboacclalfjgcmooplnpimjalikfo)
 
 **Manual:**
 1. Clone or download this repo
@@ -106,4 +106,6 @@ Apache 2.0 — see [LICENSE](LICENSE)
 
 ---
 
-Built by [Mohan](https://mohanverse.dev) · [GitHub Issues](https://github.com/akpmohan07/ai-context-bridge/issues)
+Made with ❤️ for the AI community
+
+Product Engineer: [Mohan](https://mohanverse.dev) · Developer: [Claude Code](https://claude.ai/code) · [GitHub Issues](https://github.com/akpmohan07/ai-context-bridge/issues)
