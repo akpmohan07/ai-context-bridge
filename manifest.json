@@ -20,6 +20,7 @@
       {
         "matches": ["https://chatgpt.com/*"],
         "js": [
+          "src/core/defaults.js",
           "src/ui/theme.js",
           "src/ai-platforms/base.js",
           "src/ai-platforms/claude.js",
@@ -33,6 +34,7 @@
       {
         "matches": ["https://claude.ai/*"],
         "js": [
+          "src/core/defaults.js",
           "src/ai-platforms/base.js",
           "src/ai-platforms/claude.js",
           "src/presence/config.js",
@@ -52,6 +54,7 @@
       {
         "matches": ["https://medium.com/*/*", "https://*.medium.com/*"],
         "js": [
+          "src/core/defaults.js",
           "src/ui/theme.js",
           "src/core/schema.js",
           "src/core/budget.js",
@@ -69,6 +72,7 @@
       {
         "matches": ["https://www.reddit.com/r/*/comments/*"],
         "js": [
+          "src/core/defaults.js",
           "src/ui/theme.js",
           "src/core/schema.js",
           "src/core/budget.js",

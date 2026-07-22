@@ -6,7 +6,9 @@ class ClaudePlatform extends AIPlatform {
     // Opens a new Claude chat pre-filled with the given text, using the preferred model
     // ('none' means don't manage it — leave Claude.ai's own default behavior alone)
     async openWithContext(text) {
-        const { preferredClaudeModel } = await chrome.storage.sync.get({ preferredClaudeModel: 'none' });
+        const { preferredClaudeModel } = await chrome.storage.sync.get({
+            preferredClaudeModel: Defaults.preferredClaudeModel
+        });
         const modelParam = preferredClaudeModel && preferredClaudeModel !== 'none' ? `&model=${preferredClaudeModel}` : '';
         window.open(`${this.baseUrl}/new?q=${encodeURIComponent(text)}${modelParam}`, '_blank');
     }

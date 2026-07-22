@@ -2,7 +2,7 @@ const medium = new MediumSource();
 const claude = new ClaudePlatform();
 const chatgpt = new ChatGPTPlatform();
 
-chrome.storage.sync.get({ mediumEnabled: true }, (result) => {
+chrome.storage.sync.get({ mediumEnabled: Defaults.mediumEnabled }, (result) => {
     if (!result.mediumEnabled || !medium.isMatch()) return;
     medium.injectUI({
         openInClaude: async () => {

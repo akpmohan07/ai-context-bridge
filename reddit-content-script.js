@@ -2,7 +2,7 @@ const reddit = new RedditSource();
 const claude = new ClaudePlatform();
 const chatgpt = new ChatGPTPlatform();
 
-chrome.storage.sync.get({ redditEnabled: true }, (result) => {
+chrome.storage.sync.get({ redditEnabled: Defaults.redditEnabled }, (result) => {
     if (!result.redditEnabled || !reddit.isMatch()) return;
     reddit.injectUI({
         openInClaude: async () => {

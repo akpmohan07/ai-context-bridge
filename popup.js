@@ -19,13 +19,10 @@ document.querySelectorAll('.section-label').forEach(el => {
     el.style.borderLeftColor = color;
 });
 
-const DEFAULTS = {
-  soundsEnabled:  false,
-  timerEnabled:   true,
-  chatgptEnabled: true,
-  redditEnabled:  true,
-  mediumEnabled:  true,
-};
+// Which toggles this popup renders — each id is both the storage key and the
+// checkbox's element id. Defaults come from src/core/defaults.js.
+const TOGGLES = ['soundsEnabled', 'timerEnabled', 'chatgptEnabled', 'redditEnabled', 'mediumEnabled'];
+const DEFAULTS = Object.fromEntries(TOGGLES.map(k => [k, Defaults[k]]));
 
 chrome.storage.sync.get(DEFAULTS, (result) => {
   for (const key of Object.keys(DEFAULTS)) {
@@ -39,10 +36,6 @@ for (const key of Object.keys(DEFAULTS)) {
   });
 }
 
-// 'none' means don't manage the model — leave Claude.ai's own default alone.
-// Must match the fallback in ClaudePlatform.openWithContext(), or the popup
-// shows a selection that was never saved.
-const MODEL_DEFAULT = 'none';
 const modelSelect = document.getElementById('preferredClaudeModel');
 
 (async () => {
@@ -51,7 +44,9 @@ const modelSelect = document.getElementById('preferredClaudeModel');
   // disabled placeholder stands — clearing innerHTML drops it here, so the
   // 'Default' sentinel has to be re-added by hand since the catalog has no
   // entry of its own for it.
-  const { availableClaudeModels } = await chrome.storage.local.get({ availableClaudeModels: null });
+  const { availableClaudeModels } = await chrome.storage.local.get({
+    availableClaudeModels: Defaults.availableClaudeModels
+  });
   if (availableClaudeModels?.length) {
     modelSelect.innerHTML = '';
     const noneOption = document.createElement('option');
@@ -67,7 +62,9 @@ const modelSelect = document.getElementById('preferredClaudeModel');
     }
   }
 
-  const { preferredClaudeModel } = await chrome.storage.sync.get({ preferredClaudeModel: MODEL_DEFAULT });
+  const { preferredClaudeModel } = await chrome.storage.sync.get({
+    preferredClaudeModel: Defaults.preferredClaudeModel
+  });
   modelSelect.value = preferredClaudeModel;
 })();
 

@@ -10,7 +10,10 @@ refreshModelCatalog();
 const presence = new PresenceLayer();
 presence.init();
 
-chrome.storage.sync.get({ soundsEnabled: false, timerEnabled: true }, (result) => {
+chrome.storage.sync.get({
+  soundsEnabled: Defaults.soundsEnabled,
+  timerEnabled:  Defaults.timerEnabled
+}, (result) => {
   presence.setEnabled(result.soundsEnabled);
   MessageTimer.setEnabled(result.timerEnabled);
 });
@@ -37,8 +40,8 @@ async function refreshModelCatalog() {
     // not just the timestamp matters: if one is cleared without the other,
     // a fresh timestamp would otherwise suppress the refetch for a whole day.
     const { availableClaudeModels, modelCatalogFetchedAt } = await chrome.storage.local.get({
-        availableClaudeModels: null,
-        modelCatalogFetchedAt: 0
+        availableClaudeModels: Defaults.availableClaudeModels,
+        modelCatalogFetchedAt: Defaults.modelCatalogFetchedAt
     });
     const fresh = Date.now() - modelCatalogFetchedAt < MODEL_CATALOG_TTL_MS;
     if (availableClaudeModels?.length && fresh) return;

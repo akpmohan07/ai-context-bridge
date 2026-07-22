@@ -6,6 +6,7 @@ these are the longer-form notes that don't belong in either.
 
 | Doc | What it is | Status |
 |---|---|---|
+| [tech-backlog.md](tech-backlog.md) | Structural work discussed and deliberately deferred — storage key naming/migration, and the multi-provider destination registry | Open |
 | [model-preference.md](model-preference.md) | Claude model selection — `&model=` on handoff, the model catalog cache, and the account-default PATCH that was built then removed | Read path shipped, write path removed (archived here) |
 | [reddit-requirements-prompt.md](reddit-requirements-prompt.md) | Original requirements brief for the Reddit → AI feature, written before implementation | Shipped |
 
@@ -18,6 +19,8 @@ these are the longer-form notes that don't belong in either.
   verified. These break silently and are expensive to re-derive.
 - **Decision logs** — especially reversals, so an approach that was evaluated
   and rejected isn't re-proposed later.
+- **Deferred work with its trigger condition** — what to do, why it's not done
+  yet, and what should cause it to be picked up.
 
 Not here: how to install, load, or reload the extension (root `README.md`), or
 the module/extension-point structure (`CLAUDE.md`).

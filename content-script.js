@@ -7,7 +7,7 @@ let floatingButton = null;
 function maybeInit() {
     if (!/^\/c\//.test(window.location.pathname)) return;
     if (floatingButton) return;
-    chrome.storage.sync.get({ chatgptEnabled: true }, (result) => {
+    chrome.storage.sync.get({ chatgptEnabled: Defaults.chatgptEnabled }, (result) => {
         if (!result.chatgptEnabled) return;
         floatingButton = new FloatingButton();
         floatingButton.observe({
