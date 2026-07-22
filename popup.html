@@ -53,6 +53,21 @@
 
     <div class="setting-row">
       <div class="setting-info">
+        <div class="setting-label">Default Model</div>
+        <div class="setting-desc">Model used when sending content to Claude</div>
+      </div>
+      <!-- Only the sentinel is static. The real list is written by popup.js
+           from the catalog refreshModelCatalog() caches on a claude.ai visit;
+           a hardcoded list would go stale and can't know what this account
+           actually has access to. -->
+      <select class="model-select" id="preferredClaudeModel">
+        <option value="none">Default</option>
+        <option disabled>Visit claude.ai to load models</option>
+      </select>
+    </div>
+
+    <div class="setting-row">
+      <div class="setting-info">
         <div class="setting-label">Time Awareness</div>
         <div class="setting-desc">Claude knows how long since your last message</div>
       </div>
