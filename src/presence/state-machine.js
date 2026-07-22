@@ -26,7 +26,7 @@ class PresenceStateMachine {
 
     const prev = this._state;
     this._state = next;
-    console.log(`[AI Presence] ${prev} → ${next}`);
+    console.log(`[ACB] Presence: ${prev} → ${next}`);
     this._onTransition(next, prev);
 
     // Auto-reset to IDLE after REPLIED so we're ready for next message

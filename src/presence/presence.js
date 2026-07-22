@@ -10,7 +10,7 @@ class PresenceLayer {
 
   init() {
     this._triggers.forEach(t => t.attach(event => this._sm.handle(event)));
-    console.log('[AI Presence] initialized');
+    console.log('[ACB] Presence: initialized');
   }
 
   destroy() {
@@ -28,7 +28,7 @@ class PresenceLayer {
   }
 
   _onTransition(state) {
-    console.log(`[AI Presence] state: ${state}`);
+    console.log(`[ACB] Presence: state: ${state}`);
     if (!this._enabled) return;
 
     const cfg = PRESENCE_CONFIG[state];

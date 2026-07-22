@@ -79,14 +79,14 @@ const MessageTimer = (() => {
     function setEnabled(val) { _enabled = val; }
 
     function init() {
-        console.log('[MessageTimer] init');
+        console.log('[ACB] MessageTimer: init');
         let injecting = false;
 
         document.addEventListener('click', (e) => {
             const btn = e.target.closest('button[aria-label="Send message"]');
             if (!btn || injecting || !_enabled) return;
             const prefix = buildPrefix();
-            console.log('[MessageTimer] click — prefix:', prefix);
+            console.log('[ACB] MessageTimer: click — prefix:', prefix);
             if (!prefix) return;
             e.preventDefault();
             e.stopPropagation();
@@ -99,7 +99,7 @@ const MessageTimer = (() => {
             if (e.key !== 'Enter' || e.shiftKey || injecting || !_enabled) return;
             if (!e.target.closest('[data-testid="chat-input"]')) return;
             const prefix = buildPrefix();
-            console.log('[MessageTimer] enter — prefix:', prefix);
+            console.log('[ACB] MessageTimer: enter — prefix:', prefix);
             if (!prefix) return;
             e.preventDefault();
             e.stopPropagation();

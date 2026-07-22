@@ -1,4 +1,4 @@
-console.log('AI Context Bridge loaded at', new Date().toISOString());
+console.log('[ACB] loaded at', new Date().toISOString());
 
 const chatgpt = new ChatGPTPlatform();
 const claude = new ClaudePlatform();
