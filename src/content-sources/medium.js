@@ -106,17 +106,14 @@ class MediumToolbarInjector {
             padding: 4px 0;
         `;
 
-        dropdown.appendChild(this._createItem('Open in Claude', Theme.claude.accent, `linear-gradient(135deg, ${Theme.claude.bg} 0%, ${Theme.claude.bgTo} 100%)`, async () => {
-            dropdown.style.display = 'none';
-            this._showNotification('Opening in Claude…');
-            await actions.openInClaude();
-        }));
-
-        dropdown.appendChild(this._createItem('Open in ChatGPT', Theme.chatgpt.accent, `linear-gradient(135deg, ${Theme.chatgpt.bg} 0%, ${Theme.chatgpt.bgTo} 100%)`, async () => {
-            dropdown.style.display = 'none';
-            this._showNotification('Opening in ChatGPT…');
-            await actions.openInChatGPT();
-        }));
+        actions.destinations.forEach(dest => {
+            const t = Theme[dest.theme];
+            dropdown.appendChild(this._createItem(dest.label, t.accent, `linear-gradient(135deg, ${t.bg} 0%, ${t.bgTo} 100%)`, async () => {
+                dropdown.style.display = 'none';
+                this._showNotification(`Opening in ${dest.platform.name}…`);
+                await actions.openIn(dest.platform);
+            }));
+        });
 
         dropdown.appendChild(this._createItem('Copy for AI', Theme.copy.accent, `linear-gradient(135deg, ${Theme.copy.bg} 0%, ${Theme.copy.bgTo} 100%)`, async () => {
             dropdown.style.display = 'none';
