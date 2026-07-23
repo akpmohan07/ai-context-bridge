@@ -33,7 +33,7 @@ MessageTimer.init();
 // JS memory — so we can't observe its response and have to issue our own.
 //
 // Read-only: it never sets the account's default model. See
-// docs/model-preference.md for the write path, which was tried and dropped.
+// docs/platforms/claude/model-preference.md for the write path, tried and dropped.
 // Never blocks anything else on the page if any step fails.
 async function refreshModelCatalog() {
     // Refetch when the catalog is missing OR stale. Checking the catalog and

@@ -1,24 +1,15 @@
 const medium = new MediumSource();
-const claude = new ClaudePlatform();
-const chatgpt = new ChatGPTPlatform();
+
+// One prompt wrapper, shared by every destination and by copy — so the wording
+// lives in a single place instead of being duplicated per provider.
+const message = (text) =>
+    `Here's a Medium article I'd like to discuss. Please start with a brief summary of the key points, then I'll have some questions and thoughts to explore with you.\n\n${text}`;
 
 chrome.storage.sync.get({ mediumEnabled: Defaults.mediumEnabled }, (result) => {
     if (!result.mediumEnabled || !medium.isMatch()) return;
     medium.injectUI({
-        openInClaude: async () => {
-            const text = await medium.getFormattedContent();
-            const message = `Here's a Medium article I'd like to discuss. Please start with a brief summary of the key points, then I'll have some questions and thoughts to explore with you.\n\n${text}`;
-            claude.openWithContext(message);
-        },
-        openInChatGPT: async () => {
-            const text = await medium.getFormattedContent();
-            const message = `Here's a Medium article I'd like to discuss. Please start with a brief summary of the key points, then I'll have some questions and thoughts to explore with you.\n\n${text}`;
-            chatgpt.openWithContext(message);
-        },
-        copyForAI: async () => {
-            const text = await medium.getFormattedContent();
-            const message = `Here's a Medium article I'd like to discuss. Please start with a brief summary of the key points, then I'll have some questions and thoughts to explore with you.\n\n${text}`;
-            await Clipboard.copy(message);
-        }
+        destinations: Destinations,
+        openIn: async (platform) => platform.openWithContext(message(await medium.getFormattedContent())),
+        copyForAI: async () => Clipboard.copy(message(await medium.getFormattedContent())),
     });
 });

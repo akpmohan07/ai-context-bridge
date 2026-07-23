@@ -63,6 +63,8 @@
           "src/ai-platforms/base.js",
           "src/ai-platforms/claude.js",
           "src/ai-platforms/chatgpt.js",
+          "src/ai-platforms/gemini.js",
+          "src/ai-platforms/registry.js",
           "src/content-sources/base.js",
           "src/content-sources/medium.js",
           "medium-content-script.js"
@@ -81,6 +83,8 @@
           "src/ai-platforms/base.js",
           "src/ai-platforms/claude.js",
           "src/ai-platforms/chatgpt.js",
+          "src/ai-platforms/gemini.js",
+          "src/ai-platforms/registry.js",
           "src/content-sources/base.js",
           "src/ui/base.js",
           "src/ui/menu-injector.js",
