@@ -46,11 +46,12 @@ const Defaults = {
     // which reads as infinitely stale and triggers a fetch.
     modelCatalogFetchedAt: 0,
 
-    // ---- ChatGPT last-message times (per conversation) ---------------------
+    // ---- Last-message times (per conversation) -----------------------------
     // chrome.storage.local: { convId → epoch ms of the most recent message }.
-    // Seeded from ChatGPT's conversation history on load (authoritative
-    // create_time), then stamped to "now" as messages are sent, so the
+    // Seeded from each platform's conversation API on load (authoritative
+    // timestamps), then stamped to "now" as messages are sent, so the
     // time-context prefix can show the real gap since your last message.
     // Keyed per conversation and shared across tabs — see message-timer.js.
     chatgptLastMessageAt: {},
+    claudeLastMessageAt: {},
 };

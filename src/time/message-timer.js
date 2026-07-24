@@ -7,13 +7,14 @@
 // Only injects when there's a real gap (>= THRESHOLD) or no prior message;
 // an active back-and-forth gets nothing.
 //
-// Platform-specific bits live in per-host adapters below; the core (formatting,
-// threshold, send interception) is shared. Each adapter answers one question
-// differently — "when was the last message?":
-//   • Claude  — reads the per-message timestamps Claude renders in the DOM.
-//   • ChatGPT — has no per-message DOM timestamp, so it seeds the authoritative
-//     create_time from the conversation history API on load, then keeps it
-//     fresh (see the ChatGPT adapter + background.js).
+// Both platforms use the same approach: SEED the authoritative last-message
+// time from the platform's conversation API on load, RECORD "now" on each send,
+// and cache per-conversation in chrome.storage.local. This replaced Claude's
+// old DOM-timestamp scraping, which mis-read cross-day gaps (the visible text
+// is ambiguous — "01:08" looks like today, "29 May" loses the time).
+//
+// Platform differences are three things only: selectors, the conversation-id in
+// the URL, and how fetchLastTime() reads the API. Everything else is shared.
 const MessageTimer = (() => {
     const THRESHOLD_MS = 30 * 60 * 1000;
 
@@ -35,136 +36,136 @@ const MessageTimer = (() => {
         });
     }
 
-    const MONTHS = { Jan:0, Feb:1, Mar:2, Apr:3, May:4, Jun:5, Jul:6, Aug:7, Sep:8, Oct:9, Nov:10, Dec:11 };
+    // ---- per-conversation last-message store (shared) ----------------------
+    // Storage-backed, seeded from an API and recorded on send. Methods use only
+    // closure state (never `this`), so they can be Object.assign'd onto an
+    // adapter without binding surprises.
+    function seededTimeStore({ storageKey, convId, fetchLastTime }) {
+        let cache = {}; // convId → epoch ms, mirrors chrome.storage.local[storageKey]
 
-    // Parses Claude's visible timestamp spans ("01:08" → today at that time,
-    // "29 May" → that date at midnight). Claude-only helper.
-    function parseSpanText(text) {
-        const t = text.trim();
-        const timeMatch = t.match(/^(\d{1,2}):(\d{2})$/);
-        if (timeMatch) {
-            const d = new Date();
-            d.setHours(+timeMatch[1], +timeMatch[2], 0, 0);
-            return d;
+        function set(id, ms) {
+            cache[id] = ms;
+            chrome.storage.local.set({ [storageKey]: cache });
         }
-        const dateMatch = t.match(/^(\d{1,2})\s+(\w{3})$/);
-        if (dateMatch) {
-            const month = MONTHS[dateMatch[2]];
-            if (month === undefined) return null;
-            const d = new Date();
-            d.setMonth(month, +dateMatch[1]);
-            d.setHours(0, 0, 0, 0);
-            if (d > new Date()) d.setFullYear(d.getFullYear() - 1);
-            return d;
-        }
-        return null;
+
+        return {
+            init() {
+                chrome.storage.local.get({ [storageKey]: Defaults[storageKey] }, (r) => {
+                    cache = r[storageKey] || {};
+                });
+                // Keep in sync across tabs.
+                chrome.storage.onChanged.addListener((changes, area) => {
+                    if (area === 'local' && changes[storageKey]) {
+                        cache = changes[storageKey].newValue || {};
+                    }
+                });
+            },
+
+            // Seed the authoritative last-message time on entering a chat —
+            // covers "open an old chat and send" (correct gap on the first
+            // message). Best-effort: any failure leaves the cached value in place.
+            async onNavigate() {
+                const id = convId();
+                if (!id) return;
+                try {
+                    const ms = await fetchLastTime(id);
+                    if (ms) set(id, ms);
+                } catch (e) {
+                    console.warn('[ACB] MessageTimer: seed failed', e);
+                }
+            },
+
+            getLastMessageTime() {
+                const id = convId();
+                const ms = id ? cache[id] : null;
+                return ms ? new Date(ms) : null;
+            },
+
+            // Our own send just happened — stamp now (wall-clock is within
+            // seconds of the server time, irrelevant against a 30-min threshold).
+            recordSend() {
+                const id = convId();
+                if (id) set(id, Date.now());
+            }
+        };
     }
 
-    // ---- platform adapters -------------------------------------------------
+    // ---- platform seed fetchers --------------------------------------------
 
-    const claudeAdapter = {
-        host: 'claude.ai',
-        sendButtonSelector: 'button[aria-label="Send message"]',
-        chatInputSelector: '[data-testid="chat-input"]',
-        inputSelector: 'div[contenteditable="true"]',
+    function claudeConvId() {
+        return location.pathname.match(/\/chat\/([^/?]+)/)?.[1] || null;
+    }
 
-        // Claude renders per-message timestamps; read the last one from the DOM.
-        getLastMessageTime() {
-            const spans = document.querySelectorAll('span.text-text-500.text-xs');
-            if (!spans.length) return null;
-            return parseSpanText(spans[spans.length - 1].textContent);
-        },
-
-        recordSend() {} // nothing to store — the DOM is the source of truth
-    };
-
-    const chatgptAdapter = {
-        host: 'chatgpt.com',
-        sendButtonSelector: '#composer-submit-button, button[aria-label="Send prompt"], button[data-testid="send-button"]',
-        chatInputSelector: '#prompt-textarea',
-        inputSelector: '#prompt-textarea',
-
-        _cache: {},        // convId → epoch ms, mirrors chrome.storage.local
-        _token: null,      // cached bearer token for backend-api
-
-        // Load the persisted map and keep it in sync across tabs. The
-        // background worker and other tabs also write this key.
-        init() {
-            chrome.storage.local.get({ chatgptLastMessageAt: Defaults.chatgptLastMessageAt }, (r) => {
-                this._cache = r.chatgptLastMessageAt || {};
-            });
-            chrome.storage.onChanged.addListener((changes, area) => {
-                if (area === 'local' && changes.chatgptLastMessageAt) {
-                    this._cache = changes.chatgptLastMessageAt.newValue || {};
-                }
-            });
-        },
-
-        // On entering a conversation, seed the authoritative last-message time
-        // from the history API — covers "open an old chat and start chatting",
-        // which live monitoring alone can't know about. Best-effort: any failure
-        // just leaves the cached value (or none) in place.
-        async onNavigate() {
-            const id = this._convId();
-            if (!id) return;
-            try {
-                const token = await this._getToken();
-                if (!token) return;
-                const res = await fetch(`/backend-api/conversation/${id}`, {
-                    headers: { Authorization: 'Bearer ' + token }
-                });
-                if (!res.ok) return;
-                const last = this._lastCreateTime(await res.json());
-                if (last) this._set(id, last);
-            } catch (e) {
-                console.warn('[ACB] MessageTimer(chatgpt): seed failed', e);
-            }
-        },
-
-        getLastMessageTime() {
-            const id = this._convId();
-            const ms = id ? this._cache[id] : null;
-            return ms ? new Date(ms) : null;
-        },
-
-        // Our own send just happened — stamp now. (Background does the same for
-        // sends we don't intercept, e.g. regenerate/edit.)
-        recordSend() {
-            const id = this._convId();
-            if (id) this._set(id, Date.now());
-        },
-
-        _convId() {
-            return location.pathname.match(/\/c\/([^/]+)/)?.[1] || null;
-        },
-
-        _set(id, ms) {
-            this._cache[id] = ms;
-            chrome.storage.local.set({ chatgptLastMessageAt: this._cache });
-        },
-
-        async _getToken() {
-            if (this._token) return this._token;
-            try {
-                const s = await (await fetch('/api/auth/session')).json();
-                this._token = s.accessToken || null;
-            } catch { this._token = null; }
-            return this._token;
-        },
-
-        // Largest create_time across all messages in the history payload (seconds
-        // → ms). ChatGPT's shape: { mapping: { <id>: { message: { create_time } } } }.
-        _lastCreateTime(data) {
-            const mapping = data?.mapping;
-            if (!mapping) return null;
-            let max = 0;
-            for (const k in mapping) {
-                const t = mapping[k]?.message?.create_time;
-                if (typeof t === 'number' && t > max) max = t;
-            }
-            return max ? max * 1000 : null;
+    // Claude: cookie-authenticated, same-origin — no bearer token needed.
+    // Takes the latest message created_at, falling back to the conversation
+    // updated_at. Timestamps are ISO strings (unambiguous across days).
+    async function fetchClaudeLastTime(uuid) {
+        const orgId = document.cookie.match(/(?:^|; )lastActiveOrg=([^;]+)/)?.[1];
+        if (!orgId) return null;
+        const res = await fetch(
+            `/api/organizations/${orgId}/chat_conversations/${uuid}?tree=True&rendering_mode=messages&render_all_tools=true&consistency=strong`,
+            { credentials: 'include' }
+        );
+        if (!res.ok) return null;
+        const data = await res.json();
+        let max = 0;
+        for (const m of data?.chat_messages || []) {
+            const t = Date.parse(m?.created_at);
+            if (t && t > max) max = t;
         }
-    };
+        if (!max && data?.updated_at) max = Date.parse(data.updated_at) || 0;
+        return max || null;
+    }
+
+    function chatgptConvId() {
+        return location.pathname.match(/\/c\/([^/]+)/)?.[1] || null;
+    }
+
+    // ChatGPT: backend-api needs a bearer token from /api/auth/session (cached).
+    // create_time is in seconds → ms.
+    let _chatgptToken = null;
+    async function fetchChatgptLastTime(id) {
+        if (!_chatgptToken) {
+            try {
+                _chatgptToken = (await (await fetch('/api/auth/session')).json()).accessToken || null;
+            } catch { _chatgptToken = null; }
+        }
+        if (!_chatgptToken) return null;
+        const res = await fetch(`/backend-api/conversation/${id}`, {
+            headers: { Authorization: 'Bearer ' + _chatgptToken }
+        });
+        if (!res.ok) return null;
+        const mapping = (await res.json())?.mapping;
+        if (!mapping) return null;
+        let max = 0;
+        for (const k in mapping) {
+            const t = mapping[k]?.message?.create_time;
+            if (typeof t === 'number' && t > max) max = t;
+        }
+        return max ? max * 1000 : null;
+    }
+
+    // ---- adapters: shared store + platform-specific selectors --------------
+
+    const claudeAdapter = Object.assign(
+        seededTimeStore({ storageKey: 'claudeLastMessageAt', convId: claudeConvId, fetchLastTime: fetchClaudeLastTime }),
+        {
+            host: 'claude.ai',
+            sendButtonSelector: 'button[aria-label="Send message"]',
+            chatInputSelector: '[data-testid="chat-input"]',
+            inputSelector: 'div[contenteditable="true"]',
+        }
+    );
+
+    const chatgptAdapter = Object.assign(
+        seededTimeStore({ storageKey: 'chatgptLastMessageAt', convId: chatgptConvId, fetchLastTime: fetchChatgptLastTime }),
+        {
+            host: 'chatgpt.com',
+            sendButtonSelector: '#composer-submit-button, button[aria-label="Send prompt"], button[data-testid="send-button"]',
+            chatInputSelector: '#prompt-textarea',
+            inputSelector: '#prompt-textarea',
+        }
+    );
 
     const ADAPTERS = [claudeAdapter, chatgptAdapter];
 
@@ -221,9 +222,9 @@ const MessageTimer = (() => {
     function init() {
         const adapter = pickAdapter();
         if (!adapter) return;
-        adapter.init?.();
-        adapter.onNavigate?.();
-        watchNavigation(() => adapter.onNavigate?.());
+        adapter.init();
+        adapter.onNavigate();
+        watchNavigation(() => adapter.onNavigate());
         console.log('[ACB] MessageTimer: init on', adapter.host);
 
         let injecting = false;
