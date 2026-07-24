@@ -16,7 +16,7 @@
 | Second opinion → another provider | ❌ | ✅ | ❌ |
 | **On-platform enhancements** | | | |
 | Ambient sounds | ✅ | ❌ | ❌ |
-| Time awareness on send | ✅ | ❌ | ❌ |
+| Time awareness on send | ✅ DOM timestamps | ✅ self-seeded | ❌ |
 
 ---
 
@@ -32,11 +32,17 @@ rather than us scraping its DOM — which is why the hook is still unimplemented
 **Claude's injected UI is destination-side**, not extraction — it polls for the
 composer on arrival to auto-send a pre-filled `?q=`.
 
-**The enhancements are claude.ai-only by construction.** Both were built against
-Claude-specific DOM: `button[aria-label="Send message"]`,
-`div[contenteditable="true"][data-testid="chat-input"]`, and timestamps read from
-the React fiber. Porting either means redoing that selector work per platform;
-there's no shared abstraction for it.
+**Ambient sounds are claude.ai-only by construction** — built against
+Claude-specific DOM and audio state; no cross-platform abstraction.
+
+**Time awareness now runs on ChatGPT too**, via a per-platform adapter in
+`MessageTimer` (`src/time/message-timer.js`). The shared core (formatting,
+threshold, send interception) is one implementation; each platform only answers
+"when was the last message?" differently. Claude reads the per-message
+timestamps it renders in the DOM. ChatGPT renders none, so it **seeds** the
+authoritative time from its conversation-history API on load, then updates on
+each send. The full mechanism, endpoints and decision log:
+[platforms/chatgpt/time-context.md](platforms/chatgpt/time-context.md).
 
 **Gemini has `?prompt=`, but only for short content.** Contrary to an earlier
 assumption that it had no prefill param, `gemini.google.com/app?prompt=<text>`

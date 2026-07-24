@@ -12,6 +12,7 @@ these are the longer-form notes that don't belong in either.
 | [platforms/](platforms/README.md) | Per-platform deep-dives — one folder per AI destination, feature-level notes and decision logs | Living |
 | ↳ [gemini/context-handoff.md](platforms/gemini/context-handoff.md) | Gemini handoff — the `?prompt=` short path, the 400 on large content, and the adaptive file-attachment design for big threads/articles | Short path shipped, large path designed (not built) |
 | ↳ [claude/model-preference.md](platforms/claude/model-preference.md) | Claude model selection — `&model=` on handoff, the model catalog cache, and the account-default PATCH that was built then removed | Read path shipped, write path removed (archived here) |
+| ↳ [chatgpt/time-context.md](platforms/chatgpt/time-context.md) | ChatGPT time-context on send — seed the last-message time from the history API, record on send, and why we don't monitor `f/conversation` | Shipped |
 | [reddit-requirements-prompt.md](reddit-requirements-prompt.md) | Original requirements brief for the Reddit → AI feature, written before implementation | Shipped |
 
 ## What belongs here
