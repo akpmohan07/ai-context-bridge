@@ -55,3 +55,12 @@ chrome.runtime.onMessage.addListener((message) => {
         chatgpt.handleConversationCompleted(claude);
     }
 });
+
+// Time-context prefix on send — same feature as claude.ai, ChatGPT adapter.
+chrome.storage.sync.get({ timerEnabled: Defaults.timerEnabled }, (result) => {
+    MessageTimer.setEnabled(result.timerEnabled);
+    MessageTimer.init();
+});
+chrome.storage.onChanged.addListener((changes) => {
+    if (changes.timerEnabled !== undefined) MessageTimer.setEnabled(changes.timerEnabled.newValue);
+});

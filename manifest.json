@@ -27,6 +27,7 @@
           "src/ai-platforms/chatgpt.js",
           "src/ui/base.js",
           "src/ui/floating-button.js",
+          "src/time/message-timer.js",
           "content-script.js"
         ],
         "run_at": "document_idle"
