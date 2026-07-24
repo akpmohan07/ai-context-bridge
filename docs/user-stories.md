@@ -55,9 +55,10 @@ the same as a Reddit thread does.
 
 ### Requires
 
-`contextMenus` permission, menu registration in `background.js`, and the
-destination registry from [tech-backlog.md](tech-backlog.md) — otherwise the
-submenu hardcodes destinations for a third time.
+`contextMenus` permission and menu registration in `background.js`. The
+destination submenu can iterate `src/ai-platforms/registry.js` — the same
+registry the Reddit and Medium dropdowns already use — so it needs no hardcoded
+list.
 
 ---
 
@@ -66,15 +67,18 @@ submenu hardcodes destinations for a third time.
 > As a Gemini user, I want to send content there like I can to Claude and
 > ChatGPT.
 
-**Status:** proposed · **Size:** ~half a day · **Value:** medium
+**Status:** short content shipped · large content remaining · **Value:** medium
 
-Gemini has no native URL prefill, so this needs a content script that injects
-into the composer. The technique is known — see the Gemini notes in
-[provider-features.md](provider-features.md) for the Quill editor structure,
-the `input`/`change` events required, and which selectors are the fragile ones.
+Gemini *does* have a native prefill param (`gemini.google.com/app?prompt=`), so
+short threads ship today with the same ~10-line shape as Claude/ChatGPT — live
+on Reddit and Medium via the destination registry.
 
-Payload should go via `chrome.storage.local` rather than the URL, avoiding
-length limits on long threads. That's worth adopting for Claude and ChatGPT too.
+**Remaining:** large content (Medium articles, big threads) overruns the URL and
+Gemini returns a 400. The fix is an adaptive path — short content keeps the URL,
+large content hands off via `chrome.storage.local` and attaches the text as a
+`.txt` file through a content script. Fully specced, including the live checks
+still needed, in
+[platforms/gemini/context-handoff.md](platforms/gemini/context-handoff.md).
 
 ---
 

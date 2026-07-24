@@ -91,23 +91,22 @@ remains is naming and access, not duplication.
 
 ---
 
-## Destination registry (multi-provider)
+## Destination registry (multi-provider) — SHIPPED
 
-Adding an AI destination currently costs 8 touch points, because the destination
-list is hardcoded in five places and the named-action interface
-(`openInClaude`, `openInChatGPT`, `copyForAI`) is a fixed vocabulary — so every
-new provider means editing every content source. The per-source prompt string is
-already duplicated once per destination.
+Built alongside Gemini (the third provider, which was the trigger). Lives in
+`src/ai-platforms/registry.js`: a `Destinations` array that the Reddit and Medium
+dropdowns iterate instead of enumerating `openInClaude`/`openInChatGPT`/
+`copyForAI` by hand. The per-source prompt is now a single `message()` wrapper
+instead of one copy per destination. Adding a URL-prefill provider is one
+registry entry + one manifest line.
 
-Replace with a registry that destinations are read from, so sources iterate
-rather than enumerate. Adding a provider drops to one file, one registry entry,
-one manifest line.
+**Tier that remains:** URL prefill isn't universal. Claude and ChatGPT accept a
+`?q=` param; Gemini's `?prompt=` works for short content but 400s on long (see
+[platforms/gemini/context-handoff.md](platforms/gemini/context-handoff.md)); Grok,
+Copilot and DeepSeek have no confirmed equivalent and would need per-platform DOM
+injection with auto-send polling, like `ClaudePlatform.injectUI()`. So a
+non-prefill provider still costs more than a registry line — that part didn't go
+away, it just isn't the common case.
 
-**Caveat that shapes the work:** URL prefill isn't universal. Claude, ChatGPT and
-Perplexity accept a `?q=` style param; Gemini, Grok, Copilot and DeepSeek have no
-documented equivalent and would need per-platform DOM injection with auto-send
-polling, like `ClaudePlatform.injectUI()` does. That's two tiers of work, not one
-uniform standard. Also unverified: whether those providers tolerate the very long
-URLs a 4000-word Reddit thread produces, or truncate silently.
-
-This is also the trigger for the storage entry above.
+The multi-provider expansion this enables is still the trigger for the storage
+entry above.

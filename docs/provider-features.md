@@ -5,7 +5,7 @@
 | Feature | Claude | ChatGPT | Gemini |
 |---|:--:|:--:|:--:|
 | **Destination — receiving context** | | | |
-| Open with pre-filled context | ✅ `claude.ai/new?q=` | ✅ `chatgpt.com/?q=` | ❌ no prefill param |
+| Open with pre-filled context | ✅ `claude.ai/new?q=` | ✅ `chatgpt.com/?q=` | ⚠️ `?prompt=`, short only |
 | Auto-send on arrival | ✅ | ❌ | ❌ |
 | Model selection per handoff | ✅ `&model=` | ❌ | ❌ |
 | Live model catalog | ✅ 24h cache | ❌ | ❌ |
@@ -38,22 +38,25 @@ Claude-specific DOM: `button[aria-label="Send message"]`,
 the React fiber. Porting either means redoing that selector work per platform;
 there's no shared abstraction for it.
 
-**Gemini is blocked on URL prefill.** Claude, ChatGPT and (believed) Perplexity
-accept a `?q=` style param, making them ~30 lines each. Gemini, Grok, Copilot and
-DeepSeek have no documented equivalent, so each needs the
-`ClaudePlatform.injectUI()` treatment — content script, handoff, poll for the
-composer, synthetic send — which breaks whenever their UI shifts.
+**Gemini has `?prompt=`, but only for short content.** Contrary to an earlier
+assumption that it had no prefill param, `gemini.google.com/app?prompt=<text>`
+works and ships today — short Reddit threads reach Gemini with zero injection.
+But large content (Medium articles, big threads) overruns the URL and Google
+returns a `400 malformed request`. The long-URL question flagged for the other
+providers is thus answered for Gemini: **they don't survive** — it errors rather
+than truncating silently.
 
-Two things to verify before committing to Gemini:
+The large-content path — hand off via `chrome.storage.local` and attach the text
+as a `.txt` file through a content script — is designed but not built. See
+[platforms/gemini/context-handoff.md](platforms/gemini/context-handoff.md).
 
-1. Whether a prefill mechanism exists at all. This is assumed from general
-   knowledge, not tested — worth ten minutes with a hand-built URL first.
-2. Whether long URLs survive. A 4000-word Reddit thread makes a very long `?q=`.
-   Claude tolerates it; nothing confirms the others don't truncate silently,
-   which would lose content with no error.
+Grok, Copilot and DeepSeek still have no confirmed prefill param and would each
+need the `ClaudePlatform.injectUI()` treatment — content script, handoff, poll
+for the composer, synthetic send — which breaks whenever their UI shifts.
 
-**Adding a provider costs 8 touch points today** — the destination list is
-hardcoded in five places and the action interface (`openInClaude`,
-`openInChatGPT`, `copyForAI`) is a fixed vocabulary. See the destination registry
-entry in [tech-backlog.md](tech-backlog.md); that refactor should land before the
-third provider, not after.
+**Adding a URL-prefill provider is now one registry entry + one manifest line.**
+The destination list used to be hardcoded in five places with a fixed
+`openInClaude`/`openInChatGPT`/`copyForAI` vocabulary; that's been replaced by
+`src/ai-platforms/registry.js`, which content sources iterate. Gemini was the
+third provider and the trigger for that refactor — it landed with Gemini, as
+planned. Non-prefill providers still cost more (they need the content script).
