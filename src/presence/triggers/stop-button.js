@@ -1,4 +1,6 @@
-class StopButtonTrigger extends BaseTrigger {
+import { BaseTrigger } from './base.js';
+
+export class StopButtonTrigger extends BaseTrigger {
   constructor() {
     super();
     this._pollTimer = null;

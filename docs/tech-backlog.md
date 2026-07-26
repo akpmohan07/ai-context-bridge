@@ -110,3 +110,17 @@ away, it just isn't the common case.
 
 The multi-provider expansion this enables is still the trigger for the storage
 entry above.
+
+---
+
+## Build system: WXT — ADOPTED
+
+The extension was "no build — pure JS loaded via `manifest.json`" until testing
+became a goal and the plugin grew. That model made logic untestable (global
+IIFEs, no imports) and the per-content-script `js: [...]` arrays a recurring
+edit. Migrated to **WXT** (wxt.dev): `entrypoints/` + `src/**` ES modules;
+`manifest.json` is generated from `wxt.config.ts` + each entrypoint. `chrome.*`
+kept as-is (Chrome-only) to minimise the diff. Unit tests (Vitest) were written
+*first* as the migration's safety net. Deferred parts of the testing plan:
+finish jsdom/import-gated unit targets (`reddit._mapComment`, Medium markdown),
+then Playwright E2E (L2). See [[../CLAUDE.md]] Development Setup.

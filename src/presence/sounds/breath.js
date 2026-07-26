@@ -1,3 +1,5 @@
+import { soundRegistry } from './registry.js';
+
 // Sine wave 320hz → 190hz with filtered noise underneath. Gentle exhale.
 function breathSound(ctx, volume) {
   const now = ctx.currentTime;

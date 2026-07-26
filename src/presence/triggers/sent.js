@@ -1,4 +1,6 @@
-class SentTrigger extends BaseTrigger {
+import { BaseTrigger } from './base.js';
+
+export class SentTrigger extends BaseTrigger {
   constructor() {
     super();
     this._clickHandler = null;

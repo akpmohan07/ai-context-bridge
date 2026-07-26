@@ -15,13 +15,10 @@
 //   depth    {number}   nesting level — 0 = top-level
 //   children {Item[]}   nested replies
 
-function createContentDocument({ title = '', body = '', sourceUrl = '', platform = '', community = '', items = [] } = {}) {
+export function createContentDocument({ title = '', body = '', sourceUrl = '', platform = '', community = '', items = [] } = {}) {
     return { title, body, sourceUrl, platform, community, items };
 }
 
-function createItem({ author = '', score = 0, text = '', depth = 0, children = [] } = {}) {
+export function createItem({ author = '', score = 0, text = '', depth = 0, children = [] } = {}) {
     return { author, score, text, depth, children };
 }
-
-// Test-only export — undefined in the browser (classic script), so no effect there.
-if (typeof module !== 'undefined' && module.exports) module.exports = { createContentDocument, createItem };

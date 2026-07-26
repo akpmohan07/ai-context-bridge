@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import Formatter from '../src/core/formatter.js';
+import { Formatter } from '../src/core/formatter.js';
 
 describe('Formatter.format', () => {
   it('renders community, title, body and a scored item', () => {

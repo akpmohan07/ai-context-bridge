@@ -1,4 +1,4 @@
-class BaseTrigger {
+export class BaseTrigger {
   constructor() {
     this._callback = null;
   }

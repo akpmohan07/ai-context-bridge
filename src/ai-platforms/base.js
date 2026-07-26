@@ -1,4 +1,4 @@
-class AIPlatform {
+export class AIPlatform {
     constructor(config) {
         if (new.target === AIPlatform) {
             throw new Error('AIPlatform is abstract and cannot be instantiated directly');

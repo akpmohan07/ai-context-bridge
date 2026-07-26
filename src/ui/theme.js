@@ -1,4 +1,4 @@
-const Theme = (() => {
+export const Theme = (() => {
     const dark = window.matchMedia('(prefers-color-scheme: dark)').matches;
 
     return {

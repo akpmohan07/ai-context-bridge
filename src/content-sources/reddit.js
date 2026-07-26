@@ -1,3 +1,10 @@
+import { ContentSource } from './base.js';
+import { MenuInjector } from '../ui/menu-injector.js';
+import { Theme } from '../ui/theme.js';
+import { Budget } from '../core/budget.js';
+import { Formatter } from '../core/formatter.js';
+import { createContentDocument, createItem } from '../core/schema.js';
+
 class RedditMenuInjector extends MenuInjector {
     constructor() {
         super({ name: 'RedditMenuInjector' });
@@ -240,7 +247,7 @@ class RedditMenuInjector extends MenuInjector {
 
 }
 
-class RedditSource extends ContentSource {
+export class RedditSource extends ContentSource {
     constructor() {
         super({ name: 'Reddit' });
         this._injector = new RedditMenuInjector();

@@ -15,7 +15,9 @@
 //
 // Platform differences are three things only: selectors, the conversation-id in
 // the URL, and how fetchLastTime() reads the API. Everything else is shared.
-const MessageTimer = (() => {
+import { Defaults } from '../core/defaults.js';
+
+export const MessageTimer = (() => {
     const THRESHOLD_MS = 30 * 60 * 1000;
 
     // ---- shared formatting -------------------------------------------------
@@ -277,6 +279,3 @@ const MessageTimer = (() => {
         _test: { formatElapsed, buildPrefix, parseClaudeLastTime, parseChatgptLastTime },
     };
 })();
-
-// Test-only export — undefined in the browser (classic script), so no effect there.
-if (typeof module !== 'undefined' && module.exports) module.exports = MessageTimer;

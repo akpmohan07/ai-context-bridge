@@ -1,4 +1,6 @@
-class ChatGPTPlatform extends AIPlatform {
+import { AIPlatform } from './base.js';
+
+export class ChatGPTPlatform extends AIPlatform {
     constructor() {
         super({ name: 'ChatGPT', baseUrl: 'https://chatgpt.com' });
         this._pendingAction = null; // 'continue' | 'claude'

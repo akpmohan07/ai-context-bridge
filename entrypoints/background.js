@@ -1,0 +1,31 @@
+export default defineBackground(() => {
+  let listeningTabId = null;
+
+  chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+    if (message.action === "enableListener") {
+      listeningTabId = message.tabId;
+      console.log("[ACB] Background: enableListener received for tabId:", listeningTabId);
+    }
+    if (message.action === "getTabId") {
+      sendResponse({ tabId: sender.tab.id });
+    }
+  });
+
+  // Signal the armed tab when a ChatGPT summarize reply finishes streaming.
+  chrome.webRequest.onCompleted.addListener(
+    (details) => {
+      if (listeningTabId !== null) {
+        chrome.tabs.get(listeningTabId, (tab) => {
+          if (tab && tab.url && tab.url.startsWith("https://chatgpt.com/")) {
+            chrome.tabs.sendMessage(listeningTabId, { event: "conversation_completed" });
+            console.log("[ACB] Sent 'conversation_completed' to tab:", listeningTabId, tab.url);
+          } else {
+            console.log("[ACB] Tab not found or not a ChatGPT page:", listeningTabId, tab ? tab.url : "no tab");
+          }
+          listeningTabId = null;
+        });
+      }
+    },
+    { urls: ["https://chatgpt.com/backend-api/f/conversation"] }
+  );
+});

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import Budget from '../src/core/budget.js';
+import { Budget } from '../src/core/budget.js';
 
 const item = (over = {}) => ({ author: 'u', score: 0, text: 'x', depth: 0, children: [], ...over });
 

@@ -43,4 +43,4 @@ class SoundRegistry {
   }
 }
 
-const soundRegistry = new SoundRegistry();
+export const soundRegistry = new SoundRegistry();

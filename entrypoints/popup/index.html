@@ -2,12 +2,12 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <link rel="stylesheet" href="popup.css">
+  <link rel="stylesheet" href="./style.css">
 </head>
 <body>
   <div class="header">
     <div class="header-icon">
-      <img src="icons/48-icon.png" alt="">
+      <img src="/icons/48-icon.png" alt="">
     </div>
     <span class="header-text">AI Context Bridge</span>
   </div>
@@ -56,10 +56,8 @@
         <div class="setting-label">Default Model</div>
         <div class="setting-desc">Model used when sending content to Claude</div>
       </div>
-      <!-- Only the sentinel is static. The real list is written by popup.js
-           from the catalog refreshModelCatalog() caches on a claude.ai visit;
-           a hardcoded list would go stale and can't know what this account
-           actually has access to. -->
+      <!-- Only the sentinel is static. The real list is written by main.js
+           from the catalog refreshModelCatalog() caches on a claude.ai visit. -->
       <select class="model-select" id="preferredClaudeModel">
         <option value="none">Default</option>
         <option disabled>Visit claude.ai to load models</option>
@@ -98,8 +96,6 @@
     <a class="footer-link" href="https://github.com/akpmohan07/ai-context-bridge" target="_blank">GitHub ↗</a>
   </div>
 
-  <script src="src/core/defaults.js"></script>
-  <script src="src/ui/theme.js"></script>
-  <script src="popup.js"></script>
+  <script type="module" src="./main.js"></script>
 </body>
 </html>

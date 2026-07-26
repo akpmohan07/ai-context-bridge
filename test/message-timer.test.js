@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import MessageTimer from '../src/time/message-timer.js';
+import { MessageTimer } from '../src/time/message-timer.js';
 
 const { formatElapsed, buildPrefix, parseClaudeLastTime, parseChatgptLastTime } = MessageTimer._test;
 

@@ -1,4 +1,4 @@
-const PRESENCE_STATES = {
+export const PRESENCE_STATES = {
   IDLE:       'IDLE',
   SENT:       'SENT',
   GENERATING: 'GENERATING',
@@ -13,7 +13,7 @@ const TRANSITIONS = {
   REPLIED:    { sent: PRESENCE_STATES.SENT, reset: PRESENCE_STATES.IDLE },
 };
 
-class PresenceStateMachine {
+export class PresenceStateMachine {
   constructor(onTransition) {
     this._state = PRESENCE_STATES.IDLE;
     this._onTransition = onTransition;
@@ -47,6 +47,3 @@ class PresenceStateMachine {
     if (this._resetTimer) clearTimeout(this._resetTimer);
   }
 }
-
-// Test-only export — undefined in the browser (classic script), so no effect there.
-if (typeof module !== 'undefined' && module.exports) module.exports = { PresenceStateMachine, PRESENCE_STATES };

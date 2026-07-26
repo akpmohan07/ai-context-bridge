@@ -1,4 +1,6 @@
-class MenuInjector extends UIInjector {
+import { UIInjector } from './base.js';
+
+export class MenuInjector extends UIInjector {
     constructor(config) {
         super(config);
         this._injectedMenus = new WeakSet(); // prevent double-injection

@@ -1,3 +1,7 @@
+import { ClaudePlatform } from './claude.js';
+import { ChatGPTPlatform } from './chatgpt.js';
+import { GeminiPlatform } from './gemini.js';
+
 // Registry of AI destinations a content source can hand off to. This is data,
 // not logic: adding a provider is one entry here (plus its class file in the
 // manifest, and a content script only if it needs on-page DOM injection).
@@ -12,7 +16,7 @@
 // through this registry would be the wrong abstraction.
 //
 // `theme` keys into Theme[...] for the menu item's accent/background.
-const Destinations = [
+export const Destinations = [
     { id: 'claude',  label: 'Open in Claude',  theme: 'claude',  platform: new ClaudePlatform() },
     { id: 'chatgpt', label: 'Open in ChatGPT', theme: 'chatgpt', platform: new ChatGPTPlatform() },
     { id: 'gemini',  label: 'Open in Gemini',  theme: 'gemini',  platform: new GeminiPlatform() },

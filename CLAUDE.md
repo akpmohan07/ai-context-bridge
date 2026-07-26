@@ -11,15 +11,23 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Development Setup
 
-No build process. This is pure JavaScript loaded directly by Chrome.
+Built with **WXT** (wxt.dev). Source lives in `entrypoints/` (per-surface
+entrypoints) and `src/**` (shared ES modules); `manifest.json` is **generated**
+from `wxt.config.ts` + each entrypoint's own `matches`/`runAt` — do not hand-edit
+a manifest.
 
-**To install/reload:**
-1. Open `chrome://extensions/`
-2. Enable Developer mode
-3. "Load unpacked" → select this directory
-4. After code changes, click the refresh icon on the extension card
+- `npm run dev` — WXT dev server with HMR (loads into a dev browser)
+- `npm run build` — production build into `.output/chrome-mv3/`
+- `npm test` — Vitest unit tests (pure logic; see `test/`)
 
-**To test changes:** Reload the extension and navigate to ChatGPT, Claude, or Reddit.
+**To load manually:** `npm run build`, then in `chrome://extensions/` (Developer
+mode) → "Load unpacked" → select `.output/chrome-mv3/`. Rebuild + refresh after
+changes (or use `npm run dev`).
+
+Content scripts run in the isolated world and use `chrome.*` directly (Chrome-only
+target). Add a new surface as a file in `entrypoints/` (e.g. `foo.content.js` with
+`defineContentScript({ matches, runAt, main() })`), importing what it needs from
+`src/**`.
 
 ## Architecture
 
@@ -58,9 +66,9 @@ DOM injection with MutationObserver-based targeting.
 ## Adding New Platforms
 
 **New content source** (e.g., HackerNews):
-1. Create `src/content-sources/hackernews.js`, extend `ContentSource`
+1. Create `src/content-sources/hackernews.js`, extend `ContentSource` (use `export class`)
 2. Implement `isMatch()`, `fetchContent()` (return `ContentDocument`), `injectUI(actions)`
-3. Register in `manifest.json` as a new content script
+3. Add `entrypoints/hackernews.content.js` with `defineContentScript({ matches, runAt, main() })`, importing the source — WXT adds it to the generated manifest
 
 **New AI destination** (e.g., Gemini):
 1. Create `src/ai-platforms/gemini.js`, extend `AIPlatform`

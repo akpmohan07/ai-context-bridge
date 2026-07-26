@@ -1,4 +1,7 @@
-class ContentSource {
+import { Budget } from '../core/budget.js';
+import { Formatter } from '../core/formatter.js';
+
+export class ContentSource {
     constructor(config) {
         if (new.target === ContentSource) {
             throw new Error('ContentSource is abstract and cannot be instantiated directly');

@@ -1,4 +1,13 @@
-class PresenceLayer {
+import { SentTrigger } from './triggers/sent.js';
+import { StopButtonTrigger } from './triggers/stop-button.js';
+import { PresenceStateMachine } from './state-machine.js';
+import { PRESENCE_CONFIG } from './config.js';
+import { soundRegistry } from './sounds/registry.js';
+import './sounds/breath.js';
+import './sounds/hum.js';
+import './sounds/chime.js';
+
+export class PresenceLayer {
   constructor() {
     this._triggers = [
       new SentTrigger(),

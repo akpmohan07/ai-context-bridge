@@ -1,3 +1,5 @@
+import { soundRegistry } from './registry.js';
+
 // Two notes in sequence: 440hz then 554hz. A minor lift. "Here you go."
 function chimeSound(ctx, volume) {
   const notes = [

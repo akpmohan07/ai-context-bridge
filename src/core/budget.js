@@ -1,4 +1,4 @@
-const Budget = (() => {
+export const Budget = (() => {
     const DEFAULT_WORD_BUDGET = 4000;
 
     function countWords(text) {
@@ -44,6 +44,3 @@ const Budget = (() => {
 
     return { trim, DEFAULT_WORD_BUDGET };
 })();
-
-// Test-only export — undefined in the browser (classic script), so no effect there.
-if (typeof module !== 'undefined' && module.exports) module.exports = Budget;

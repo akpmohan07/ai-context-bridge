@@ -1,3 +1,6 @@
+import { Defaults } from '../../src/core/defaults.js';
+import { Theme } from '../../src/ui/theme.js';
+
 // Apply theme tokens as CSS variables
 const root = document.documentElement;
 root.style.setProperty('--popup-bg',           Theme.popup.bg);
@@ -39,11 +42,7 @@ for (const key of Object.keys(DEFAULTS)) {
 const modelSelect = document.getElementById('preferredClaudeModel');
 
 (async () => {
-  // Rebuild options from the live catalog cached by claude-content-script.js.
-  // Until that exists (fresh install, no claude.ai visit yet) popup.html's
-  // disabled placeholder stands — clearing innerHTML drops it here, so the
-  // 'Default' sentinel has to be re-added by hand since the catalog has no
-  // entry of its own for it.
+  // Rebuild options from the live catalog cached by the claude content script.
   const { availableClaudeModels } = await chrome.storage.local.get({
     availableClaudeModels: Defaults.availableClaudeModels
   });

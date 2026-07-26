@@ -1,4 +1,6 @@
-class GeminiPlatform extends AIPlatform {
+import { AIPlatform } from './base.js';
+
+export class GeminiPlatform extends AIPlatform {
     constructor() {
         super({ name: 'Gemini', baseUrl: 'https://gemini.google.com' });
     }

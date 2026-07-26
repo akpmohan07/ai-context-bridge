@@ -1,29 +1,36 @@
+import { ContentSource } from './base.js';
+import { Theme } from '../ui/theme.js';
+import { Budget } from '../core/budget.js';
+import { Formatter } from '../core/formatter.js';
+import { createContentDocument } from '../core/schema.js';
+
 class MediumToolbarInjector {
     constructor() {
-        this._injected = false;
         this._observer = null;
     }
 
     observe(actions) {
-        if (this._tryInject(actions)) return;
+        this._tryInject(actions);
+        if (this._observer) return;
 
-        this._observer = new MutationObserver(() => {
-            if (this._tryInject(actions)) {
-                this._observer.disconnect();
-                this._observer = null;
-            }
-        });
+        // Stay connected for the page's lifetime. Medium hydrates/re-renders the
+        // footer after load and removes our button (a foreign node in
+        // React-managed DOM), so a one-shot injector shows it then loses it. The
+        // presence guard in _tryInject keeps this to a single button.
+        this._observer = new MutationObserver(() => this._tryInject(actions));
         this._observer.observe(document.body, { childList: true, subtree: true });
     }
 
     _tryInject(actions) {
-        if (this._injected) return true;
+        if (document.querySelector('.acb-medium-launcher')) return true;
 
         // The share button's wrapper has a stable aria-describedby attribute
         const shareWrapper = document.querySelector('[aria-describedby="postFooterSocialMenu"]');
         if (!shareWrapper || !shareWrapper.parentElement) return false;
 
-        this._injected = true;
+        // Remove any dropdown orphaned in <body> by a button that got re-rendered away.
+        document.querySelectorAll('.acb-medium-dropdown').forEach(d => d.remove());
+
         const btn = this._buildButtonWrapper(actions);
         shareWrapper.parentElement.insertBefore(btn, shareWrapper.nextSibling);
         return true;
@@ -31,6 +38,7 @@ class MediumToolbarInjector {
 
     _buildButtonWrapper(actions) {
         const wrapper = document.createElement('div');
+        wrapper.className = 'acb-medium-launcher';
         wrapper.style.cssText = 'display: inline-flex; align-items: center;';
 
         // Dropdown is appended to document.body so it escapes any overflow:hidden on the toolbar
@@ -92,6 +100,7 @@ class MediumToolbarInjector {
 
     _buildDropdown(actions) {
         const dropdown = document.createElement('div');
+        dropdown.className = 'acb-medium-dropdown';
         dropdown.style.cssText = `
             display: none;
             flex-direction: column;
@@ -219,7 +228,7 @@ class MediumToolbarInjector {
     }
 }
 
-class MediumSource extends ContentSource {
+export class MediumSource extends ContentSource {
     constructor() {
         super({ name: 'Medium' });
         this._injector = new MediumToolbarInjector();

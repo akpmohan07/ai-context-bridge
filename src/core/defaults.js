@@ -2,7 +2,7 @@
 // Property names are identical to their chrome.storage keys — no mapping to
 // remember. Call sites keep using chrome.storage directly and take only the
 // default from here, so a default is never written down twice.
-const Defaults = {
+export const Defaults = {
 
     // ---- Feature toggles (claude.ai) ---------------------------------------
 

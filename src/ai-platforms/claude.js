@@ -1,4 +1,7 @@
-class ClaudePlatform extends AIPlatform {
+import { AIPlatform } from './base.js';
+import { Defaults } from '../core/defaults.js';
+
+export class ClaudePlatform extends AIPlatform {
     constructor() {
         super({ name: 'Claude', baseUrl: 'https://claude.ai' });
     }
