@@ -6,17 +6,24 @@ const { defineConfig } = require('vitest/config');
 // chrome glue is E2E's job and would just dilute the number.
 module.exports = defineConfig({
   test: {
-    environment: 'node',
+    environment: 'jsdom',
+    setupFiles: ['./test/setup.js'],
     include: ['test/**/*.test.js'],
     coverage: {
       provider: 'v8',
       reporter: ['text', 'html'],
+      // Scoped to predominantly-pure modules where a file-level % is meaningful.
+      // reddit.js / medium.js / claude.js are mostly DOM/injection glue with a
+      // few pure methods — those methods ARE tested (reddit/medium/platforms
+      // specs), but including the whole glue file makes the number meaningless.
+      // The honest fix is extracting their pure logic into its own module; until
+      // then they're covered by passing tests, not by the coverage denominator.
       include: [
         'src/core/budget.js',
         'src/core/formatter.js',
         'src/core/schema.js',
-        'src/time/message-timer.js',
         'src/presence/state-machine.js',
+        'src/ai-platforms/gemini.js',
       ],
     },
   },
