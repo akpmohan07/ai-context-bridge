@@ -29,8 +29,8 @@ const MessageTimer = (() => {
         return `${m} min`;
     }
 
-    function formatNow() {
-        return new Date().toLocaleString('en-US', {
+    function formatNow(d = new Date()) {
+        return d.toLocaleString('en-US', {
             weekday: 'long', year: 'numeric', month: 'long',
             day: 'numeric', hour: '2-digit', minute: '2-digit'
         });
@@ -99,15 +99,8 @@ const MessageTimer = (() => {
     // Claude: cookie-authenticated, same-origin — no bearer token needed.
     // Takes the latest message created_at, falling back to the conversation
     // updated_at. Timestamps are ISO strings (unambiguous across days).
-    async function fetchClaudeLastTime(uuid) {
-        const orgId = document.cookie.match(/(?:^|; )lastActiveOrg=([^;]+)/)?.[1];
-        if (!orgId) return null;
-        const res = await fetch(
-            `/api/organizations/${orgId}/chat_conversations/${uuid}?tree=True&rendering_mode=messages&render_all_tools=true&consistency=strong`,
-            { credentials: 'include' }
-        );
-        if (!res.ok) return null;
-        const data = await res.json();
+    // Pure: max message created_at, falling back to conversation updated_at.
+    function parseClaudeLastTime(data) {
         let max = 0;
         for (const m of data?.chat_messages || []) {
             const t = Date.parse(m?.created_at);
@@ -117,12 +110,35 @@ const MessageTimer = (() => {
         return max || null;
     }
 
+    async function fetchClaudeLastTime(uuid) {
+        const orgId = document.cookie.match(/(?:^|; )lastActiveOrg=([^;]+)/)?.[1];
+        if (!orgId) return null;
+        const res = await fetch(
+            `/api/organizations/${orgId}/chat_conversations/${uuid}?tree=True&rendering_mode=messages&render_all_tools=true&consistency=strong`,
+            { credentials: 'include' }
+        );
+        if (!res.ok) return null;
+        return parseClaudeLastTime(await res.json());
+    }
+
     function chatgptConvId() {
         return location.pathname.match(/\/c\/([^/]+)/)?.[1] || null;
     }
 
     // ChatGPT: backend-api needs a bearer token from /api/auth/session (cached).
     // create_time is in seconds → ms.
+    // Pure: max message create_time (seconds) → ms.
+    function parseChatgptLastTime(data) {
+        const mapping = data?.mapping;
+        if (!mapping) return null;
+        let max = 0;
+        for (const k in mapping) {
+            const t = mapping[k]?.message?.create_time;
+            if (typeof t === 'number' && t > max) max = t;
+        }
+        return max ? max * 1000 : null;
+    }
+
     let _chatgptToken = null;
     async function fetchChatgptLastTime(id) {
         if (!_chatgptToken) {
@@ -135,14 +151,7 @@ const MessageTimer = (() => {
             headers: { Authorization: 'Bearer ' + _chatgptToken }
         });
         if (!res.ok) return null;
-        const mapping = (await res.json())?.mapping;
-        if (!mapping) return null;
-        let max = 0;
-        for (const k in mapping) {
-            const t = mapping[k]?.message?.create_time;
-            if (typeof t === 'number' && t > max) max = t;
-        }
-        return max ? max * 1000 : null;
+        return parseChatgptLastTime(await res.json());
     }
 
     // ---- adapters: shared store + platform-specific selectors --------------
@@ -175,11 +184,10 @@ const MessageTimer = (() => {
 
     // ---- shared behaviour --------------------------------------------------
 
-    function buildPrefix(adapter) {
-        const now = new Date();
-        const lastTime = adapter.getLastMessageTime();
+    // Pure: given the last-message time (Date|null) and now, decide the prefix.
+    function buildPrefix(lastTime, now = new Date()) {
         const elapsed = lastTime ? now - lastTime : null;
-        const timeStr = formatNow();
+        const timeStr = formatNow(now);
         if (elapsed && elapsed >= THRESHOLD_MS) {
             return `[TimeContext: ${timeStr} | ${formatElapsed(elapsed)} since last message]\n`;
         }
@@ -233,7 +241,7 @@ const MessageTimer = (() => {
             const btn = e.target.closest(adapter.sendButtonSelector);
             if (!btn || injecting || !_enabled) return;
             if (!hasInputText(adapter)) return;
-            const prefix = buildPrefix(adapter);
+            const prefix = buildPrefix(adapter.getLastMessageTime());
             adapter.recordSend();
             if (!prefix) return;
             e.preventDefault();
@@ -247,7 +255,7 @@ const MessageTimer = (() => {
             if (e.key !== 'Enter' || e.shiftKey || injecting || !_enabled) return;
             if (!e.target.closest(adapter.chatInputSelector)) return;
             if (!hasInputText(adapter)) return;
-            const prefix = buildPrefix(adapter);
+            const prefix = buildPrefix(adapter.getLastMessageTime());
             adapter.recordSend();
             if (!prefix) return;
             e.preventDefault();
@@ -262,5 +270,13 @@ const MessageTimer = (() => {
         }, true);
     }
 
-    return { init, setEnabled };
+    return {
+        init,
+        setEnabled,
+        // Pure logic exposed for unit tests (see test/message-timer.test.js).
+        _test: { formatElapsed, buildPrefix, parseClaudeLastTime, parseChatgptLastTime },
+    };
 })();
+
+// Test-only export — undefined in the browser (classic script), so no effect there.
+if (typeof module !== 'undefined' && module.exports) module.exports = MessageTimer;

@@ -44,3 +44,6 @@ const Budget = (() => {
 
     return { trim, DEFAULT_WORD_BUDGET };
 })();
+
+// Test-only export — undefined in the browser (classic script), so no effect there.
+if (typeof module !== 'undefined' && module.exports) module.exports = Budget;
