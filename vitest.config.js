@@ -14,7 +14,9 @@ module.exports = defineConfig({
       include: [
         'src/core/budget.js',
         'src/core/formatter.js',
+        'src/core/schema.js',
         'src/time/message-timer.js',
+        'src/presence/state-machine.js',
       ],
     },
   },

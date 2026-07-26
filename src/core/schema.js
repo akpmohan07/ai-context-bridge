@@ -22,3 +22,6 @@ function createContentDocument({ title = '', body = '', sourceUrl = '', platform
 function createItem({ author = '', score = 0, text = '', depth = 0, children = [] } = {}) {
     return { author, score, text, depth, children };
 }
+
+// Test-only export — undefined in the browser (classic script), so no effect there.
+if (typeof module !== 'undefined' && module.exports) module.exports = { createContentDocument, createItem };

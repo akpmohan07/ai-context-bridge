@@ -47,3 +47,6 @@ class PresenceStateMachine {
     if (this._resetTimer) clearTimeout(this._resetTimer);
   }
 }
+
+// Test-only export — undefined in the browser (classic script), so no effect there.
+if (typeof module !== 'undefined' && module.exports) module.exports = { PresenceStateMachine, PRESENCE_STATES };
