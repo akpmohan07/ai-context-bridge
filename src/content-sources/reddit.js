@@ -3,7 +3,8 @@ import { MenuInjector } from '../ui/menu-injector.js';
 import { Theme } from '../ui/theme.js';
 import { Budget } from '../core/budget.js';
 import { Formatter } from '../core/formatter.js';
-import { createContentDocument, createItem } from '../core/schema.js';
+import { createContentDocument } from '../core/schema.js';
+import { mapComment } from './reddit-parse.js';
 
 class RedditMenuInjector extends MenuInjector {
     constructor() {
@@ -264,7 +265,7 @@ export class RedditSource extends ContentSource {
 
         const post = data[0].data.children[0].data;
         const items = (data[1].data.children || [])
-            .map(c => this._mapComment(c, 0))
+            .map(c => mapComment(c, 0))
             .filter(Boolean);
 
         return createContentDocument({
@@ -289,25 +290,5 @@ export class RedditSource extends ContentSource {
 
     injectUI(actions) {
         this._injector.observe(actions);
-    }
-
-    // --- private ---
-
-    _mapComment(comment, depth) {
-        if (comment.kind !== 't1') return null;
-        const d = comment.data;
-        if (!d.body || d.body === '[deleted]' || d.body === '[removed]') return null;
-
-        const children = d.replies?.data?.children
-            ? d.replies.data.children.map(c => this._mapComment(c, depth + 1)).filter(Boolean)
-            : [];
-
-        return createItem({
-            author: d.author,
-            score: d.score || 0,
-            text: d.body,
-            depth,
-            children
-        });
     }
 }

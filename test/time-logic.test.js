@@ -1,7 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { MessageTimer } from '../src/time/message-timer.js';
-
-const { formatElapsed, buildPrefix, parseClaudeLastTime, parseChatgptLastTime } = MessageTimer._test;
+import { formatElapsed, buildPrefix, parseClaudeLastTime, parseChatgptLastTime } from '../src/time/time-logic.js';
 
 const MIN = 60 * 1000;
 const HOUR = 60 * MIN;

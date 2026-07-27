@@ -16,28 +16,9 @@
 // Platform differences are three things only: selectors, the conversation-id in
 // the URL, and how fetchLastTime() reads the API. Everything else is shared.
 import { Defaults } from '../core/defaults.js';
+import { buildPrefix, parseClaudeLastTime, parseChatgptLastTime } from './time-logic.js';
 
 export const MessageTimer = (() => {
-    const THRESHOLD_MS = 30 * 60 * 1000;
-
-    // ---- shared formatting -------------------------------------------------
-
-    function formatElapsed(ms) {
-        const d = Math.floor(ms / 86400000);
-        const h = Math.floor((ms % 86400000) / 3600000);
-        const m = Math.floor((ms % 3600000) / 60000);
-        if (d > 0) return h > 0 ? `${d} day${d>1?'s':''} ${h}h` : `${d} day${d>1?'s':''}`;
-        if (h > 0) return m > 0 ? `${h}h ${m}m` : `${h}h`;
-        return `${m} min`;
-    }
-
-    function formatNow(d = new Date()) {
-        return d.toLocaleString('en-US', {
-            weekday: 'long', year: 'numeric', month: 'long',
-            day: 'numeric', hour: '2-digit', minute: '2-digit'
-        });
-    }
-
     // ---- per-conversation last-message store (shared) ----------------------
     // Storage-backed, seeded from an API and recorded on send. Methods use only
     // closure state (never `this`), so they can be Object.assign'd onto an
@@ -101,17 +82,6 @@ export const MessageTimer = (() => {
     // Claude: cookie-authenticated, same-origin — no bearer token needed.
     // Takes the latest message created_at, falling back to the conversation
     // updated_at. Timestamps are ISO strings (unambiguous across days).
-    // Pure: max message created_at, falling back to conversation updated_at.
-    function parseClaudeLastTime(data) {
-        let max = 0;
-        for (const m of data?.chat_messages || []) {
-            const t = Date.parse(m?.created_at);
-            if (t && t > max) max = t;
-        }
-        if (!max && data?.updated_at) max = Date.parse(data.updated_at) || 0;
-        return max || null;
-    }
-
     async function fetchClaudeLastTime(uuid) {
         const orgId = document.cookie.match(/(?:^|; )lastActiveOrg=([^;]+)/)?.[1];
         if (!orgId) return null;
@@ -129,18 +99,6 @@ export const MessageTimer = (() => {
 
     // ChatGPT: backend-api needs a bearer token from /api/auth/session (cached).
     // create_time is in seconds → ms.
-    // Pure: max message create_time (seconds) → ms.
-    function parseChatgptLastTime(data) {
-        const mapping = data?.mapping;
-        if (!mapping) return null;
-        let max = 0;
-        for (const k in mapping) {
-            const t = mapping[k]?.message?.create_time;
-            if (typeof t === 'number' && t > max) max = t;
-        }
-        return max ? max * 1000 : null;
-    }
-
     let _chatgptToken = null;
     async function fetchChatgptLastTime(id) {
         if (!_chatgptToken) {
@@ -185,19 +143,6 @@ export const MessageTimer = (() => {
     }
 
     // ---- shared behaviour --------------------------------------------------
-
-    // Pure: given the last-message time (Date|null) and now, decide the prefix.
-    function buildPrefix(lastTime, now = new Date()) {
-        const elapsed = lastTime ? now - lastTime : null;
-        const timeStr = formatNow(now);
-        if (elapsed && elapsed >= THRESHOLD_MS) {
-            return `[TimeContext: ${timeStr} | ${formatElapsed(elapsed)} since last message]\n`;
-        }
-        if (!lastTime) {
-            return `[TimeContext: ${timeStr}]\n`;
-        }
-        return null;
-    }
 
     function hasInputText(adapter) {
         const box = document.querySelector(adapter.inputSelector);
@@ -272,10 +217,5 @@ export const MessageTimer = (() => {
         }, true);
     }
 
-    return {
-        init,
-        setEnabled,
-        // Pure logic exposed for unit tests (see test/message-timer.test.js).
-        _test: { formatElapsed, buildPrefix, parseClaudeLastTime, parseChatgptLastTime },
-    };
+    return { init, setEnabled };
 })();
