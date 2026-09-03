@@ -11,17 +11,15 @@ import { test, expect } from './connected-fixtures';
 //   even though the identical unpacked build loads fine via the UI button)
 //
 // This sends a REAL message to a REAL claude.ai conversation every time it
-// runs. The message reads like an ordinary human question (a plain math
-// question with a random small number for uniqueness) rather than an
-// obvious bot-signature string — an account sending a stream of
-// identically-shaped "canary"/timestamp messages is a reasonable thing for
-// abuse detection to flag; a normal-looking question isn't.
+// runs. The message is a fixed, ordinary-looking human question (not a
+// randomized/timestamped "canary" string) — an account sending a stream of
+// obviously bot-shaped messages is a reasonable thing for abuse detection to
+// flag; a normal, repeatable question isn't.
 
 test('claude.ai real auto-send: ?q= prefill sends, and Time Awareness prefixes the first message', async ({
   connectedPage,
 }) => {
-  const num = Math.floor(100 + Math.random() * 900);
-  const testMsg = `What is 47 + ${num}?`;
+  const testMsg = 'What is 1 + 1?';
   await connectedPage.goto(`https://claude.ai/new?q=${encodeURIComponent(testMsg)}`, {
     waitUntil: 'domcontentloaded',
   });
