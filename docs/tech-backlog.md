@@ -167,9 +167,82 @@ not a specific destination URL.
 
 Checked live: `claude.ai/new?q=...` logged-out redirects straight to
 `/login`, and that login page itself sits behind a Cloudflare "Performing
-security verification" interstitial. No guest-mode shortcut here — Phase 2's
-original plan (manual login → `storageState.json`) still stands for real
-auto-send verification on Claude. Not started.
+security verification" interstitial. No guest-mode shortcut here.
+
+**`storageState.json` (cookie replay) does not work for Claude — proven, not
+theoretical.** Anthropic's Cloudflare bot-management checks `navigator.webdriver`
+live, on every request, regardless of what cookies are presented. This was
+tested exhaustively before landing on a working technique:
+
+| Attempt | Chrome launched by | `navigator.webdriver` | Result |
+|---|---|---|---|
+| Scripted login (Playwright `launch()`, Chromium) | Playwright | `true` | ❌ Google blocks at email step |
+| Same, real Chrome via `channel: 'chrome'` | Playwright | `true` | ❌ Same block |
+| Manual human-typed login inside that same window | Playwright | `true` | ❌ Same block — the flag doesn't care who types |
+| Plain Chrome launched by hand, but with `--remote-debugging-port` on from the start | You | `false`, but debug port itself is a signal | ❌ Google blocks at sign-in |
+| **Login on a debug-port-free Chrome → quit → relaunch same profile with `--remote-debugging-port` → Playwright `connectOverCDP()` after** | You | `false`, throughout | ✅ **Works** — no challenge, session intact |
+| Cookies captured from that clean session, replayed via `launchPersistentContext({storageState})` | Playwright | `true` | ❌ Still blocked — confirms it's the *live* browser's flag, not cookie/session history |
+
+**Why the working row works:** `--enable-automation` (which sets
+`navigator.webdriver = true`) is added automatically by Playwright's own
+`launch()`/`launchPersistentContext()` — there's no opt-out via those APIs.
+`connectOverCDP()` is fundamentally different: it attaches to a browser
+someone else already started, so if that browser was never launched by
+Playwright, the flag was simply never set. Nothing here spoofs or lies about
+automation — it's a genuinely normal, human-driven browser at the one moment
+(login) that's checked, with a script only attaching afterward.
+
+**Practical setup**, using a profile persisted in-repo (gitignored, `e2e/.auth/`
+— never committed, contains live session data):
+```bash
+npm run e2e:login    # opens plain Chrome on the persisted profile — sign in by hand
+npm run e2e:connect  # relaunches same profile with --remote-debugging-port, ready to attach
+```
+Since all three providers can use the same dummy Google account, one profile
+covers Claude, ChatGPT, and Gemini — sign into Google once, "Continue with
+Google" on each site should auto-authenticate.
+
+**Ceiling of this technique:** inherently manual and local — there's no
+human to do the plain-Chrome login step in GitHub Actions. This is the L2
+tier as originally scoped (manual/on-demand, pre-release validation), not
+something that becomes part of the automated push/PR suite.
+
+**One more wrinkle, solved: `--load-extension` on the command line is itself
+blocked on a Google-identity-linked profile — but the identical unpacked
+build loads fine through the UI.** Adding `--load-extension`/
+`--disable-extensions-except` to the same working `connectOverCDP` setup
+above broke it again: the extension silently failed to load (no service
+worker, absent from `chrome://extensions`, repeated
+`"Requested load of chrome://newtab/ for incorrect profile type"` in the
+Chrome log) — narrowed down empirically, not guessed:
+- Ruled out: prior profile pollution (reset the profile from scratch, same failure)
+- Ruled out: Chrome Sync specifically (declined every sync prompt, still failed)
+- Ruled out: launch sequencing (plain-then-relaunch works fine *without* any
+  Google auth involved — isolated with a disposable profile, no login)
+- **Isolated cause: any Google identity ever authenticated in the browser**
+  (sync-declined or not) **rejects unpacked extensions loaded via the
+  `--load-extension` flag specifically.** Manually clicking chrome://extensions
+  → Developer mode → **Load unpacked** → `.output/chrome-mv3` loads the exact
+  same build without issue, on the exact same signed-in profile, and doesn't
+  disturb the session.
+
+**Updated practical setup:**
+```bash
+npm run e2e:login    # opens plain Chrome on the persisted profile — sign in by hand
+npm run e2e:connect  # relaunches same profile with --remote-debugging-port (no --load-extension)
+```
+Then, once per profile (not once per run — Chrome remembers it after):
+`chrome://extensions` → Developer mode on → **Load unpacked** → select
+`.output/chrome-mv3`.
+
+**Built and verified working, live, against the real site:**
+`e2e/connected-fixtures.ts` (connect-based, distinct from the
+`launchPersistentContext`-based `e2e/fixtures.ts` used for the unauthenticated
+specs) and `e2e/claude-authenticated.spec.ts` — confirms `ClaudePlatform.injectUI()`'s
+real auto-send (not just URL construction) and, as a side effect of the
+programmatic `sendButton.click()` genuinely dispatching a real DOM event,
+confirms `MessageTimer`'s Time Awareness prefix fires correctly on the first
+message too. 3/3 stable runs.
 
 ### Blocked: Reddit spec
 
