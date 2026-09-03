@@ -131,14 +131,45 @@ then Playwright E2E (L2). See [[../CLAUDE.md]] Development Setup.
 
 `e2e/` scaffolded: `fixtures.ts` loads the built extension via
 `launchPersistentContext` (classic headless doesn't load MV3 extensions at
-all — must run headed; CI will need `xvfb`). `smoke.spec.ts` and
-`medium.spec.ts` pass reliably — the latter discovers a live article via
-Medium's public tag RSS feed (no hardcoded URL to rot) and, via
-`e2e/helpers.ts`, clicks through all three destinations (Claude, ChatGPT,
-Gemini), asserting each produces the correct URL. Each destination's own host
-is intercepted with `route.fulfill()` (empty response) so the assertion checks
-what our `openWithContext()` built, not the third-party app's behavior —
-navigating for real raced Claude.ai's client-side URL cleanup.
+all — must run headed). CI wiring is done: `.github/workflows/ci.yml` runs
+`unit` + `e2e` jobs together (headed Chromium under `xvfb`), on every
+push/PR/dispatch, `continue-on-error: true` so a live-site failure never
+blocks a merge. `e2e/write-summary.mjs` renders the JSON reporter output as a
+markdown table on the GitHub Actions run summary page (readable pass/fail/
+duration without downloading the HTML report artifact).
+
+`smoke.spec.ts` and `medium.spec.ts` pass reliably — the latter discovers a
+live article via Medium's public tag RSS feed (no hardcoded URL to rot) and,
+via `e2e/helpers.ts`'s `DESTINATIONS` record, has one named test per
+destination (`Medium → Claude opens a correct handoff`, etc.) plus a menu-
+visibility test. Each destination's own host is intercepted with
+`route.fulfill()` (empty response) so the assertion checks what our
+`openWithContext()` built, not the third-party app's behavior — navigating for
+real raced Claude.ai's client-side URL cleanup.
+
+### ChatGPT: works as a guest, no auth needed
+
+Unlike Claude.ai (see below), `chatgpt.com` serves a genuinely working chat to
+logged-out visitors — confirmed live: `chatgpt.com/?q=...` auto-sends the
+prefill with no login wall. `e2e/chatgpt.spec.ts` exploits this for real
+(unmocked) coverage: the prefill actually lands as a sent message, and the
+floating "AI Context Bridge" button (`entrypoints/chatgpt.content.js`) is
+confirmed to correctly stay hidden outside `/c/...` conversation pages.
+Deliberately does NOT wait for the assistant's reply — that depends on
+chatgpt.com's live generation latency and a DOM that shifts between streaming
+and final states, which is flakiness in chatgpt.com's behavior, not this
+extension's. Also found: chatgpt.com's post-send redirect target isn't
+consistent (`/uc/<id>` some runs, staying on `/?model=auto` others) — the spec
+asserts the one thing that's actually invariant (path never becomes `/c/...`),
+not a specific destination URL.
+
+### Claude.ai: guest doesn't work, real auth still required
+
+Checked live: `claude.ai/new?q=...` logged-out redirects straight to
+`/login`, and that login page itself sits behind a Cloudflare "Performing
+security verification" interstitial. No guest-mode shortcut here — Phase 2's
+original plan (manual login → `storageState.json`) still stands for real
+auto-send verification on Claude. Not started.
 
 ### Blocked: Reddit spec
 
@@ -164,12 +195,11 @@ if it doesn't reproduce on a residential network.
 
 Leaning towards (1) for whatever ends up in the CI-gating suite, since (2)'s
 premise (works locally ⇒ works in CI) is specifically undermined by the
-datacenter-IP theory above. Revisit before Phase 5 (CI wiring).
+datacenter-IP theory above.
 
 ### Not yet started
-Phase 2 (auth/`storageState` for Claude & ChatGPT — Gemini expected hardest,
-may get descoped the same way), Phase 3 (their specs), Phase 5 (CI workflow,
-non-gating: `workflow_dispatch` + `release: published`). Auth platforms carry
-the same live-site risk Reddit just demonstrated, just with a different shape
-(authenticated session traffic risk-scores differently than anonymous
-scraping-shaped traffic — untested assumption, not a finding).
+Claude auth setup (manual login → `storageState.json`) for real auto-send
+verification. Gemini: expected to be the hardest of the three (Google's
+automation/login detection is more aggressive than Cloudflare's), likely
+candidate to get descoped the same way Reddit is currently blocked — not yet
+attempted at all.
