@@ -18,15 +18,19 @@ export const test = base.extend<{
   connectedContext: BrowserContext;
   connectedPage: Page;
 }>({
-  // eslint-disable-next-line no-empty-pattern
-  connectedContext: async ({}, use) => {
+  connectedContext: async ({}, use, testInfo) => {
     let browser;
     try {
       browser = await chromium.connectOverCDP(CDP_URL);
     } catch (e) {
-      throw new Error(
+      // No manually-launched Chrome to attach to — expected in CI (there's no
+      // human to do the login step there) and whenever this hasn't been set
+      // up locally. Skip cleanly rather than fail, matching reddit.spec.ts.
+      testInfo.skip(
+        true,
         `Could not connect to ${CDP_URL} — run "npm run e2e:login" then "npm run e2e:connect" first.`
       );
+      return;
     }
     const context = browser.contexts()[0];
     await use(context);
