@@ -4,21 +4,12 @@ The split here is **reads vs writes**, not features.
 
 | | Status | Where |
 |---|---|---|
-| Read the model catalog | **Removed** (2026-09-03) | archived in this doc only |
+| Read the model catalog | **Shipped** | `refreshModelCatalog()` in `claude-content-script.js` |
 | Send a model with a handoff | **Shipped** | `ClaudePlatform.openWithContext()` |
 | Write the account's default model | **Removed** | archived in this doc only |
 
-Both removed paths were built, tested and working before removal. Neither
-exists in the tree — the code in this doc is the only copy of each.
-
-**Consequence of removing the catalog read:** nothing populates
-`availableClaudeModels` in `chrome.storage.local` anymore, so the popup's
-model dropdown is permanently stuck on its empty-cache placeholder
-("Visit claude.ai to load models," see `popup.html` note below) — it can
-never self-heal by visiting claude.ai the way it used to. `preferredClaudeModel`
-storage and the `&model=` handoff param are unaffected; only the dropdown's
-own list-population is dead. If the dropdown itself is still wanted, it needs
-a different data source now, not a revert of this removal.
+The write path was built, tested and working before removal. It exists nowhere
+in the tree — the code below is the only copy.
 
 ---
 
@@ -49,63 +40,19 @@ breaks the "must be a direct user gesture" rule for popups. Tested live —
 Chrome did **not** block it (transient activation survives the short storage
 read). Re-verify if this ever regresses.
 
-### Catalog refresh — removed 2026-09-03
+### Catalog refresh
 
-Dropped because claude.ai now has its own native per-chat model selection,
-making the extension's own catalog-driven popup dropdown redundant duplicate
-functionality rather than something filling a real gap (unlike the handoff
-`&model=` param, which claude.ai has no native equivalent for). Verbatim, as
-it last worked, in `claude-content-script.js`:
+`refreshModelCatalog()` in `claude-content-script.js` runs on any claude.ai
+load, throttled to once per 24h via `modelCatalogFetchedAt` in
+`chrome.storage.local`. It caches `availableClaudeModels` so the popup dropdown
+lists what the account can actually use, with unavailable models greyed out.
 
-```js
-// Caches Claude's live model catalog so the popup's model dropdown reflects
-// what this account can actually use, including availability. Read-only.
-// Never blocks the page on failure.
-async function refreshModelCatalog() {
-    const { availableClaudeModels, modelCatalogFetchedAt } = await chrome.storage.local.get({
-        availableClaudeModels: Defaults.availableClaudeModels,
-        modelCatalogFetchedAt: Defaults.modelCatalogFetchedAt
-    });
-    const fresh = Date.now() - modelCatalogFetchedAt < MODEL_CATALOG_TTL_MS; // 24h
-    if (availableClaudeModels?.length && fresh) return;
+The timestamp is written *with* the catalog, not before the fetch, so a failed
+request retries on the next page load instead of being throttled out for a day.
 
-    const orgId = document.cookie.match(/(?:^|; )lastActiveOrg=([^;]+)/)?.[1];
-    if (!orgId) {
-        console.warn('[ACB] refreshModelCatalog: could not resolve org id, skipping');
-        return;
-    }
-
-    try {
-        const res = await fetch(
-            `https://claude.ai/edge-api/bootstrap/${orgId}/app_start?statsig_hashing_algorithm=djb2&growthbook_format=sdk&include_system_prompts=false`,
-            { credentials: 'include' }
-        );
-        if (!res.ok) {
-            console.warn('[ACB] refreshModelCatalog: bootstrap read failed', res.status);
-            return;
-        }
-        const bootstrap = await res.json();
-        const models = bootstrap?.model_selector_config?.find(c => c.id === 'chat')?.models;
-        if (!models?.length) {
-            console.warn('[ACB] refreshModelCatalog: no models in bootstrap response');
-            return;
-        }
-        await chrome.storage.local.set({
-            availableClaudeModels: models,
-            modelCatalogFetchedAt: Date.now()
-        });
-        console.log('[ACB] refreshModelCatalog: cached', models.length, 'models');
-    } catch (e) {
-        console.warn('[ACB] refreshModelCatalog: request errored', e);
-    }
-}
-```
-
-It ran on any claude.ai load (not gated to `/new`, deliberately — that would
-have excluded `?q=` handoffs, this extension's own primary flow), throttled
-to once per 24h via `modelCatalogFetchedAt`, with the timestamp written
-*with* the catalog so a failed request retried on the next load instead of
-being throttled out for a day.
+Gating it to `/new` (as the removed write path did) would have been wrong here
+— that excludes `?q=` handoffs, which is this extension's own primary flow, so
+a user who only ever arrives via handoff would never refresh their catalog.
 
 ### The "Default" (don't-manage) option
 
