@@ -10,5 +10,7 @@ export default defineConfig({
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 1 : 0,
   workers: 1,
-  reporter: 'list',
+  // 'list' for live console output; 'html' produces the readable pass/fail +
+  // timing + trace report uploaded as a CI artifact (see .github/workflows/e2e.yml).
+  reporter: [['list'], ['html', { open: 'never', outputFolder: 'playwright-report' }]],
 });

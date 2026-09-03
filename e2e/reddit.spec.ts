@@ -24,6 +24,11 @@ async function findRedditThreadUrl(request: APIRequestContext): Promise<string> 
 test('injects the AI menu on a real Reddit thread and opens correct handoffs for every destination', async ({
   context,
 }) => {
+  test.skip(
+    true,
+    'reddit.com blocks anonymous automated requests (bot-detection wall) — see docs/tech-backlog.md § Playwright E2E'
+  );
+
   const page = await context.newPage();
   const url = await findRedditThreadUrl(page.request);
   await page.goto(url, { waitUntil: 'domcontentloaded' });

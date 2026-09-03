@@ -1,0 +1,32 @@
+name: e2e
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  e2e:
+    runs-on: ubuntu-latest
+    # Depends on live third-party sites (Medium today; Claude/ChatGPT/Gemini
+    # later) that can be flaky or change independently of this code — must
+    # never block a merge. Runs on every push/PR so we get a signal to iterate
+    # on (flake rate, timing), but failure here is informational only.
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      # Chrome extensions don't load in classic headless mode (see
+      # e2e/fixtures.ts) — run the headed browser under a virtual display.
+      - run: sudo apt-get update && sudo apt-get install -y xvfb
+      - run: xvfb-run --auto-servernum npm run test:e2e
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 14
