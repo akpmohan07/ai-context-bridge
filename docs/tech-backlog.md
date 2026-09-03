@@ -124,3 +124,52 @@ kept as-is (Chrome-only) to minimise the diff. Unit tests (Vitest) were written
 *first* as the migration's safety net. Deferred parts of the testing plan:
 finish jsdom/import-gated unit targets (`reddit._mapComment`, Medium markdown),
 then Playwright E2E (L2). See [[../CLAUDE.md]] Development Setup.
+
+---
+
+## Playwright E2E (L2) — IN PROGRESS
+
+`e2e/` scaffolded: `fixtures.ts` loads the built extension via
+`launchPersistentContext` (classic headless doesn't load MV3 extensions at
+all — must run headed; CI will need `xvfb`). `smoke.spec.ts` and
+`medium.spec.ts` pass reliably — the latter discovers a live article via
+Medium's public tag RSS feed (no hardcoded URL to rot) and, via
+`e2e/helpers.ts`, clicks through all three destinations (Claude, ChatGPT,
+Gemini), asserting each produces the correct URL. Each destination's own host
+is intercepted with `route.fulfill()` (empty response) so the assertion checks
+what our `openWithContext()` built, not the third-party app's behavior —
+navigating for real raced Claude.ai's client-side URL cleanup.
+
+### Blocked: Reddit spec
+
+`reddit.spec.ts` has the identical structure ready but can't run — its
+discovery step (`reddit.com/*.json`, and even a plain subreddit listing page)
+returns a bot-detection wall ("blocked by network security") for anonymous/
+unauthenticated requests from this sandboxed dev environment, both via a bare
+API request and via full headed-Chromium navigation. Not a flakiness issue —
+a hard block, most likely IP-reputation-based (datacenter IP), which would
+very likely reproduce in GitHub Actions runners too (also datacenter IPs) even
+if it doesn't reproduce on a residential network.
+
+**Decision deferred — options on the table:**
+1. Local HTML fixture instead of live reddit.com: hand-capture a static
+   snapshot of the real `shreddit-post-overflow-menu` DOM shape, serve it
+   locally, test injection deterministically. No bot-wall risk, but doesn't
+   catch Reddit changing their real DOM — that stays a manual-verification
+   job (as it already was pre-WXT).
+2. Live-but-local-only: keep the live-navigation spec, but treat it as
+   something you run yourself outside the CI-gating suite.
+3. Drop Reddit from E2E entirely, rely on manual load-testing for it (as
+   already done once, see [[../CLAUDE.md]] / feedback-testable-code memory).
+
+Leaning towards (1) for whatever ends up in the CI-gating suite, since (2)'s
+premise (works locally ⇒ works in CI) is specifically undermined by the
+datacenter-IP theory above. Revisit before Phase 5 (CI wiring).
+
+### Not yet started
+Phase 2 (auth/`storageState` for Claude & ChatGPT — Gemini expected hardest,
+may get descoped the same way), Phase 3 (their specs), Phase 5 (CI workflow,
+non-gating: `workflow_dispatch` + `release: published`). Auth platforms carry
+the same live-site risk Reddit just demonstrated, just with a different shape
+(authenticated session traffic risk-scores differently than anonymous
+scraping-shaped traffic — untested assumption, not a finding).
