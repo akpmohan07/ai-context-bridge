@@ -1,4 +1,4 @@
-name: e2e
+name: ci
 
 on:
   push:
@@ -6,6 +6,16 @@ on:
   workflow_dispatch:
 
 jobs:
+  unit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm ci
+      - run: npm test
+
   e2e:
     runs-on: ubuntu-latest
     # Depends on live third-party sites (Medium today; Claude/ChatGPT/Gemini
@@ -24,6 +34,8 @@ jobs:
       # e2e/fixtures.ts) — run the headed browser under a virtual display.
       - run: sudo apt-get update && sudo apt-get install -y xvfb
       - run: xvfb-run --auto-servernum npm run test:e2e
+      - if: always()
+        run: node e2e/write-summary.mjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:

@@ -9,28 +9,28 @@ type Destination = {
 };
 
 // Mirrors src/ai-platforms/registry.js — one entry per live destination the
-// dropdown offers, so every spec that uses this proves the real click-through
-// URL, not just the unit-tested builder function.
-export const DESTINATIONS: Destination[] = [
-  {
+// dropdown offers, keyed so a spec can assert a single named destination
+// (e.g. DESTINATIONS.claude) instead of an opaque loop index.
+export const DESTINATIONS = {
+  claude: {
     menuItemName: /Open in Claude/,
     hostPattern: 'https://claude.ai/**',
     urlPrefix: /^https:\/\/claude\.ai\/new\?q=/,
     param: 'q',
   },
-  {
+  chatgpt: {
     menuItemName: /Open in ChatGPT/,
     hostPattern: 'https://chatgpt.com/**',
     urlPrefix: /^https:\/\/chatgpt\.com\/\?q=/,
     param: 'q',
   },
-  {
+  gemini: {
     menuItemName: /Open in Gemini/,
     hostPattern: 'https://gemini.google.com/**',
     urlPrefix: /^https:\/\/gemini\.google\.com\/app\?prompt=/,
     param: 'prompt',
   },
-];
+} as const satisfies Record<string, Destination>;
 
 // Blocks the destination's own host so its page never actually loads (avoids
 // depending on — and racing — a live third-party app's client-side behavior,

@@ -1,4 +1,4 @@
-import type { APIRequestContext } from '@playwright/test';
+import type { APIRequestContext, BrowserContext, Locator, Page } from '@playwright/test';
 import { test, expect } from './fixtures';
 import { DESTINATIONS, assertDestinationHandoff } from './helpers';
 
@@ -16,9 +16,13 @@ async function findMediumArticleUrl(request: APIRequestContext): Promise<string>
   return articleUrl;
 }
 
-test('injects the AI menu on a real Medium article and opens correct handoffs for every destination', async ({
-  context,
-}) => {
+// Navigates to a live article, confirms the launcher injected, and returns
+// the page + the "Open with AI" toggle — each test opens the dropdown itself
+// right before it needs it, since a stale-open dropdown from a prior click
+// would make the next click close instead of open it.
+async function openMediumArticle(
+  context: BrowserContext
+): Promise<{ page: Page; toggle: Locator }> {
   const page = await context.newPage();
   const url = await findMediumArticleUrl(page.request);
   await page.goto(url, { waitUntil: 'domcontentloaded' });
@@ -26,21 +30,48 @@ test('injects the AI menu on a real Medium article and opens correct handoffs fo
   const launcher = page.locator('.acb-medium-launcher');
   await expect(launcher).toBeVisible({ timeout: 15_000 });
 
-  const toggle = launcher.getByRole('button', { name: 'Open with AI' });
+  return { page, toggle: launcher.getByRole('button', { name: 'Open with AI' }) };
+}
+
+test('Medium menu lists Claude, ChatGPT, Gemini and Copy for AI', async ({ context }) => {
+  const { page, toggle } = await openMediumArticle(context);
   await toggle.click();
-  for (const dest of DESTINATIONS) {
+
+  for (const dest of Object.values(DESTINATIONS)) {
     await expect(page.getByRole('menuitem', { name: dest.menuItemName })).toBeVisible();
   }
   await expect(page.getByRole('menuitem', { name: /Copy for AI/ })).toBeVisible();
-  await toggle.click(); // close — each loop iteration below opens fresh
+});
 
-  for (const dest of DESTINATIONS) {
-    await toggle.click();
-    await assertDestinationHandoff(
-      context,
-      page,
-      dest,
-      "Here's a Medium article I'd like to discuss"
-    );
-  }
+test('Medium → Claude opens a correct handoff', async ({ context }) => {
+  const { page, toggle } = await openMediumArticle(context);
+  await toggle.click();
+  await assertDestinationHandoff(
+    context,
+    page,
+    DESTINATIONS.claude,
+    "Here's a Medium article I'd like to discuss"
+  );
+});
+
+test('Medium → ChatGPT opens a correct handoff', async ({ context }) => {
+  const { page, toggle } = await openMediumArticle(context);
+  await toggle.click();
+  await assertDestinationHandoff(
+    context,
+    page,
+    DESTINATIONS.chatgpt,
+    "Here's a Medium article I'd like to discuss"
+  );
+});
+
+test('Medium → Gemini opens a correct handoff', async ({ context }) => {
+  const { page, toggle } = await openMediumArticle(context);
+  await toggle.click();
+  await assertDestinationHandoff(
+    context,
+    page,
+    DESTINATIONS.gemini,
+    "Here's a Medium article I'd like to discuss"
+  );
 });

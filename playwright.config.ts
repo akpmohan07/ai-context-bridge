@@ -11,6 +11,12 @@ export default defineConfig({
   retries: process.env.CI ? 1 : 0,
   workers: 1,
   // 'list' for live console output; 'html' produces the readable pass/fail +
-  // timing + trace report uploaded as a CI artifact (see .github/workflows/e2e.yml).
-  reporter: [['list'], ['html', { open: 'never', outputFolder: 'playwright-report' }]],
+  // timing + trace report uploaded as a CI artifact; 'json' feeds
+  // e2e/write-summary.mjs, which renders the GitHub Actions run summary
+  // (see .github/workflows/ci.yml).
+  reporter: [
+    ['list'],
+    ['html', { open: 'never', outputFolder: 'playwright-report' }],
+    ['json', { outputFile: 'playwright-report/results.json' }],
+  ],
 });
