@@ -4,10 +4,12 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-**AI Context Bridge** is a Chrome Extension (Manifest V3) that enables context transfer between AI platforms and content sources. Current supported flows:
+**AI Context Bridge** is a Chrome Extension (Manifest V3) that enables context transfer between AI platforms and content sources. Current supported flows (full catalog: `docs/features.md`):
+- Reddit thread → Claude / ChatGPT / Gemini / Clipboard
+- Medium article → Claude / ChatGPT / Gemini / Clipboard
 - ChatGPT → Claude (summarize & continue, second opinion)
-- Reddit thread → Claude (formatted discussion context)
-- Reddit thread → Clipboard
+- Claude.ai: Presence (ambient sound), Time Awareness, Default Model preference
+- ChatGPT: Time Awareness
 
 ## Development Setup
 

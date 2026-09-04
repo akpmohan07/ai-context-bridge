@@ -44,28 +44,35 @@ Plus two extras on Claude.ai:
 
 ## Features
 
+Full catalog: [docs/features.md](docs/features.md).
+
 ### Sources
 
 **Reddit**
 An "Open in AI ▼" button appears on any Reddit thread. Click to choose:
 - Open in Claude — sends the full thread with top comments
-- Open in ChatGPT — same, but opens in ChatGPT
+- Open in ChatGPT — same, opens in ChatGPT
+- Open in Gemini — same, opens in Gemini
 - Copy for AI — copies formatted context to clipboard
 
 **Medium**
-Same dropdown appears on any Medium article.
+Same dropdown appears on any Medium article, with the same four destinations.
 
 ### ChatGPT
 
 A floating button appears on ChatGPT conversations:
-- **Summarize and Continue** — asks ChatGPT to summarize the conversation, then opens Claude with that summary pre-loaded
+- **Summarize and Continue** — asks ChatGPT to summarize the conversation, then opens a new ChatGPT chat with that summary pre-loaded
 - **Get Claude's Opinion** — sends the conversation to Claude for a second take
+
+**Time Awareness** — prepends a time-context tag to your message when it's the first message in a new chat, or there's been a 30+ minute gap. Toggle in the popup.
 
 ### Claude.ai
 
-**Ambient Sounds** — plays subtle background audio (breath, hum, chime) while Claude is thinking or responding. Toggle in the popup.
+**Ambient Sounds (Presence)** — plays subtle background audio (breath on send, hum while generating, chime on reply). Toggle in the popup.
 
-**Time Awareness** — automatically prepends a time context tag to your message when you've been away for 30+ minutes. Claude knows it's been a while. Toggle in the popup.
+**Time Awareness** — same behavior as ChatGPT's: a time-context tag on the first message or after a real gap. Toggle in the popup.
+
+**Default Model** — pick a model in the popup to use whenever content is handed off to Claude from Reddit, Medium, or ChatGPT.
 
 ## Privacy
 
