@@ -12,6 +12,10 @@ describe('formatElapsed', () => {
   it('one day, singular', () => expect(formatElapsed(DAY)).toBe('1 day'));
   it('multiple days, plural', () => expect(formatElapsed(2 * DAY)).toBe('2 days'));
   it('days and hours', () => expect(formatElapsed(DAY + 3 * HOUR)).toBe('1 day 3h'));
+  it('sub-minute gaps read as words, not "0 min"', () => {
+    expect(formatElapsed(40 * 1000)).toBe('less than a minute');
+    expect(formatElapsed(0)).toBe('less than a minute');
+  });
 });
 
 describe('buildPrefix', () => {

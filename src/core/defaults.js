@@ -54,4 +54,7 @@ export const Defaults = {
     // Keyed per conversation and shared across tabs — see message-timer.js.
     chatgptLastMessageAt: {},
     claudeLastMessageAt: {},
+
+    // Gemini is record-only (no seed) — see message-timer.js / fetchGeminiLastTime.
+    geminiLastMessageAt: {},
 };

@@ -9,7 +9,10 @@ export function formatElapsed(ms) {
     const m = Math.floor((ms % 3600000) / 60000);
     if (d > 0) return h > 0 ? `${d} day${d>1?'s':''} ${h}h` : `${d} day${d>1?'s':''}`;
     if (h > 0) return m > 0 ? `${h}h ${m}m` : `${h}h`;
-    return `${m} min`;
+    if (m > 0) return `${m} min`;
+    // Unreachable with the real 30-min THRESHOLD_MS, but the tests (and manual
+    // testing) lower it to seconds — don't render "0 min" there.
+    return 'less than a minute';
 }
 
 export function formatNow(d = new Date()) {

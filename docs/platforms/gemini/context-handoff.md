@@ -1,106 +1,109 @@
 # Gemini — Context Handoff
 
-How content reaches Gemini, why the simple path isn't enough on its own, and
-the adaptive design that covers large content. Decision log + deferred work.
+How Reddit/Medium content reaches Gemini, and why it goes through
+`chrome.storage.local` + the composer rather than the URL.
 
-## What ships today
+## What ships
 
-`GeminiPlatform.openWithContext()` opens `gemini.google.com/app?prompt=<text>`.
-Gemini *does* have a native prefill param (`?prompt=`) — unlike our earlier
-assumption that it had none — so short content works with zero injection, the
-same ~10-line shape as Claude/ChatGPT.
-
-**Known gap:** large content breaks it. A Medium article or a big Reddit thread
-formatted to ~4000 words becomes a 20,000+ character URL, and Google's server
-rejects it:
+`GeminiPlatform.openWithContext(text)`:
 
 ```
-400. That's an error.
-Your client has issued a malformed or illegal request.
+chrome.storage.local.set({ pendingGeminiPrompt: text })
+window.open('https://gemini.google.com/app')      // nothing in the URL
 ```
 
-It errors rather than truncating — at least it fails loudly instead of silently
-dropping content. Reddit worked in early testing only because that thread was
-short enough to stay under the URL limit.
-
-## The adaptive design (agreed, not yet built)
-
-Don't throw away the working short path — pick the mechanism by size:
-
-| Content size | Path | Injection |
-|---|---|---|
-| Short (≤ ~6k chars) | `?prompt=` URL | none — already works |
-| Large | file attachment via content script | yes |
-
-`openWithContext()` measures the text and routes: short content keeps the
-dead-simple URL, only large content pays for the content script.
-
-## The large path: attach as a text file, don't type
-
-For big content, **attach it as a `.txt` file** rather than typing it into the
-composer. Rationale:
-
-- A 4000-word document reads better to Gemini as an attachment than as a wall of
-  pasted text.
-- Avoids Quill's finicky input handling — the composer is a Quill editor
-  (`div.ql-editor`) that ignores a plain `.textContent =` and only updates its
-  model when you set text *and* dispatch `input`/`change`.
-- No length limit on file contents.
-
-Mechanism:
+`gemini.content.js` → `GeminiPlatform.injectUI()` on arrival:
 
 ```
-gemini.js:   chrome.storage.local.set({ pendingGeminiPrompt: text });  open /app
-             (no ?prompt= — nothing in the URL)
-
-gemini-content-script.js  (new, matches https://gemini.google.com/*):
-   read + clear pendingGeminiPrompt
-   → build a File:  new File([text], 'context.txt', { type: 'text/plain' })
-   → assign it to Gemini's <input type="file"> via a DataTransfer
-   → dispatch 'change'
-   → type a short instruction in the composer ("Here's a Reddit thread, see
-     attached — summarize then let's discuss")
-   → poll the send button, click
+read + clear pendingGeminiPrompt          (consume once)
+poll for .ql-editor[contenteditable]
+  → focus, collapse a range at its start
+  → document.execCommand('insertText', false, text)
+poll the send button (.send-button-container button / button.send-button)
+  → click when enabled
 ```
 
-The handoff goes through `chrome.storage.local`, not the URL — that's the whole
-point, no length limit. Payload is consumed once (cleared on read) so a later
-manual Gemini visit doesn't re-inject stale content. This mirrors
-`ClaudePlatform.injectUI()`, which polls the composer to auto-send on arrival.
+Mirrors `ClaudePlatform.injectUI()` — the only difference is Claude.ai fills its
+own composer from `?q=`, so Claude's injectUI just clicks send; Gemini has
+nothing in the URL, so we type the text in first.
 
-## Fallback if file attach doesn't work
+## Why not `?prompt=`
 
-If Gemini rejects a programmatically-attached file, fall back to **composer
-typing** on the large path: set `.ql-editor` text + dispatch `input`/`change`,
-then send. Less pleasant for large content but a known technique.
+Gemini *has* a native prefill param (`gemini.google.com/app?prompt=<text>`), and
+an earlier version used it. Two problems killed it:
 
-## What must be verified live before building
+1. **It 400s on large content.** A Medium article or big Reddit thread trimmed to
+   the ~4000-word budget is a 20,000+ character URL:
+   `400. That's an error. Your client has issued a malformed or illegal request.`
+   It errors rather than truncating — loud, but still broken.
+2. **It doesn't auto-send.** `?prompt=` only prefills the box; Google won't
+   auto-submit from a URL. So even short content wasn't at parity with
+   Claude/ChatGPT (which land as a *sent* message).
 
-The large path is unbuilt because two things need confirming on the live site,
-and getting either wrong is a silent no-op:
+The `storage.local` + composer path fixes both at once, in one code path (no
+size threshold), and the payload has no length limit.
 
-1. **File input accepts programmatic files.** Setting `input.files` via
-   `DataTransfer` + firing `change` works on many sites, but some apps intercept
-   uploads their own way and ignore a programmatically-set input. Unconfirmed for
-   Gemini — this is the make-or-break for the file-attachment path.
-2. **Selectors:** the file `<input>`, the composer (`div.ql-editor` believed),
-   and the **send button** (unknown). All fragile, all break when Gemini's UI
-   shifts.
+## Why composer insert, not file attachment
 
-Step 1 of building this is a browser probe to nail those down.
+An earlier design proposed attaching the context as a `.txt` file via a
+programmatic `DataTransfer` on Gemini's `<input type="file">`. Rejected:
+
+- **Unproven** — the file `<input>` isn't in the page until an upload is
+  initiated (not in a saved-page DOM), and many apps ignore a
+  programmatically-set `input.files`. Make-or-break, and untested.
+- **`execCommand('insertText')` into `.ql-editor` is proven** — the Time
+  Awareness feature (`src/time/message-timer.js`) does exactly this on every
+  send, validated live on gemini.google.com 2026-09-09.
+- Result matches Claude/ChatGPT: context in the composer, sent as a message.
+
+File attach stays a possible future refinement (a 4000-word doc arguably reads
+better to Gemini as an attachment), not a v3 blocker.
+
+## Consume-once
+
+`pendingGeminiPrompt` is removed from storage the moment `injectUI()` reads it,
+before the poll loop runs — so a later manual Gemini visit never re-injects
+stale content. Worst case if the tab is closed mid-handoff: one orphaned key,
+consumed (harmlessly, into an already-used chat) on the next visit.
 
 ## Permissions / manifest
 
-No new permissions — `storage` is already granted, and a statically-declared
-content script can touch its own page's DOM without `host_permissions`. Building
-the large path adds one `content_scripts` entry to `manifest.json` matching
-`https://gemini.google.com/*`.
+No new permissions — `storage` is already granted, and `gemini.content.js` is a
+statically-declared content script matching `https://gemini.google.com/*`
+(added for Time Awareness; it now also carries the handoff).
 
-## Related
+## Selectors (verified 2026-09-09 against a saved conversation)
 
-- `docs/provider-features.md` — the Gemini rows there predate the `?prompt=`
-  discovery and the 400; they're stale and need updating.
-- `docs/user-stories.md` "Gemini as a destination" — says "no native URL
-  prefill", which is now wrong (it has `?prompt=`, just length-limited).
-- `docs/platforms/claude/model-preference.md` — same doc style: a mechanism
-  worked through, with the reasoning kept so it isn't re-derived.
+| | Selector |
+|---|---|
+| Composer | `.ql-editor[contenteditable="true"]` (Quill) |
+| Send button | `.send-button-container button, button.send-button, button[aria-label="Send message"]` |
+| Sent user turn | `<user-query>` |
+
+Send button `aria-label` unconfirmed (absent from the DOM when the composer is
+empty) — the selector list covers the likely names.
+
+## Tests
+
+- **Unit** (`test/platforms.test.js`): `openWithContext` stashes the full text
+  (tested with 50k chars) and opens a bare `/app` — nothing with `prompt=` in
+  the URL; `injectUI` no-ops with no pending key and consumes the key once
+  before touching the DOM.
+- **E2E — dropdown** (`e2e/medium.spec.ts`, `e2e/reddit.spec.ts` via
+  `helpers.ts`): "Open in Gemini" opens `gemini.google.com/app` and the context
+  is in `chrome.storage.local`, not the URL (read back through the service
+  worker).
+- **E2E — round trip** (`e2e/gemini-handoff.spec.ts`, connected-fixtures /
+  manual-local tier): an ~11k-char payload is inserted into the real composer
+  and sent as a `<user-query>` turn; the pending key is cleared.
+
+## Decision log
+
+1. **`?prompt=` URL — rejected.** 400s past ~6k chars, never auto-sends.
+2. **File attachment via `DataTransfer` — rejected.** Unproven on Gemini, fragile
+   `<input type=file>` targeting, silent-no-op risk.
+3. **Adaptive (URL for short, content script for large) — rejected.** Two code
+   paths and a guessed size threshold, for no gain once the content-script path
+   exists anyway.
+4. **Chosen: always `storage.local` + `execCommand` composer insert + click
+   send.** One path, no length limit, auto-sends, reuses a mechanism proven live.

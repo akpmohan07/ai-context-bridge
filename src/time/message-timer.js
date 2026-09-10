@@ -25,6 +25,11 @@ export const MessageTimer = (() => {
     // adapter without binding surprises.
     function seededTimeStore({ storageKey, convId, fetchLastTime }) {
         let cache = {}; // convId → epoch ms, mirrors chrome.storage.local[storageKey]
+        // A send from a brand-new chat has no convId yet — the platform assigns
+        // one only *after* the first message (claude.ai/new → /chat/<id>,
+        // gemini /app → /app/<id>). Hold that send's time here until onNavigate
+        // can file it, so the second message isn't misread as "no prior message".
+        let pendingSend = null;
 
         function set(id, ms) {
             cache[id] = ms;
@@ -50,6 +55,12 @@ export const MessageTimer = (() => {
             async onNavigate() {
                 const id = convId();
                 if (!id) return;
+                // Just landed on the chat our new-chat send created — file that
+                // send's time under the fresh id (don't clobber a real value).
+                if (pendingSend && !cache[id]) {
+                    set(id, pendingSend);
+                }
+                pendingSend = null;
                 try {
                     const ms = await fetchLastTime(id);
                     if (ms) set(id, ms);
@@ -60,7 +71,7 @@ export const MessageTimer = (() => {
 
             getLastMessageTime() {
                 const id = convId();
-                const ms = id ? cache[id] : null;
+                const ms = (id && cache[id]) || pendingSend;
                 return ms ? new Date(ms) : null;
             },
 
@@ -69,6 +80,7 @@ export const MessageTimer = (() => {
             recordSend() {
                 const id = convId();
                 if (id) set(id, Date.now());
+                else pendingSend = Date.now(); // new chat — no id until navigation
             }
         };
     }
@@ -97,6 +109,10 @@ export const MessageTimer = (() => {
         return location.pathname.match(/\/c\/([^/]+)/)?.[1] || null;
     }
 
+    function geminiConvId() {
+        return location.pathname.match(/\/app\/([a-f0-9]+)/)?.[1] || null;
+    }
+
     // ChatGPT: backend-api needs a bearer token from /api/auth/session (cached).
     // create_time is in seconds → ms.
     let _chatgptToken = null;
@@ -112,6 +128,18 @@ export const MessageTimer = (() => {
         });
         if (!res.ok) return null;
         return parseChatgptLastTime(await res.json());
+    }
+
+    // Gemini: RECORD-ONLY, no seed. Gemini renders no per-message timestamp
+    // (nothing to scrape) and its only history API is the obfuscated
+    // `batchexecute` RPC — brittle to call from a content script and prone to
+    // break on Google's frequent deploys. So we skip the seed: the store is
+    // stamped on every send and that's it. The single cost is that the *first*
+    // send in a chat this device has never sent in (e.g. created on another
+    // device) shows a bare `[TimeContext: <now>]` instead of the real gap; it
+    // self-heals on the next send. See docs/platforms/gemini/time-context.md.
+    async function fetchGeminiLastTime() {
+        return null;
     }
 
     // ---- adapters: shared store + platform-specific selectors --------------
@@ -136,10 +164,25 @@ export const MessageTimer = (() => {
         }
     );
 
-    const ADAPTERS = [claudeAdapter, chatgptAdapter];
+    // Gemini uses a Quill editor (`.ql-editor`), not a plain textarea. The send
+    // button lives in `.send-button-container` — its exact `aria-label` isn't
+    // confirmed (the saved-page DOM omits the button while the composer is
+    // empty), so the selector covers the likely names. See
+    // docs/platforms/gemini/time-context.md.
+    const geminiAdapter = Object.assign(
+        seededTimeStore({ storageKey: 'geminiLastMessageAt', convId: geminiConvId, fetchLastTime: fetchGeminiLastTime }),
+        {
+            host: 'gemini.google.com',
+            sendButtonSelector: '.send-button-container button, button.send-button, button[aria-label="Send message"]',
+            chatInputSelector: '.ql-editor[contenteditable="true"]',
+            inputSelector: '.ql-editor[contenteditable="true"]',
+        }
+    );
 
-    function pickAdapter() {
-        return ADAPTERS.find(a => location.hostname.includes(a.host)) || null;
+    const ADAPTERS = [claudeAdapter, chatgptAdapter, geminiAdapter];
+
+    function pickAdapter(hostname = location.hostname) {
+        return ADAPTERS.find(a => hostname.includes(a.host)) || null;
     }
 
     // ---- shared behaviour --------------------------------------------------
@@ -217,5 +260,8 @@ export const MessageTimer = (() => {
         }, true);
     }
 
-    return { init, setEnabled };
+    return {
+        init, setEnabled,
+        _test: { pickAdapter, ADAPTERS, claudeConvId, chatgptConvId, geminiConvId },
+    };
 })();

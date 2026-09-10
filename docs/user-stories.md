@@ -62,22 +62,15 @@ list.
 
 ---
 
-## Gemini as a destination
+## Gemini as a destination — SHIPPED
 
 > As a Gemini user, I want to send content there like I can to Claude and
 > ChatGPT.
 
-**Status:** short content shipped · large content remaining · **Value:** medium
-
-Gemini *does* have a native prefill param (`gemini.google.com/app?prompt=`), so
-short threads ship today with the same ~10-line shape as Claude/ChatGPT — live
-on Reddit and Medium via the destination registry.
-
-**Remaining:** large content (Medium articles, big threads) overruns the URL and
-Gemini returns a 400. The fix is an adaptive path — short content keeps the URL,
-large content hands off via `chrome.storage.local` and attaches the text as a
-`.txt` file through a content script. Fully specced, including the live checks
-still needed, in
+Live on Reddit and Medium via the destination registry, any content size,
+auto-sends. Handoff goes through `chrome.storage.local` + a composer insert
+(not the URL — Gemini's `?prompt=` 400s on large content and never auto-sends).
+Mechanism + decision log:
 [platforms/gemini/context-handoff.md](platforms/gemini/context-handoff.md).
 
 ---

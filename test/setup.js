@@ -9,7 +9,15 @@ if (typeof window !== 'undefined' && !window.matchMedia) {
 globalThis.chrome = globalThis.chrome || {
   storage: {
     sync:  { get: (defaults, cb) => (cb ? cb(defaults) : Promise.resolve(defaults)), set: () => {} },
-    local: { get: (defaults, cb) => (cb ? cb(defaults) : Promise.resolve(defaults)), set: () => {} },
+    local: {
+      get: (defaults, cb) => {
+        // string/array form ("just the key(s)") → no defaults to echo back
+        const val = (typeof defaults === 'string' || Array.isArray(defaults)) ? {} : defaults;
+        return cb ? cb(val) : Promise.resolve(val);
+      },
+      set: () => {},
+      remove: () => {},
+    },
     onChanged: { addListener: () => {} },
   },
 };

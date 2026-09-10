@@ -10,6 +10,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - ChatGPT → Claude (summarize & continue, second opinion)
 - Claude.ai: Presence (ambient sound), Time Awareness, Default Model preference
 - ChatGPT: Time Awareness
+- Gemini: Time Awareness (record-only)
 
 ## Development Setup
 

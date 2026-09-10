@@ -18,6 +18,7 @@ Full feature catalog. See [CLAUDE.md](../CLAUDE.md) for architecture,
 | ChatGPT: Summarize and Continue | ChatGPT | ChatGPT | Feature |
 | ChatGPT: Get Claude's Opinion | ChatGPT | Claude | Feature |
 | ChatGPT: Time Awareness | ChatGPT | N/A | Feature |
+| Gemini: Time Awareness | Gemini | N/A | Feature |
 | Claude: auto-send from URL prefill | N/A | Claude | Feature |
 | Claude: Time Awareness | N/A | Claude | Feature |
 | Claude: Presence (ambient sound) | N/A | Claude | Feature |

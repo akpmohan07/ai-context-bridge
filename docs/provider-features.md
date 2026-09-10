@@ -5,8 +5,8 @@
 | Feature | Claude | ChatGPT | Gemini |
 |---|:--:|:--:|:--:|
 | **Destination — receiving context** | | | |
-| Open with pre-filled context | ✅ `claude.ai/new?q=` | ✅ `chatgpt.com/?q=` | ⚠️ `?prompt=`, short only |
-| Auto-send on arrival | ✅ | ❌ | ❌ |
+| Open with pre-filled context | ✅ `claude.ai/new?q=` | ✅ `chatgpt.com/?q=` | ✅ `storage.local` + composer insert |
+| Auto-send on arrival | ✅ | ❌ | ✅ |
 | Model selection per handoff | ✅ `&model=` | ❌ | ❌ |
 | Live model catalog | ✅ 24h cache | ❌ | ❌ |
 | **Source — sending context out** | | | |
@@ -16,7 +16,7 @@
 | Second opinion → another provider | ❌ | ✅ | ❌ |
 | **On-platform enhancements** | | | |
 | Ambient sounds | ✅ | ❌ | ❌ |
-| Time awareness on send | ✅ DOM timestamps | ✅ self-seeded | ❌ |
+| Time awareness on send | ✅ DOM timestamps | ✅ self-seeded | ✅ record-only |
 
 ---
 
@@ -35,25 +35,26 @@ composer on arrival to auto-send a pre-filled `?q=`.
 **Ambient sounds are claude.ai-only by construction** — built against
 Claude-specific DOM and audio state; no cross-platform abstraction.
 
-**Time awareness now runs on ChatGPT too**, via a per-platform adapter in
-`MessageTimer` (`src/time/message-timer.js`). The shared core (formatting,
+**Time awareness now runs on all three platforms**, via a per-platform adapter
+in `MessageTimer` (`src/time/message-timer.js`). The shared core (formatting,
 threshold, send interception) is one implementation; each platform only answers
 "when was the last message?" differently. Claude reads the per-message
 timestamps it renders in the DOM. ChatGPT renders none, so it **seeds** the
 authoritative time from its conversation-history API on load, then updates on
-each send. The full mechanism, endpoints and decision log:
-[platforms/chatgpt/time-context.md](platforms/chatgpt/time-context.md).
+each send ([platforms/chatgpt/time-context.md](platforms/chatgpt/time-context.md)).
+Gemini renders none *and* has no clean history API (only the obfuscated
+`batchexecute` RPC), so it's **record-only** — stamped on each send, no seed.
+The one cost: the first send in a chat created on another device shows a bare
+timestamp instead of the gap, then self-heals
+([platforms/gemini/time-context.md](platforms/gemini/time-context.md)).
 
-**Gemini has `?prompt=`, but only for short content.** Contrary to an earlier
-assumption that it had no prefill param, `gemini.google.com/app?prompt=<text>`
-works and ships today — short Reddit threads reach Gemini with zero injection.
-But large content (Medium articles, big threads) overruns the URL and Google
-returns a `400 malformed request`. The long-URL question flagged for the other
-providers is thus answered for Gemini: **they don't survive** — it errors rather
-than truncating silently.
-
-The large-content path — hand off via `chrome.storage.local` and attach the text
-as a `.txt` file through a content script — is designed but not built. See
+**Gemini handoff goes through `chrome.storage.local` + the composer, not the
+URL.** Gemini's native `?prompt=` param 400s on large content (a ~4000-word
+article is a 20k+ char URL) and never auto-sends. So `openWithContext()` stashes
+the text in `storage.local` and opens a bare `/app`; `gemini.content.js` →
+`GeminiPlatform.injectUI()` inserts it into the `.ql-editor` via
+`execCommand('insertText')` and clicks send — one path for any size, auto-sends,
+mirroring `ClaudePlatform.injectUI()`. See
 [platforms/gemini/context-handoff.md](platforms/gemini/context-handoff.md).
 
 Grok, Copilot and DeepSeek still have no confirmed prefill param and would each
