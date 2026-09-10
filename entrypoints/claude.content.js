@@ -19,16 +19,16 @@ export default defineContentScript({
     presence.init();
 
     chrome.storage.sync.get({
-      soundsEnabled: Defaults.soundsEnabled,
-      timerEnabled:  Defaults.timerEnabled
+      soundsEnabled:      Defaults.soundsEnabled,
+      claudeTimerEnabled: Defaults.claudeTimerEnabled
     }, (result) => {
       presence.setEnabled(result.soundsEnabled);
-      MessageTimer.setEnabled(result.timerEnabled);
+      MessageTimer.setEnabled(result.claudeTimerEnabled);
     });
 
     chrome.storage.onChanged.addListener((changes) => {
       if (changes.soundsEnabled !== undefined) presence.setEnabled(changes.soundsEnabled.newValue);
-      if (changes.timerEnabled !== undefined) MessageTimer.setEnabled(changes.timerEnabled.newValue);
+      if (changes.claudeTimerEnabled !== undefined) MessageTimer.setEnabled(changes.claudeTimerEnabled.newValue);
     });
 
     MessageTimer.init();

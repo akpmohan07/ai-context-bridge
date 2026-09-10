@@ -1,6 +1,8 @@
 import { Defaults } from '../../src/core/defaults.js';
 import { Theme } from '../../src/ui/theme.js';
 
+document.getElementById('version').textContent = 'v' + chrome.runtime.getManifest().version;
+
 // Apply theme tokens as CSS variables
 const root = document.documentElement;
 root.style.setProperty('--popup-bg',           Theme.popup.bg);
@@ -18,13 +20,19 @@ document.querySelectorAll('.section-label').forEach(el => {
     const accent = el.dataset.accent;
     const color = accent === 'claude' ? Theme.claude.accent
                 : accent === 'chatgpt' ? Theme.chatgpt.accent
+                : accent === 'gemini' ? Theme.gemini.accent
                 : Theme.copy.accent;
     el.style.borderLeftColor = color;
 });
 
 // Which toggles this popup renders — each id is both the storage key and the
 // checkbox's element id. Defaults come from src/core/defaults.js.
-const TOGGLES = ['soundsEnabled', 'timerEnabled', 'chatgptEnabled', 'redditEnabled', 'mediumEnabled'];
+const TOGGLES = [
+    'redditEnabled', 'mediumEnabled',
+    'claudeTimerEnabled', 'soundsEnabled',
+    'chatgptTimerEnabled', 'chatgptEnabled',
+    'geminiTimerEnabled',
+];
 const DEFAULTS = Object.fromEntries(TOGGLES.map(k => [k, Defaults[k]]));
 
 chrome.storage.sync.get(DEFAULTS, (result) => {

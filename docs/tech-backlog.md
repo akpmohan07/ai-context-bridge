@@ -57,7 +57,7 @@ that point than to rename keys twice.
 | Keys | Renameable |
 |---|---|
 | `preferredClaudeModel`, `availableClaudeModels`, `modelCatalogFetchedAt` | **Free** — never committed, so they exist in no published build |
-| `soundsEnabled`, `timerEnabled`, `chatgptEnabled`, `redditEnabled`, `mediumEnabled` | **Not free** — shipped in v1.1. Renaming silently resets every existing user's settings |
+| `soundsEnabled`, `timerEnabled` (v3: split → `{claude,chatgpt,gemini}TimerEnabled` w/ onInstalled migration), `chatgptEnabled`, `redditEnabled`, `mediumEnabled` | **Not free** — shipped in v1.1. Renaming silently resets every existing user's settings |
 
 So (b) can't land without a migration for the second group.
 

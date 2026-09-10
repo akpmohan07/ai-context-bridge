@@ -1,4 +1,21 @@
 export default defineBackground(() => {
+  // v1.x had one shared `timerEnabled` for Time Awareness; v3 splits it per
+  // platform. On update, carry the old value into all three so anyone who
+  // turned it off keeps it off. No schema-version framework — one targeted
+  // step (see docs/tech-backlog.md § storage keys).
+  chrome.runtime.onInstalled.addListener(async ({ reason }) => {
+    if (reason !== 'update') return;
+    const { timerEnabled } = await chrome.storage.sync.get('timerEnabled');
+    if (timerEnabled === undefined) return; // fresh key set or already migrated
+    await chrome.storage.sync.set({
+      claudeTimerEnabled: timerEnabled,
+      chatgptTimerEnabled: timerEnabled,
+      geminiTimerEnabled: timerEnabled,
+    });
+    await chrome.storage.sync.remove('timerEnabled');
+    console.log('[ACB] migrated timerEnabled →', timerEnabled);
+  });
+
   let listeningTabId = null;
 
   chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {

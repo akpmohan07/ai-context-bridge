@@ -83,7 +83,7 @@ is lost.
 - **Persistent:** survives reloads, browser and system restarts (it's on disk),
   and extension updates. Only uninstall or explicit clear wipes it.
 - **Device-local, not synced** — a last-message time is only meaningful where the
-  activity happened. (Settings like `timerEnabled` use `storage.sync` instead.)
+  activity happened. (Settings like `claudeTimerEnabled` use `storage.sync` instead.)
 - **No TTL, unbounded growth** — one entry per conversation, never pruned. Tiny
   (a number each), but a size cap in `_set()` (drop entries older than N days)
   is a clean follow-up if it ever matters.

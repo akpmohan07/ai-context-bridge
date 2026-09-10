@@ -62,7 +62,7 @@ Same dropdown appears on any Medium article, with the same four destinations.
 
 ### ChatGPT
 
-A floating button appears on ChatGPT conversations:
+A floating **Assistant Button** appears on ChatGPT conversations (toggle in the popup):
 - **Summarize and Continue** — asks ChatGPT to summarize the conversation, then opens a new ChatGPT chat with that summary pre-loaded
 - **Get Claude's Opinion** — sends the conversation to Claude for a second take
 
@@ -72,7 +72,7 @@ A floating button appears on ChatGPT conversations:
 
 **Time Awareness** — same behavior as ChatGPT's. Record-only (no history seed),
 so the first message in a chat started on another device shows a bare timestamp
-rather than the gap; it self-heals on the next send.
+rather than the gap; it self-heals on the next send. Toggle in the popup.
 
 ### Claude.ai
 

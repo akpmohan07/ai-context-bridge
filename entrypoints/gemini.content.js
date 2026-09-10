@@ -13,12 +13,12 @@ export default defineContentScript({
   main() {
     new GeminiPlatform().receiveHandoff();
 
-    chrome.storage.sync.get({ timerEnabled: Defaults.timerEnabled }, (result) => {
-      MessageTimer.setEnabled(result.timerEnabled);
+    chrome.storage.sync.get({ geminiTimerEnabled: Defaults.geminiTimerEnabled }, (result) => {
+      MessageTimer.setEnabled(result.geminiTimerEnabled);
       MessageTimer.init();
     });
     chrome.storage.onChanged.addListener((changes) => {
-      if (changes.timerEnabled !== undefined) MessageTimer.setEnabled(changes.timerEnabled.newValue);
+      if (changes.geminiTimerEnabled !== undefined) MessageTimer.setEnabled(changes.geminiTimerEnabled.newValue);
     });
   }
 });

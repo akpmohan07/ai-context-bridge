@@ -4,21 +4,24 @@
 // default from here, so a default is never written down twice.
 export const Defaults = {
 
-    // ---- Feature toggles (claude.ai) ---------------------------------------
+    // ---- On-platform feature toggles -------------------------------------
 
-    // Ambient sounds during conversations: breath on send, hum while
-    // generating, chime on reply. Off by default — audio should never start
-    // unprompted on a fresh install.
+    // Time Awareness — prefixes a sent message with [TimeContext: ...] when
+    // it's the first of a chat or after a 30-min gap. Per platform: v1.x had
+    // one shared `timerEnabled`; background.js migrates it on update.
+    claudeTimerEnabled: true,
+    chatgptTimerEnabled: true,
+    geminiTimerEnabled: true,
+
+    // Ambient sounds on claude.ai: breath on send, hum while generating, chime
+    // on reply. Off by default — audio should never start unprompted.
     soundsEnabled: false,
 
-    // Prefixes sent messages with time context, so Claude knows how long it
-    // has been since your last message.
-    timerEnabled: true,
+    // Floating button on chatgpt.com — summarize & continue, or get Claude's
+    // second opinion.
+    chatgptEnabled: true,
 
     // ---- Content source toggles --------------------------------------------
-
-    // Floating button on chatgpt.com — summarize and continue in Claude.
-    chatgptEnabled: true,
 
     // "Open in AI" entry injected into Reddit's native post overflow menu.
     redditEnabled: true,

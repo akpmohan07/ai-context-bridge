@@ -38,7 +38,7 @@ Full feature catalog. See [CLAUDE.md](../CLAUDE.md) for architecture,
 | Reddit E2E (3 destinations, connected/manual-local) | Reddit | N/A | Test |
 | Claude E2E: real handoff + Time Awareness + Presence | N/A | Claude | Test |
 | Claude E2E: Presence state machine | N/A | Claude | Test |
-| Claude E2E: timerEnabled gating | N/A | Claude | Test |
+| Claude E2E: claudeTimerEnabled gating | N/A | Claude | Test |
 | Gemini E2E: Time Awareness branches (manual-local) | N/A | Gemini | Test |
 | Gemini E2E: large-content handoff (manual-local) | N/A | Gemini | Test |
 

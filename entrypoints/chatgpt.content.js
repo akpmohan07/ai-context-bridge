@@ -70,12 +70,12 @@ export default defineContentScript({
     });
 
     // Time-context prefix on send — same feature as claude.ai, ChatGPT adapter.
-    chrome.storage.sync.get({ timerEnabled: Defaults.timerEnabled }, (result) => {
-      MessageTimer.setEnabled(result.timerEnabled);
+    chrome.storage.sync.get({ chatgptTimerEnabled: Defaults.chatgptTimerEnabled }, (result) => {
+      MessageTimer.setEnabled(result.chatgptTimerEnabled);
       MessageTimer.init();
     });
     chrome.storage.onChanged.addListener((changes) => {
-      if (changes.timerEnabled !== undefined) MessageTimer.setEnabled(changes.timerEnabled.newValue);
+      if (changes.chatgptTimerEnabled !== undefined) MessageTimer.setEnabled(changes.chatgptTimerEnabled.newValue);
     });
   }
 });

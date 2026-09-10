@@ -42,6 +42,17 @@
 
     <div class="setting-row">
       <div class="setting-info">
+        <div class="setting-label">Time Awareness</div>
+        <div class="setting-desc">Claude knows how long since your last message</div>
+      </div>
+      <label class="toggle">
+        <input type="checkbox" id="claudeTimerEnabled">
+        <span class="slider"></span>
+      </label>
+    </div>
+
+    <div class="setting-row">
+      <div class="setting-info">
         <div class="setting-label">Ambient Sounds</div>
         <div class="setting-desc">Audio presence during conversations</div>
       </div>
@@ -64,23 +75,23 @@
       </select>
     </div>
 
-    <div class="setting-row">
-      <div class="setting-info">
-        <div class="setting-label">Time Awareness</div>
-        <div class="setting-desc">Claude knows how long since your last message</div>
-      </div>
-      <label class="toggle">
-        <input type="checkbox" id="timerEnabled">
-        <span class="slider"></span>
-      </label>
-    </div>
-
     <div class="section-label" data-accent="chatgpt">ChatGPT</div>
 
     <div class="setting-row">
       <div class="setting-info">
-        <div class="setting-label">Continue in Claude</div>
-        <div class="setting-desc">Pick up any ChatGPT conversation in Claude</div>
+        <div class="setting-label">Time Awareness</div>
+        <div class="setting-desc">ChatGPT knows how long since your last message</div>
+      </div>
+      <label class="toggle">
+        <input type="checkbox" id="chatgptTimerEnabled">
+        <span class="slider"></span>
+      </label>
+    </div>
+
+    <div class="setting-row">
+      <div class="setting-info">
+        <div class="setting-label">Assistant Button</div>
+        <div class="setting-desc">Summarize &amp; continue, or get Claude's second opinion</div>
       </div>
       <label class="toggle">
         <input type="checkbox" id="chatgptEnabled">
@@ -88,10 +99,23 @@
       </label>
     </div>
 
+    <div class="section-label" data-accent="gemini">Gemini</div>
+
+    <div class="setting-row">
+      <div class="setting-info">
+        <div class="setting-label">Time Awareness</div>
+        <div class="setting-desc">Gemini knows how long since your last message</div>
+      </div>
+      <label class="toggle">
+        <input type="checkbox" id="geminiTimerEnabled">
+        <span class="slider"></span>
+      </label>
+    </div>
+
   </div>
 
   <div class="footer">
-    <span class="footer-version">v1.2</span>
+    <span class="footer-version" id="version"></span>
     <span class="footer-dot">·</span>
     <a class="footer-link" href="https://github.com/akpmohan07/ai-context-bridge" target="_blank">GitHub ↗</a>
   </div>
