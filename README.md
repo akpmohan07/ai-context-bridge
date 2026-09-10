@@ -1,6 +1,6 @@
 # AI Context Bridge
 
-> One click sends Reddit threads, Medium articles & ChatGPT conversations to Claude or ChatGPT. No copy-paste, full context preserved.
+> One click sends Reddit threads, Medium articles & ChatGPT conversations to Claude, ChatGPT, Gemini or your clipboard. No copy-paste, full context preserved.
 
 <a href="https://opensource.org/licenses/Apache-2.0" target="_blank">![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)</a>
 <a href="https://chromewebstore.google.com/detail/ai-context-bridge/kjgmboacclalfjgcmooplnpimjalikfo" target="_blank">![Chrome Extension](https://img.shields.io/badge/Chrome_Extension-v1.2-green)</a>
@@ -24,13 +24,15 @@
 AI Context Bridge is a Chrome extension that bridges content from the web into your AI conversations — without copy-pasting.
 
 **Sources → Destinations:**
-- Reddit thread → Claude or ChatGPT
-- Medium article → Claude or ChatGPT
+- Reddit thread → Claude, ChatGPT, Gemini, or clipboard
+- Medium article → Claude, ChatGPT, Gemini, or clipboard
 - ChatGPT conversation → Claude (summarize & continue, or get a second opinion)
 
-Plus two extras on Claude.ai:
-- **Ambient sounds** — subtle audio presence during conversations
-- **Time awareness** — Claude knows how long since your last message
+**On-platform extras:**
+- **Time Awareness** — on Claude, ChatGPT *and* Gemini: prepends a time-context
+  tag when it's the first message of a chat or there's been a 30+ minute gap
+- **Ambient sounds** (Claude.ai) — subtle audio presence during conversations
+- **Default Model** (Claude.ai) — pick the model handoffs open in
 
 ## Installation
 
@@ -38,9 +40,9 @@ Plus two extras on Claude.ai:
 <a href="https://chromewebstore.google.com/detail/ai-context-bridge/kjgmboacclalfjgcmooplnpimjalikfo" target="_blank">Install AI Context Bridge</a>
 
 **Manual:**
-1. Clone or download this repo
+1. Clone the repo, `npm install`, `npm run build`
 2. Open `chrome://extensions/` → enable Developer mode
-3. Click "Load unpacked" → select this folder
+3. Click "Load unpacked" → select `.output/chrome-mv3/`
 
 ## Features
 
@@ -66,6 +68,12 @@ A floating button appears on ChatGPT conversations:
 
 **Time Awareness** — prepends a time-context tag to your message when it's the first message in a new chat, or there's been a 30+ minute gap. Toggle in the popup.
 
+### Gemini
+
+**Time Awareness** — same behavior as ChatGPT's. Record-only (no history seed),
+so the first message in a chat started on another device shows a bare timestamp
+rather than the gap; it self-heals on the next send.
+
 ### Claude.ai
 
 **Ambient Sounds (Presence)** — plays subtle background audio (breath on send, hum while generating, chime on reply). Toggle in the popup.
@@ -80,32 +88,38 @@ All processing is local. The extension reads page content only when you click a 
 
 ## Architecture
 
+Built with [WXT](https://wxt.dev). `manifest.json` is generated from
+`wxt.config.ts` + each entrypoint.
+
 ```
 ai-context-bridge/
-├── manifest.json
-├── background.js                  # Service worker — monitors ChatGPT API responses
-├── content-script.js              # ChatGPT page
-├── claude-content-script.js       # Claude.ai page
-├── reddit-content-script.js       # Reddit pages
-├── medium-content-script.js       # Medium pages
-├── popup.html / popup.js / popup.css
+├── wxt.config.ts                  # manifest name/permissions/icons
+├── entrypoints/
+│   ├── background.js              # service worker — ChatGPT API response listener
+│   ├── claude.content.js          # claude.ai   — auto-send, Presence, Time Awareness, model catalog
+│   ├── chatgpt.content.js         # chatgpt.com  — floating button, Time Awareness
+│   ├── gemini.content.js          # gemini.google.com — handoff insert, Time Awareness
+│   ├── reddit.content.js          # reddit.com   — menu injection
+│   ├── medium.content.js          # medium.com   — menu injection
+│   └── popup/                     # index.html / main.js / style.css
 └── src/
-    ├── core/                      # schema, budget trimmer, formatter
-    ├── ai-platforms/              # claude.js, chatgpt.js
+    ├── core/                      # schema, budget trimmer, formatter, defaults
+    ├── ai-platforms/              # claude.js, chatgpt.js, gemini.js, registry.js
     ├── content-sources/           # reddit.js, medium.js
     ├── ui/                        # theme.js, floating-button.js, menu-injector.js
     ├── presence/                  # ambient sound state machine
-    └── time/                      # message-timer.js
+    └── time/                      # message-timer.js, time-logic.js
 ```
 
 See <a href="CLAUDE.md" target="_blank">CLAUDE.md</a> for full architecture details and contribution guide.
 
 ## Contributing
 
-1. Fork the repo
-2. Make changes — no build step, pure JS loaded directly by Chrome
-3. Reload the extension in `chrome://extensions/` to test
-4. Submit a pull request
+1. Fork the repo, `npm install`
+2. `npm run dev` (HMR) or edit + `npm run build`
+3. `npm test` for unit tests; `npm run test:e2e` for Playwright
+4. Reload the extension in `chrome://extensions/` to test a production build
+5. Submit a pull request
 
 ## License
 

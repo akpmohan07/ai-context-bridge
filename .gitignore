@@ -144,3 +144,7 @@ dist
 /playwright-report/
 /blob-report/
 e2e/.auth/
+
+# macOS
+.DS_Store
+**/.DS_Store

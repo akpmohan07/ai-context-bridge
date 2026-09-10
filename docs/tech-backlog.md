@@ -121,13 +121,13 @@ IIFEs, no imports) and the per-content-script `js: [...]` arrays a recurring
 edit. Migrated to **WXT** (wxt.dev): `entrypoints/` + `src/**` ES modules;
 `manifest.json` is generated from `wxt.config.ts` + each entrypoint. `chrome.*`
 kept as-is (Chrome-only) to minimise the diff. Unit tests (Vitest) were written
-*first* as the migration's safety net. Deferred parts of the testing plan:
-finish jsdom/import-gated unit targets (`reddit._mapComment`, Medium markdown),
-then Playwright E2E (L2). See [[../CLAUDE.md]] Development Setup.
+*first* as the migration's safety net — now 66 tests, ~93% coverage on the pure
+modules (`reddit-parse`, `medium-markdown`, budget, formatter, schema, time,
+presence). Playwright E2E (L2) followed — see below. [[../CLAUDE.md]] Development Setup.
 
 ---
 
-## Playwright E2E (L2) — IN PROGRESS
+## Playwright E2E (L2) — every surface covered (see Status below)
 
 `e2e/` scaffolded: `fixtures.ts` loads the built extension via
 `launchPersistentContext` (classic headless doesn't load MV3 extensions at
@@ -263,9 +263,22 @@ alternative was a static local HTML fixture (deterministic, CI-runnable, but
 blind to Reddit DOM changes — and a live spec catches those, which is the whole
 point for a scraper).
 
-### Not yet started
-Claude auth setup (manual login → `storageState.json`) for real auto-send
-verification. Gemini: expected to be the hardest of the three (Google's
-automation/login detection is more aggressive than Cloudflare's), likely
-candidate to get descoped the same way Reddit is currently blocked — not yet
-attempted at all.
+### Status
+
+All surfaces now have E2E coverage:
+
+| Surface | Spec | Tier |
+|---|---|---|
+| Medium → 3 destinations | `medium.spec.ts` | CI (launchPersistentContext) |
+| ChatGPT guest auto-send | `chatgpt.spec.ts` | CI |
+| Reddit → 3 destinations | `reddit.spec.ts` | connected / manual-local |
+| Claude auto-send + Time Awareness | `claude-authenticated.spec.ts` | connected / manual-local |
+| Claude Presence + settings toggles | `claude-*.spec.ts` | connected / manual-local |
+| Gemini Time Awareness (3 branches) | `gemini-timing.spec.ts` | connected / manual-local |
+| Gemini large-content handoff | `gemini-handoff.spec.ts` | connected / manual-local |
+
+The connected tier attaches to a human-launched Chrome (`npm run e2e:connect`)
+signed into a shared dummy Google account — Playwright-launched browsers set
+`navigator.webdriver`, which Cloudflare/Google block. `e2e/helpers.ts`'s
+`extensionEval()` reaches `chrome.storage` via the background SW, or a transient
+popup page when the MV3 worker has idled out.
