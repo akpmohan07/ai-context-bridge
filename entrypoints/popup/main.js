@@ -21,8 +21,8 @@ document.querySelectorAll('.section-label').forEach(el => {
     const color = accent === 'claude' ? Theme.claude.accent
                 : accent === 'chatgpt' ? Theme.chatgpt.accent
                 : accent === 'gemini' ? Theme.gemini.accent
-                : Theme.copy.accent;
-    el.style.borderLeftColor = color;
+                : null; // "Sources" — no platform accent, keep the muted grey
+    if (color) el.style.setProperty('--accent', color);
 });
 
 // Which toggles this popup renders — each id is both the storage key and the

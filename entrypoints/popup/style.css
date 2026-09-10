@@ -38,28 +38,38 @@ body {
 }
 
 .body {
-    padding: 8px 16px 14px;
+    padding: 4px 16px 14px;
 }
 
 .section-label {
-    font-size: 10px;
-    font-weight: 700;
+    font-size: 11px;
+    font-weight: 800;
     text-transform: uppercase;
-    letter-spacing: 0.7px;
-    color: var(--popup-section-label);
-    margin: 14px 0 4px;
-    padding-left: 4px;
-    border-left: 3px solid var(--popup-accent);
+    letter-spacing: 0.9px;
+    color: var(--accent, var(--popup-section-label));
+    margin: 20px -16px 2px;
+    padding: 12px 16px 6px;
+    border-top: 1px solid var(--popup-border);
+    background: color-mix(in srgb, var(--accent, transparent) 7%, transparent);
+}
+
+.body > .section-label:first-child {
+    margin-top: 0;
+    border-top: none;
+    background: none;
 }
 
 .setting-row {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 8px 4px;
+    padding: 9px 4px;
     border-bottom: 1px solid var(--popup-border);
 }
 
+/* No divider under the last row before a section break — the section header's
+   own top border does that job. */
+.setting-row:has(+ .section-label),
 .setting-row:last-child {
     border-bottom: none;
 }
