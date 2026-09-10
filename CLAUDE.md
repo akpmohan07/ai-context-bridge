@@ -51,10 +51,18 @@ Extracts content from a web page and injects UI buttons/menus.
 
 ### AI Platforms (`src/ai-platforms/`)
 Destinations that receive context.
-- Base class: `AIPlatform` (base.js) — implement `openWithContext(text)`
-- `extractConversation()` and `injectUI()` are optional overrides
-- **ClaudePlatform**: opens `claude.ai/new?q=<encoded>`, then auto-sends via DOM polling
-- **ChatGPTPlatform**: triggers summarization by editing last message, waits for API response
+- Base class: `AIPlatform` (base.js) — carries the whole handoff:
+  `openWithContext(text)` stashes `{text, ts}` in `chrome.storage.local` and
+  opens a bare new-chat tab; `receiveHandoff()` (run by the destination's own
+  content script) polls for the stash, types it into the composer and sends.
+  Context never rides the URL — it 414s / 400s. A subclass supplies only
+  `pendingKey` + `composerSelector` + `sendButtonSelector` + `newChatPath`.
+- **ClaudePlatform**: overrides `newChatUrl()` to add `?model=` (short, safe).
+- **GeminiPlatform**: selectors only (Quill `.ql-editor`).
+- **ChatGPTPlatform**: selectors (handles both the logged-in contenteditable and
+  the logged-out `<textarea>`), plus `summarizeAndContinue()` /
+  `getClaudeOpinion()` for the floating button (self-summarize via `webRequest`).
+- `extractConversation()` is an optional override (unused so far).
 
 ### UI Components (`src/ui/`)
 DOM injection with MutationObserver-based targeting.
@@ -70,8 +78,10 @@ DOM injection with MutationObserver-based targeting.
 ### Cross-Script Communication
 - **background.js** (service worker): One-shot listener for ChatGPT API completion (`/backend-api/f/conversation`). Sends `{ event: 'conversation_completed' }` to content script.
 - **content-script.js** (ChatGPT): Listens for that event, then calls `chatgpt.handleConversationCompleted(claude)` to open Claude with the response.
-- **reddit-content-script.js**: Initializes `RedditSource` + `ClaudePlatform`, injects menu.
-- **claude-content-script.js**: Calls `claude.injectUI()` to auto-send URL-pre-filled messages.
+- **entrypoints/reddit.content.js**: Initializes `RedditSource` + the destination
+  registry, injects the "Open with AI" menu.
+- **entrypoints/{claude,chatgpt,gemini}.content.js**: call
+  `<platform>.receiveHandoff()` to pick up a stashed handoff on arrival.
 
 ## Adding New Platforms
 
@@ -93,6 +103,6 @@ DOM injection with MutationObserver-based targeting.
 | `background.js` | Service worker, ChatGPT API response listener |
 | `src/core/schema.js` | Universal `ContentDocument`/`Item` schema |
 | `src/core/budget.js` | Word budget trimming (default 4000 words) |
-| `src/content-sources/reddit.js` | Reddit fetch + UI injection |
-| `src/ai-platforms/claude.js` | Claude URL opener + auto-send |
+| `src/content-sources/reddit.js` | Reddit DOM read + menu injection |
+| `src/ai-platforms/base.js` | Shared handoff: stash to storage.local, receiveHandoff types+sends on arrival |
 | `src/ui/floating-button.js` | ChatGPT floating button component |

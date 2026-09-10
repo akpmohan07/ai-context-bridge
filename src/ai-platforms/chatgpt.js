@@ -2,13 +2,18 @@ import { AIPlatform } from './base.js';
 
 export class ChatGPTPlatform extends AIPlatform {
     constructor() {
-        super({ name: 'ChatGPT', baseUrl: 'https://chatgpt.com' });
+        super({
+            name: 'ChatGPT',
+            baseUrl: 'https://chatgpt.com',
+            newChatPath: '/',
+            pendingKey: 'pendingChatgptPrompt',
+            // #prompt-textarea = the logged-in contenteditable composer;
+            // #mobile-composer-prompt = the logged-out <textarea> "welcome mat".
+            composerSelector: '#prompt-textarea, #mobile-composer-prompt, .wm-composer-textarea',
+            sendButtonSelector:
+                'button[aria-label="Send message"], #composer-submit-button, button[data-testid="send-button"], button[aria-label="Send prompt"]',
+        });
         this._pendingAction = null; // 'continue' | 'claude'
-    }
-
-    // Opens a new ChatGPT chat pre-filled with context
-    openWithContext(text) {
-        window.open(`${this.baseUrl}/?q=${encodeURIComponent(text)}`, '_blank');
     }
 
     // Edits the last user message with a summarize-and-continue prompt

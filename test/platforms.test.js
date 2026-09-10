@@ -1,135 +1,166 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { GeminiPlatform } from '../src/ai-platforms/gemini.js';
+import { describe, it, expect, vi, afterEach } from 'vitest';
 import { ClaudePlatform } from '../src/ai-platforms/claude.js';
+import { GeminiPlatform } from '../src/ai-platforms/gemini.js';
+import { ChatGPTPlatform } from '../src/ai-platforms/chatgpt.js';
 
-describe('GeminiPlatform.openWithContext', () => {
-  let open, set;
-  beforeEach(() => {
-    open = vi.spyOn(window, 'open').mockImplementation(() => {});
-    set = vi.spyOn(chrome.storage.local, 'set').mockResolvedValue(undefined);
-  });
-  afterEach(() => { open.mockRestore(); set.mockRestore(); });
+// Gemini stands in for the shared AIPlatform base (no URL override of its own).
+const p = () => new GeminiPlatform();
 
-  it('opens the tab BEFORE writing storage (popup must stay in the click gesture)', async () => {
+afterEach(() => {
+  vi.restoreAllMocks();
+  delete document.execCommand;
+  document.body.innerHTML = '';
+});
+
+describe('AIPlatform.openWithContext (via Gemini)', () => {
+  it('opens the bare new-chat tab BEFORE writing storage (popup stays in the gesture)', async () => {
     const order = [];
-    open.mockImplementation(() => order.push('open'));
-    set.mockImplementation(() => { order.push('set'); return Promise.resolve(); });
+    const open = vi.spyOn(window, 'open').mockImplementation(() => order.push('open'));
+    const set = vi.spyOn(chrome.storage.local, 'set').mockImplementation(() => {
+      order.push('set');
+      return Promise.resolve();
+    });
 
-    const big = 'x'.repeat(50_000); // would 400 as a ?prompt= URL
-    await new GeminiPlatform().openWithContext(big);
+    const big = 'x'.repeat(50_000); // would 414 as a ?q= URL
+    await p().openWithContext(big);
 
     expect(order).toEqual(['open', 'set']);
-    expect(set).toHaveBeenCalledWith({ pendingGeminiPrompt: big });
     expect(open).toHaveBeenCalledWith('https://gemini.google.com/app', '_blank');
-    expect(open.mock.calls[0][0]).not.toContain('prompt=');
+    expect(open.mock.calls[0][0]).not.toMatch(/[?&](q|prompt)=/);
+    expect(set).toHaveBeenCalledWith({
+      pendingGeminiPrompt: { text: big, ts: expect.any(Number) },
+    });
   });
 });
 
-describe('GeminiPlatform.injectUI', () => {
-  afterEach(() => {
-    vi.restoreAllMocks();
-    delete document.execCommand; // jsdom has none; tests assign their own
-    document.body.innerHTML = '';
+describe('AIPlatform._takePendingHandoff', () => {
+  it('returns the text and consumes the key', async () => {
+    vi.spyOn(chrome.storage.local, 'get').mockResolvedValue({
+      pendingGeminiPrompt: { text: 'hello', ts: Date.now() },
+    });
+    const remove = vi.spyOn(chrome.storage.local, 'remove').mockResolvedValue(undefined);
+    expect(await p()._takePendingHandoff()).toBe('hello');
+    expect(remove).toHaveBeenCalledWith('pendingGeminiPrompt');
   });
 
-  it('does nothing when no handoff is pending (after polling ~3s)', async () => {
+  it('drops a payload older than the TTL (tab was closed mid-handoff)', async () => {
+    vi.spyOn(chrome.storage.local, 'get').mockResolvedValue({
+      pendingGeminiPrompt: { text: 'stale', ts: Date.now() - 5 * 60_000 },
+    });
+    vi.spyOn(chrome.storage.local, 'remove').mockResolvedValue(undefined);
+    expect(await p()._takePendingHandoff()).toBeNull();
+  });
+
+  it('polls, then gives up when nothing is pending', async () => {
     vi.spyOn(chrome.storage.local, 'get').mockResolvedValue({});
     const remove = vi.spyOn(chrome.storage.local, 'remove').mockResolvedValue(undefined);
     vi.useFakeTimers();
-    const done = new GeminiPlatform().injectUI();
-    await vi.advanceTimersByTimeAsync(15 * 200 + 100); // exhaust the poll window
-    await done;
+    const done = p()._takePendingHandoff();
+    await vi.advanceTimersByTimeAsync(15 * 200 + 100);
+    expect(await done).toBeNull();
     expect(remove).not.toHaveBeenCalled();
     vi.useRealTimers();
   });
 
-  it('consumes the pending key once, before touching the DOM', async () => {
-    vi.spyOn(chrome.storage.local, 'get').mockResolvedValue({ pendingGeminiPrompt: 'hello' });
-    const remove = vi.spyOn(chrome.storage.local, 'remove').mockResolvedValue(undefined);
-    vi.useFakeTimers();
-    await new GeminiPlatform().injectUI();
-    expect(remove).toHaveBeenCalledWith('pendingGeminiPrompt');
-    vi.clearAllTimers();
-    vi.useRealTimers();
-  });
-
-  it('picks up a handoff key written just after the tab opens', async () => {
+  it('picks up a key written just after the tab opens', async () => {
     let stored = {};
     vi.spyOn(chrome.storage.local, 'get').mockImplementation(() => Promise.resolve(stored));
-    const remove = vi.spyOn(chrome.storage.local, 'remove').mockResolvedValue(undefined);
-    document.execCommand = vi.fn(() => true);
+    vi.spyOn(chrome.storage.local, 'remove').mockResolvedValue(undefined);
     vi.useFakeTimers();
-
-    const done = new GeminiPlatform().injectUI();
-    await vi.advanceTimersByTimeAsync(500);       // a few polls, still empty
-    expect(remove).not.toHaveBeenCalled();
-    stored = { pendingGeminiPrompt: 'late-write' }; // openWithContext's set lands
+    const done = p()._takePendingHandoff();
+    await vi.advanceTimersByTimeAsync(500);
+    stored = { pendingGeminiPrompt: { text: 'late', ts: Date.now() } };
     await vi.advanceTimersByTimeAsync(400);
-    await done;
-
-    expect(remove).toHaveBeenCalledWith('pendingGeminiPrompt');
-    vi.clearAllTimers();
+    expect(await done).toBe('late');
     vi.useRealTimers();
   });
+});
 
-  it('inserts the pending text into the Quill composer and clicks send', async () => {
-    vi.spyOn(chrome.storage.local, 'get').mockResolvedValue({ pendingGeminiPrompt: 'BIG CONTEXT' });
-    vi.spyOn(chrome.storage.local, 'remove').mockResolvedValue(undefined);
+describe('AIPlatform._fillComposerAndSend', () => {
+  it('types into the composer and clicks send', async () => {
     document.body.innerHTML =
       '<div class="ql-editor" contenteditable="true"></div>' +
       '<div class="send-button-container"><button></button></div>';
-    const editor = document.querySelector('.ql-editor');
-    const sendBtn = document.querySelector('.send-button-container button');
-    const clickSpy = vi.spyOn(sendBtn, 'click');
-    // jsdom implements no execCommand — emulate the insert so the poll loop
-    // sees a filled composer and proceeds to send.
+    const composer = document.querySelector('.ql-editor');
+    const send = document.querySelector('.send-button-container button');
+    const clickSpy = vi.spyOn(send, 'click');
     document.execCommand = vi.fn((cmd, _ui, val) => {
-      if (cmd === 'insertText') editor.textContent += val;
+      if (cmd === 'insertText') composer.textContent += val;
       return true;
     });
     vi.useFakeTimers();
 
-    await new GeminiPlatform().injectUI();
-    await vi.advanceTimersByTimeAsync(250); // one poll tick
+    p()._fillComposerAndSend('BIG CONTEXT');
+    await vi.advanceTimersByTimeAsync(250);
 
     expect(document.execCommand).toHaveBeenCalledWith('insertText', false, 'BIG CONTEXT');
-    expect(editor.textContent).toBe('BIG CONTEXT');
+    expect(composer.textContent).toBe('BIG CONTEXT');
     expect(clickSpy).toHaveBeenCalledTimes(1);
-
     vi.useRealTimers();
   });
 
-  it('stops polling after the ~8s budget if the composer never appears', async () => {
-    vi.spyOn(chrome.storage.local, 'get').mockResolvedValue({ pendingGeminiPrompt: 'x' });
-    vi.spyOn(chrome.storage.local, 'remove').mockResolvedValue(undefined);
-    document.execCommand = vi.fn(() => true);
+  it('sets .value + fires input for a <textarea> composer (ChatGPT logged-out)', async () => {
+    document.body.innerHTML =
+      '<textarea id="prompt-textarea"></textarea>' +
+      '<button aria-label="Send message"></button>';
+    const composer = document.querySelector('#prompt-textarea');
+    const send = document.querySelector('button');
+    const clickSpy = vi.spyOn(send, 'click');
+    const inputEvents = [];
+    composer.addEventListener('input', () => inputEvents.push(composer.value));
     vi.useFakeTimers();
 
-    await new GeminiPlatform().injectUI();
-    await vi.advanceTimersByTimeAsync(9000); // past 40 * 200ms
+    const cg = new ChatGPTPlatform();
+    cg._fillComposerAndSend('pasted context');
+    await vi.advanceTimersByTimeAsync(250);
 
-    // Composer shows up late — the poller has already given up, so nothing fires.
+    expect(composer.value).toBe('pasted context');
+    expect(inputEvents).toContain('pasted context');
+    expect(clickSpy).toHaveBeenCalledTimes(1);
+    vi.useRealTimers();
+  });
+
+  it('gives up if the composer never appears', async () => {
+    document.execCommand = vi.fn(() => true);
+    vi.useFakeTimers();
+    p()._fillComposerAndSend('x');
+    await vi.advanceTimersByTimeAsync(16_000);
     document.body.innerHTML = '<div class="ql-editor" contenteditable="true"></div>';
-    await vi.advanceTimersByTimeAsync(2000);
+    await vi.advanceTimersByTimeAsync(2_000);
     expect(document.execCommand).not.toHaveBeenCalled();
-
     vi.useRealTimers();
   });
 });
 
-describe('ClaudePlatform.openWithContext', () => {
-  let open;
-  beforeEach(() => { open = vi.spyOn(window, 'open').mockImplementation(() => {}); });
-  afterEach(() => { open.mockRestore(); vi.restoreAllMocks(); });
-
-  it('omits &model= for the "none" default', async () => {
-    await new ClaudePlatform().openWithContext('hi');
-    expect(open).toHaveBeenCalledWith('https://claude.ai/new?q=hi', '_blank');
+describe('ClaudePlatform.newChatUrl — ?model= only', () => {
+  it('bare /new when the preference is "none"', async () => {
+    vi.spyOn(chrome.storage.sync, 'get').mockResolvedValue({ preferredClaudeModel: 'none' });
+    expect(await new ClaudePlatform().newChatUrl()).toBe('https://claude.ai/new');
   });
 
-  it('appends &model= when a specific model is set', async () => {
+  it('appends ?model= for a specific model', async () => {
     vi.spyOn(chrome.storage.sync, 'get').mockResolvedValue({ preferredClaudeModel: 'claude-opus-4-8' });
-    await new ClaudePlatform().openWithContext('hi');
-    expect(open).toHaveBeenCalledWith('https://claude.ai/new?q=hi&model=claude-opus-4-8', '_blank');
+    expect(await new ClaudePlatform().newChatUrl()).toBe('https://claude.ai/new?model=claude-opus-4-8');
+  });
+
+  it('openWithContext opens that URL and never puts the text in it', async () => {
+    vi.spyOn(chrome.storage.sync, 'get').mockResolvedValue({ preferredClaudeModel: 'none' });
+    vi.spyOn(chrome.storage.local, 'set').mockResolvedValue(undefined);
+    const open = vi.spyOn(window, 'open').mockImplementation(() => {});
+    await new ClaudePlatform().openWithContext('a Reddit thread, 4000 words…');
+    expect(open).toHaveBeenCalledWith('https://claude.ai/new', '_blank');
+  });
+});
+
+describe('platform config', () => {
+  it('every platform declares a distinct pending key and its selectors', () => {
+    const platforms = [new ClaudePlatform(), new GeminiPlatform(), new ChatGPTPlatform()];
+    const keys = platforms.map((x) => x.pendingKey);
+    expect(new Set(keys).size).toBe(3);
+    for (const x of platforms) {
+      expect(x.pendingKey).toMatch(/^pending.+Prompt$/);
+      expect(x.composerSelector).toBeTruthy();
+      expect(x.sendButtonSelector).toBeTruthy();
+    }
   });
 });

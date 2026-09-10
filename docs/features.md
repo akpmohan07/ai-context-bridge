@@ -19,7 +19,7 @@ Full feature catalog. See [CLAUDE.md](../CLAUDE.md) for architecture,
 | ChatGPT: Get Claude's Opinion | ChatGPT | Claude | Feature |
 | ChatGPT: Time Awareness | ChatGPT | N/A | Feature |
 | Gemini: Time Awareness | Gemini | N/A | Feature |
-| Claude: auto-send from URL prefill | N/A | Claude | Feature |
+| Handoff: storage.local + composer insert (all destinations) | Core | N/A | Feature |
 | Claude: Time Awareness | N/A | Claude | Feature |
 | Claude: Presence (ambient sound) | N/A | Claude | Feature |
 | Claude: Default Model preference | N/A | Claude | Feature |
@@ -30,7 +30,7 @@ Full feature catalog. See [CLAUDE.md](../CLAUDE.md) for architecture,
 
 | Item | Source | AI Platform | Type |
 |---|---|---|---|
-| Vitest unit suite (L1, 71 tests) | Testing | N/A | Test |
+| Vitest unit suite (L1, 75 tests) | Testing | N/A | Test |
 | Playwright E2E scaffold | Testing | N/A | Test |
 | Medium E2E (3 destinations) | Testing | N/A | Test |
 | ChatGPT E2E (guest mode) | Testing | N/A | Test |

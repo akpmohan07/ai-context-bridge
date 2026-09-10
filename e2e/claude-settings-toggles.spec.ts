@@ -1,5 +1,5 @@
 import { test, expect } from './connected-fixtures';
-import { writeExtensionSyncStorage } from './helpers';
+import { DESTINATIONS, handoffTo, writeExtensionSyncStorage } from './helpers';
 
 // Same prerequisites as claude-authenticated.spec.ts. Verifies the popup's
 // timerEnabled toggle actually gates its feature, not just that the feature
@@ -18,23 +18,18 @@ test('claude.ai: timerEnabled gates the TimeContext prefix', async ({
 
   await test.step('timerEnabled: false → no TimeContext prefix', async () => {
     await writeExtensionSyncStorage(connectedContext, { timerEnabled: false });
-    await connectedPage.bringToFront(); // the "use caution" banner holds Send inert on a backgrounded tab
-    await connectedPage.goto(`https://claude.ai/new?q=${encodeURIComponent('What is 4 + 4?')}`, {
-      waitUntil: 'domcontentloaded',
-    });
+    await handoffTo(connectedContext, connectedPage, DESTINATIONS.claude, 'What is 4 + 4?');
     const msg = connectedPage.locator('[data-testid="user-message"]').first();
-    await expect(msg).toBeVisible({ timeout: 15_000 });
+    await expect(msg).toBeVisible({ timeout: 20_000 });
     await expect(msg).toContainText('What is 4 + 4?');
     await expect(msg).not.toContainText('[TimeContext:');
   });
 
   await test.step('timerEnabled: true (restored) → prefix resumes', async () => {
     await writeExtensionSyncStorage(connectedContext, { timerEnabled: true });
-    await connectedPage.goto(`https://claude.ai/new?q=${encodeURIComponent('What is 5 + 5?')}`, {
-      waitUntil: 'domcontentloaded',
-    });
+    await handoffTo(connectedContext, connectedPage, DESTINATIONS.claude, 'What is 5 + 5?');
     const msg = connectedPage.locator('[data-testid="user-message"]').first();
-    await expect(msg).toBeVisible({ timeout: 15_000 });
+    await expect(msg).toBeVisible({ timeout: 20_000 });
     await expect(msg).toContainText('[TimeContext:');
   });
 });

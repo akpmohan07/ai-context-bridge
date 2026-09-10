@@ -63,40 +63,20 @@ test.describe('Reddit → AI destinations', () => {
     await page.close();
   });
 
-  test('Reddit → Claude opens a correct handoff', async ({ connectedContext }) => {
-    const { page, toggle } = await openRedditThread(connectedContext);
-    await toggle.click();
-    await assertDestinationHandoff(
-      connectedContext,
-      page,
-      DESTINATIONS.claude,
-      "Here's a Reddit thread I'd like to discuss"
-    );
-    await page.close();
-  });
-
-  test('Reddit → ChatGPT opens a correct handoff', async ({ connectedContext }) => {
-    const { page, toggle } = await openRedditThread(connectedContext);
-    await toggle.click();
-    await assertDestinationHandoff(
-      connectedContext,
-      page,
-      DESTINATIONS.chatgpt,
-      "Here's a Reddit thread I'd like to discuss"
-    );
-    await page.close();
-  });
-
-  test('Reddit → Gemini opens a correct handoff', async ({ connectedContext }) => {
-    const { page, toggle } = await openRedditThread(connectedContext);
-    await toggle.click();
-    await assertDestinationHandoff(
-      connectedContext,
-      page,
-      DESTINATIONS.gemini,
-      "Here's a Reddit thread I'd like to discuss",
-      { verifyPayload: false } // connectOverCDP — see helper note
-    );
-    await page.close();
-  });
+  for (const [name, dest] of Object.entries(DESTINATIONS)) {
+    test(`Reddit → ${name} opens a correct handoff`, async ({ connectedContext }) => {
+      const { page, toggle } = await openRedditThread(connectedContext);
+      await toggle.click();
+      await assertDestinationHandoff(
+        connectedContext,
+        page,
+        dest,
+        "Here's a Reddit thread I'd like to discuss",
+        // payload verification needs the extension SW / a popup page; skip it on
+        // this cluttered connectOverCDP browser — medium.spec.ts covers it.
+        { verifyPayload: false }
+      );
+      await page.close();
+    });
+  }
 });

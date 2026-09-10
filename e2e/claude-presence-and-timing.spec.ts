@@ -1,5 +1,5 @@
 import { test, expect } from './connected-fixtures';
-import { writeExtensionStorage } from './helpers';
+import { DESTINATIONS, handoffTo, writeExtensionStorage } from './helpers';
 
 // Same prerequisites as claude-authenticated.spec.ts — see that file's header
 // comment (npm run e2e:login → e2e:connect → Load unpacked once via the UI).
@@ -35,10 +35,7 @@ test('claude.ai real conversation: Time Awareness branches + Presence state mach
   const stopButton = connectedPage.locator('button[aria-label="Stop response"]');
 
   await test.step('message 1 (new chat): bare TimeContext prefix + Presence SENT→GENERATING→REPLIED', async () => {
-    await connectedPage.bringToFront(); // the "use caution" banner holds Send inert on a backgrounded tab
-    await connectedPage.goto(`https://claude.ai/new?q=${encodeURIComponent('What is 1 + 1?')}`, {
-      waitUntil: 'domcontentloaded',
-    });
+    await handoffTo(connectedContext, connectedPage, DESTINATIONS.claude, 'What is 1 + 1?');
 
     const firstMessage = connectedPage.locator('[data-testid="user-message"]').first();
     await expect(firstMessage).toBeVisible({ timeout: 15_000 });

@@ -4,14 +4,14 @@ import { MessageTimer } from '../src/time/message-timer.js';
 
 // Two jobs on gemini.google.com:
 //   1. Reddit/Medium → Gemini handoff: pick up the pending context from
-//      chrome.storage.local, insert it into the composer, send (injectUI).
+//      chrome.storage.local, type it into the composer, send (receiveHandoff).
 //   2. Time Awareness on send — the same [TimeContext: ...] prefix as claude.ai
 //      and chatgpt.com.
 export default defineContentScript({
   matches: ['https://gemini.google.com/*'],
   runAt: 'document_idle',
   main() {
-    new GeminiPlatform().injectUI();
+    new GeminiPlatform().receiveHandoff();
 
     chrome.storage.sync.get({ timerEnabled: Defaults.timerEnabled }, (result) => {
       MessageTimer.setEnabled(result.timerEnabled);

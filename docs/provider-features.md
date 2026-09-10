@@ -5,9 +5,9 @@
 | Feature | Claude | ChatGPT | Gemini |
 |---|:--:|:--:|:--:|
 | **Destination — receiving context** | | | |
-| Open with pre-filled context | ✅ `claude.ai/new?q=` | ✅ `chatgpt.com/?q=` | ✅ `storage.local` + composer insert |
-| Auto-send on arrival | ✅ | ❌ | ✅ |
-| Model selection per handoff | ✅ `&model=` | ❌ | ❌ |
+| Open with pre-filled context | ✅ | ✅ | ✅ |
+| Auto-send on arrival | ✅ | ✅ | ✅ |
+| Model selection per handoff | ✅ `?model=` | ❌ | ❌ |
 | Live model catalog | ✅ 24h cache | ❌ | ❌ |
 | **Source — sending context out** | | | |
 | Injected UI on the platform | ✅ auto-send only | ✅ floating button | ❌ |
@@ -29,8 +29,14 @@ message with a summarize prompt, `background.js` watches the
 `handleConversationCompleted()` forwards the reply. ChatGPT summarizes itself
 rather than us scraping its DOM — which is why the hook is still unimplemented.
 
-**Claude's injected UI is destination-side**, not extraction — it polls for the
-composer on arrival to auto-send a pre-filled `?q=`.
+**All three destinations use one handoff mechanism** (`AIPlatform` in
+`src/ai-platforms/base.js`): `openWithContext()` stashes the text in
+`chrome.storage.local` and opens a bare new-chat tab; the destination's own
+content script runs `receiveHandoff()`, which polls for the stash, types it into
+the composer (`execCommand('insertText')`, or `.value` + `input` for ChatGPT's
+logged-out `<textarea>`) and clicks send. Nothing rides the URL — a 4000-word
+thread is a 40k-char `?q=` and the server 414s / 400s it. A subclass supplies
+only selectors + its new-chat path; Claude adds `?model=` to that path.
 
 **Ambient sounds are claude.ai-only by construction** — built against
 Claude-specific DOM and audio state; no cross-platform abstraction.
@@ -48,18 +54,13 @@ The one cost: the first send in a chat created on another device shows a bare
 timestamp instead of the gap, then self-heals
 ([platforms/gemini/time-context.md](platforms/gemini/time-context.md)).
 
-**Gemini handoff goes through `chrome.storage.local` + the composer, not the
-URL.** Gemini's native `?prompt=` param 400s on large content (a ~4000-word
-article is a 20k+ char URL) and never auto-sends. So `openWithContext()` stashes
-the text in `storage.local` and opens a bare `/app`; `gemini.content.js` →
-`GeminiPlatform.injectUI()` inserts it into the `.ql-editor` via
-`execCommand('insertText')` and clicks send — one path for any size, auto-sends,
-mirroring `ClaudePlatform.injectUI()`. See
-[platforms/gemini/context-handoff.md](platforms/gemini/context-handoff.md).
+Handoff mechanism + decision log:
+[platforms/gemini/context-handoff.md](platforms/gemini/context-handoff.md)
+(named for Gemini, where the URL limit forced the design; it now applies to all
+three).
 
-Grok, Copilot and DeepSeek still have no confirmed prefill param and would each
-need the `ClaudePlatform.injectUI()` treatment — content script, handoff, poll
-for the composer, synthetic send — which breaks whenever their UI shifts.
+Grok, Copilot and DeepSeek would each need a content script matching their host
+so `receiveHandoff()` can run there — plus their composer + send selectors.
 
 **Adding a URL-prefill provider is now one registry entry + one manifest line.**
 The destination list used to be hardcoded in five places with a fixed

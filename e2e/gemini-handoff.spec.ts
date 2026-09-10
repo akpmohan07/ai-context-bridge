@@ -24,7 +24,9 @@ test('Gemini: an 11k-char payload is inserted into the composer and sent', async
     `${marker}\n\n` + 'The quick brown fox jumps over the lazy dog. '.repeat(250); // ~11k chars
   expect(payload.length).toBeGreaterThan(6_000); // past the ?prompt= ceiling
 
-  await writeExtensionStorage(connectedContext, { pendingGeminiPrompt: payload });
+  await writeExtensionStorage(connectedContext, {
+    pendingGeminiPrompt: { text: payload, ts: Date.now() },
+  });
 
   const page = await connectedContext.newPage();
   page.on('console', (m) => {

@@ -158,7 +158,9 @@ export const MessageTimer = (() => {
         seededTimeStore({ storageKey: 'chatgptLastMessageAt', convId: chatgptConvId, fetchLastTime: fetchChatgptLastTime }),
         {
             host: 'chatgpt.com',
-            sendButtonSelector: '#composer-submit-button, button[aria-label="Send prompt"], button[data-testid="send-button"]',
+            // Time Awareness is a logged-in feature — the contenteditable
+            // composer, not the logged-out <textarea> welcome mat.
+            sendButtonSelector: 'button[aria-label="Send message"], #composer-submit-button, button[data-testid="send-button"], button[aria-label="Send prompt"]',
             chatInputSelector: '#prompt-textarea',
             inputSelector: '#prompt-textarea',
         }

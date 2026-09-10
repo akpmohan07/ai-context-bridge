@@ -14,6 +14,9 @@ export default defineContentScript({
     const claude = new ClaudePlatform();
     let floatingButton = null;
 
+    // Reddit/Medium → ChatGPT handoff (arrival side).
+    chatgpt.receiveHandoff();
+
     function maybeInit() {
       if (!/^\/c\//.test(window.location.pathname)) return;
       if (floatingButton) return;

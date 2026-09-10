@@ -32,8 +32,8 @@ task is a summarise/discuss job that doesn't need Opus.
 
 Reddit / Medium / ChatGPT → Claude all funnel through one method,
 `ClaudePlatform.openWithContext()` in `src/ai-platforms/claude.js`. It reads
-`preferredClaudeModel` from `chrome.storage.sync` and appends `&model=<id>` to
-the `claude.ai/new?q=...` URL. No API call, no reload, no account mutation.
+`preferredClaudeModel` from `chrome.storage.sync` and appends `?model=<id>` to
+the bare `claude.ai/new` URL (the context goes through `chrome.storage.local`, see base.js). No API call, no reload, no account mutation.
 
 **Verified risk:** `await`-ing storage before `window.open()` theoretically
 breaks the "must be a direct user gesture" rule for popups. Tested live —
@@ -51,14 +51,14 @@ The timestamp is written *with* the catalog, not before the fetch, so a failed
 request retries on the next page load instead of being throttled out for a day.
 
 Gating it to `/new` (as the removed write path did) would have been wrong here
-— that excludes `?q=` handoffs, which is this extension's own primary flow, so
+— that excludes our storage-based handoffs, which is the primary flow, so
 a user who only ever arrives via handoff would never refresh their catalog.
 
 ### The "Default" (don't-manage) option
 
 Sentinel value `'none'`, labeled **"Default"** — not "None", which reads wrong
 inside a row already labeled "Default Model". When selected, `openWithContext()`
-omits `&model=` entirely.
+omits `?model=` entirely.
 
 **Wiring gotcha:** the sentinel must exist in *two* places — `popup.html` **and**
 the rebuild loop in `popup.js`, which does `innerHTML = ''` and repopulates
@@ -70,7 +70,7 @@ once the cache populates.
 the sentinel plus a disabled `Visit claude.ai to load models` placeholder. A
 static list was tried and removed: it goes stale as models ship and retire, it
 can't know which models this account actually has access to (the live catalog
-carries `disabled_reason`), and a stale ID fails silently — `&model=` with an
+carries `disabled_reason`), and a stale ID fails silently — `?model=` with an
 unknown value is simply ignored by Claude, so the user gets a different model
 than the one they picked with no error.
 
@@ -131,7 +131,7 @@ Verbatim, as it last worked:
 
 ```js
 // Applies the user's preferred model as the default for the next new chat.
-// Only runs on a bare /new visit (handoffs already carry &model= in the URL
+// Only runs on a bare /new visit (handoffs already carry ?model= in the URL
 // and are skipped here). Reads the current default + full model catalog first
 // via the same bootstrap call the page itself makes, caches the catalog for
 // the popup, and only PATCHes + reloads when the default is actually

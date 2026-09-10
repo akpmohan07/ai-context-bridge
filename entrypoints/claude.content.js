@@ -12,7 +12,7 @@ export default defineContentScript({
     const MODEL_CATALOG_TTL_MS = 24 * 60 * 60 * 1000;
 
     const claude = new ClaudePlatform();
-    claude.injectUI();
+    claude.receiveHandoff();
     refreshModelCatalog();
 
     const presence = new PresenceLayer();

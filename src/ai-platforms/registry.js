@@ -3,8 +3,9 @@ import { ChatGPTPlatform } from './chatgpt.js';
 import { GeminiPlatform } from './gemini.js';
 
 // Registry of AI destinations a content source can hand off to. This is data,
-// not logic: adding a provider is one entry here (plus its class file in the
-// manifest, and a content script only if it needs on-page DOM injection).
+// not logic: adding a provider is one entry here, plus its AIPlatform subclass
+// and a content script on its host that calls receiveHandoff() (the handoff
+// always lands in the composer now — see src/ai-platforms/base.js).
 //
 // Sources iterate this instead of enumerating destinations by name, so the
 // dropdown items and the handoff wiring stay in sync automatically — no more

@@ -1,31 +1,36 @@
-# Gemini — Context Handoff
+# Context Handoff
 
-How Reddit/Medium content reaches Gemini, and why it goes through
-`chrome.storage.local` + the composer rather than the URL.
+How Reddit/Medium content reaches a destination AI, and why it goes through
+`chrome.storage.local` + the composer rather than the URL. Named for Gemini,
+where the URL limit first forced this design; **it now applies to all three
+destinations** — the whole mechanism lives in `AIPlatform`
+(`src/ai-platforms/base.js`) and a subclass supplies only selectors.
 
 ## What ships
 
-`GeminiPlatform.openWithContext(text)`:
+`AIPlatform.openWithContext(text)` — the SENDING side, on the source page:
 
 ```
-chrome.storage.local.set({ pendingGeminiPrompt: text })
-window.open('https://gemini.google.com/app')      // nothing in the URL
+window.open('<dest>/<newChatPath>')                       // sync, in the click gesture
+chrome.storage.local.set({ [pendingKey]: { text, ts } })  // never the URL
 ```
 
-`gemini.content.js` → `GeminiPlatform.injectUI()` on arrival:
+`<dest>.content.js` → `AIPlatform.receiveHandoff()` — the ARRIVAL side, in the
+destination tab's own content script:
 
 ```
-read + clear pendingGeminiPrompt          (consume once)
-poll for .ql-editor[contenteditable]
-  → focus, collapse a range at its start
-  → document.execCommand('insertText', false, text)
-poll the send button (.send-button-container button / button.send-button)
-  → click when enabled
+poll ~3s for pendingKey (the set above may not have landed yet)
+  → drop it if ts is > 60s old (tab was closed mid-handoff)
+  → remove it (consume once)
+poll for the composer
+  → contenteditable: execCommand('insertText'), paste-event fallback
+  → <textarea> (ChatGPT logged-out): native value setter + input event
+poll the send button → click when enabled
 ```
 
-Mirrors `ClaudePlatform.injectUI()` — the only difference is Claude.ai fills its
-own composer from `?q=`, so Claude's injectUI just clicks send; Gemini has
-nothing in the URL, so we type the text in first.
+Per-platform config only: `newChatPath`, `pendingKey`, `composerSelector`,
+`sendButtonSelector`. Claude additionally overrides `newChatUrl()` to append
+`?model=` (short, no 414 risk).
 
 ## Why not `?prompt=`
 
@@ -59,12 +64,16 @@ programmatic `DataTransfer` on Gemini's `<input type="file">`. Rejected:
 File attach stays a possible future refinement (a 4000-word doc arguably reads
 better to Gemini as an attachment), not a v3 blocker.
 
-## Consume-once
+## Consume-once + TTL
 
-`pendingGeminiPrompt` is removed from storage the moment `injectUI()` reads it,
-before the poll loop runs — so a later manual Gemini visit never re-injects
-stale content. Worst case if the tab is closed mid-handoff: one orphaned key,
-consumed (harmlessly, into an already-used chat) on the next visit.
+Two guards against a stale payload landing in the wrong chat:
+
+- **Consume-once** — `receiveHandoff()` `remove()`s the key the moment it reads
+  it, so a second destination tab (or a later poll) sees nothing.
+- **TTL** — if the tab is closed before `receiveHandoff` ever runs, nothing
+  consumes the key. The next visit to that destination would then inject a
+  week-old thread. So a payload whose `ts` is more than 60s old is dropped
+  (and cleared) instead. A real handoff is consumed in ~1–2s.
 
 ## Permissions / manifest
 
@@ -87,7 +96,7 @@ empty) — the selector list covers the likely names.
 
 - **Unit** (`test/platforms.test.js`): `openWithContext` stashes the full text
   (tested with 50k chars) and opens a bare `/app` — nothing with `prompt=` in
-  the URL; `injectUI` no-ops with no pending key and consumes the key once
+  the URL; `receiveHandoff` no-ops with no pending key and consumes the key once
   before touching the DOM.
 - **E2E — dropdown** (`e2e/medium.spec.ts`, `e2e/reddit.spec.ts` via
   `helpers.ts`): "Open in Gemini" opens `gemini.google.com/app` and the context
