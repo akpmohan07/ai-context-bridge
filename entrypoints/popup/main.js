@@ -16,14 +16,28 @@ root.style.setProperty('--popup-text-weak',    Theme.ui.textWeak);
 root.style.setProperty('--popup-icon-bg',      '#ffffff');
 
 // Section accent colors per platform
-document.querySelectorAll('.section-label').forEach(el => {
-    const accent = el.dataset.accent;
-    const color = accent === 'claude' ? Theme.claude.accent
-                : accent === 'chatgpt' ? Theme.chatgpt.accent
-                : accent === 'gemini' ? Theme.gemini.accent
-                : null; // "Sources" — no platform accent, keep the muted grey
-    if (color) el.style.setProperty('--accent', color);
+document.querySelectorAll('.section').forEach(el => {
+    const color = { claude: Theme.claude.accent, chatgpt: Theme.chatgpt.accent, gemini: Theme.gemini.accent }[el.dataset.accent];
+    if (color) el.style.setProperty('--accent', color); // "Sources" keeps the muted grey
 });
+
+// Put the section for the tab you're on first (chatgpt.com → ChatGPT on top).
+// Sources otherwise stays last.
+(async () => {
+    const body = document.querySelector('.body');
+    const order = ['claude', 'chatgpt', 'gemini', 'sources'];
+    try {
+        const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+        const host = tab?.url ? new URL(tab.url).hostname : '';
+        const top = host.endsWith('claude.ai') ? 'claude'
+                  : host.endsWith('chatgpt.com') ? 'chatgpt'
+                  : host.endsWith('gemini.google.com') ? 'gemini'
+                  : (host.endsWith('reddit.com') || host.endsWith('medium.com')) ? 'sources'
+                  : null;
+        if (top) order.unshift(...order.splice(order.indexOf(top), 1));
+    } catch { /* no tabs permission / no active tab — default order */ }
+    for (const s of order) body.appendChild(body.querySelector(`[data-section="${s}"]`));
+})();
 
 // Which toggles this popup renders — each id is both the storage key and the
 // checkbox's element id. Defaults come from src/core/defaults.js.

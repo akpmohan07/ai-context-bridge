@@ -38,7 +38,11 @@ body {
 }
 
 .body {
-    padding: 4px 16px 14px;
+    padding: 0 16px 14px;
+}
+
+.section {
+    --accent: var(--popup-section-label); /* JS overrides per platform */
 }
 
 .section-label {
@@ -46,17 +50,15 @@ body {
     font-weight: 800;
     text-transform: uppercase;
     letter-spacing: 0.9px;
-    color: var(--accent, var(--popup-section-label));
-    margin: 20px -16px 2px;
-    padding: 12px 16px 6px;
+    color: var(--accent);
+    margin: 0 -16px;
+    padding: 11px 16px 7px;
     border-top: 1px solid var(--popup-border);
-    background: color-mix(in srgb, var(--accent, transparent) 7%, transparent);
+    background: color-mix(in srgb, var(--accent) 8%, transparent);
 }
 
-.body > .section-label:first-child {
-    margin-top: 0;
+.section:first-child .section-label {
     border-top: none;
-    background: none;
 }
 
 .setting-row {
@@ -67,10 +69,7 @@ body {
     border-bottom: 1px solid var(--popup-border);
 }
 
-/* No divider under the last row before a section break — the section header's
-   own top border does that job. */
-.setting-row:has(+ .section-label),
-.setting-row:last-child {
+.section .setting-row:last-child {
     border-bottom: none;
 }
 
