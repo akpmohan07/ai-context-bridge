@@ -1,19 +1,20 @@
 import { test, expect } from './connected-fixtures';
+import { writeExtensionStorage, readExtensionStorage } from './helpers';
 
 // Gemini large-content handoff — the composer-insert path that replaces the
 // ?prompt= URL param (which 400s past ~6k chars). Manual-local tier: needs a
-// real signed-in Gemini session.
+// real signed-in, onboarded Gemini session.
 //
 // PREREQUISITES (same as the other connected specs):
 //   npm run e2e:login  →  sign into Google / Gemini by hand
 //   npm run e2e:connect
 //   then once: chrome://extensions → Load unpacked → .output/chrome-mv3
 //
-// This drives openWithContext() directly from the service worker (no Reddit/
-// Medium page needed): it stashes a big payload and opens /app, then asserts
-// gemini.content.js's injectUI() inserted it into the Quill composer and sent.
+// Simulates openWithContext()'s stash (large payloads through Reddit/Medium are
+// covered by reddit.spec.ts), then asserts gemini.content.js → injectUI()
+// inserts it into the real Quill composer and sends it.
 
-test('Gemini: a 10k-char payload is inserted into the composer and sent', async ({
+test('Gemini: an 11k-char payload is inserted into the composer and sent', async ({
   connectedContext,
 }) => {
   test.setTimeout(60_000);
@@ -23,31 +24,23 @@ test('Gemini: a 10k-char payload is inserted into the composer and sent', async 
     `${marker}\n\n` + 'The quick brown fox jumps over the lazy dog. '.repeat(250); // ~11k chars
   expect(payload.length).toBeGreaterThan(6_000); // past the ?prompt= ceiling
 
-  let [sw] = connectedContext.serviceWorkers();
-  if (!sw) sw = await connectedContext.waitForEvent('serviceworker');
+  await writeExtensionStorage(connectedContext, { pendingGeminiPrompt: payload });
 
-  // Stash + open exactly as GeminiPlatform.openWithContext does.
-  await sw.evaluate(
-    (p) => chrome.storage.local.set({ pendingGeminiPrompt: p }),
-    payload
-  );
   const page = await connectedContext.newPage();
-  await page.bringToFront(); // execCommand('insertText') no-ops without doc focus
-  await page.goto('https://gemini.google.com/app', { waitUntil: 'domcontentloaded' });
-
-  // injectUI polls the composer, inserts, then clicks send — so the payload
-  // should land as a sent user turn (.query-text), not sit in the composer.
   page.on('console', (m) => {
     if (m.text().includes('[ACB]')) console.log('  page>', m.text());
   });
-  const userTurn = page.locator('.query-text').filter({ hasText: marker });
-  await expect(userTurn).toBeVisible({ timeout: 25_000 });
+  await page.bringToFront(); // execCommand('insertText') no-ops without doc focus
+  await page.goto('https://gemini.google.com/app', { waitUntil: 'domcontentloaded' });
+
+  // injectUI polls the composer, inserts, then clicks send — the payload should
+  // land as a sent user turn, not sit in the composer.
+  await expect(page.locator('user-query').filter({ hasText: marker })).toBeVisible({
+    timeout: 25_000,
+  });
 
   // Consumed once — a later plain visit must not re-inject.
-  const leftover = await sw.evaluate(() =>
-    chrome.storage.local.get('pendingGeminiPrompt').then((r) => r.pendingGeminiPrompt)
-  );
-  expect(leftover).toBeUndefined();
+  expect(await readExtensionStorage(connectedContext, 'pendingGeminiPrompt')).toBeUndefined();
 
   await page.close();
 });

@@ -10,9 +10,15 @@ describe('GeminiPlatform.openWithContext', () => {
   });
   afterEach(() => { open.mockRestore(); set.mockRestore(); });
 
-  it('stashes the full text in storage and opens a bare /app tab — nothing in the URL', async () => {
+  it('opens the tab BEFORE writing storage (popup must stay in the click gesture)', async () => {
+    const order = [];
+    open.mockImplementation(() => order.push('open'));
+    set.mockImplementation(() => { order.push('set'); return Promise.resolve(); });
+
     const big = 'x'.repeat(50_000); // would 400 as a ?prompt= URL
     await new GeminiPlatform().openWithContext(big);
+
+    expect(order).toEqual(['open', 'set']);
     expect(set).toHaveBeenCalledWith({ pendingGeminiPrompt: big });
     expect(open).toHaveBeenCalledWith('https://gemini.google.com/app', '_blank');
     expect(open.mock.calls[0][0]).not.toContain('prompt=');
@@ -26,11 +32,15 @@ describe('GeminiPlatform.injectUI', () => {
     document.body.innerHTML = '';
   });
 
-  it('does nothing when no handoff is pending', async () => {
+  it('does nothing when no handoff is pending (after polling ~3s)', async () => {
     vi.spyOn(chrome.storage.local, 'get').mockResolvedValue({});
     const remove = vi.spyOn(chrome.storage.local, 'remove').mockResolvedValue(undefined);
-    await new GeminiPlatform().injectUI();
+    vi.useFakeTimers();
+    const done = new GeminiPlatform().injectUI();
+    await vi.advanceTimersByTimeAsync(15 * 200 + 100); // exhaust the poll window
+    await done;
     expect(remove).not.toHaveBeenCalled();
+    vi.useRealTimers();
   });
 
   it('consumes the pending key once, before touching the DOM', async () => {
@@ -38,6 +48,25 @@ describe('GeminiPlatform.injectUI', () => {
     const remove = vi.spyOn(chrome.storage.local, 'remove').mockResolvedValue(undefined);
     vi.useFakeTimers();
     await new GeminiPlatform().injectUI();
+    expect(remove).toHaveBeenCalledWith('pendingGeminiPrompt');
+    vi.clearAllTimers();
+    vi.useRealTimers();
+  });
+
+  it('picks up a handoff key written just after the tab opens', async () => {
+    let stored = {};
+    vi.spyOn(chrome.storage.local, 'get').mockImplementation(() => Promise.resolve(stored));
+    const remove = vi.spyOn(chrome.storage.local, 'remove').mockResolvedValue(undefined);
+    document.execCommand = vi.fn(() => true);
+    vi.useFakeTimers();
+
+    const done = new GeminiPlatform().injectUI();
+    await vi.advanceTimersByTimeAsync(500);       // a few polls, still empty
+    expect(remove).not.toHaveBeenCalled();
+    stored = { pendingGeminiPrompt: 'late-write' }; // openWithContext's set lands
+    await vi.advanceTimersByTimeAsync(400);
+    await done;
+
     expect(remove).toHaveBeenCalledWith('pendingGeminiPrompt');
     vi.clearAllTimers();
     vi.useRealTimers();

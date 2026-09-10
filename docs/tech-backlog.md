@@ -244,31 +244,24 @@ programmatic `sendButton.click()` genuinely dispatching a real DOM event,
 confirms `MessageTimer`'s Time Awareness prefix fires correctly on the first
 message too. 3/3 stable runs.
 
-### Blocked: Reddit spec
+### Reddit spec — RESOLVED: connected-fixtures / manual-local tier
 
-`reddit.spec.ts` has the identical structure ready but can't run — its
-discovery step (`reddit.com/*.json`, and even a plain subreddit listing page)
-returns a bot-detection wall ("blocked by network security") for anonymous/
-unauthenticated requests from this sandboxed dev environment, both via a bare
-API request and via full headed-Chromium navigation. Not a flakiness issue —
-a hard block, most likely IP-reputation-based (datacenter IP), which would
-very likely reproduce in GitHub Actions runners too (also datacenter IPs) even
-if it doesn't reproduce on a residential network.
+`reddit.com/*.json` and plain subreddit listings return a `403` bot-detection
+wall for anonymous requests from a datacenter IP (dev sandbox, and CI runners
+too). The wall clears for an **authenticated session in a real, human-launched
+browser on a residential IP** — exactly what `connected-fixtures.ts` already
+provides for the Claude/Gemini specs.
 
-**Decision deferred — options on the table:**
-1. Local HTML fixture instead of live reddit.com: hand-capture a static
-   snapshot of the real `shreddit-post-overflow-menu` DOM shape, serve it
-   locally, test injection deterministically. No bot-wall risk, but doesn't
-   catch Reddit changing their real DOM — that stays a manual-verification
-   job (as it already was pre-WXT).
-2. Live-but-local-only: keep the live-navigation spec, but treat it as
-   something you run yourself outside the CI-gating suite.
-3. Drop Reddit from E2E entirely, rely on manual load-testing for it (as
-   already done once, see [[../CLAUDE.md]] / feedback-testable-code memory).
+So `reddit.spec.ts` moved from `fixtures.ts` (launchPersistentContext,
+anonymous) to `connected-fixtures.ts`, un-skipped. Setup adds one step to the
+existing connected-spec flow: sign into `reddit.com` in the `npm run e2e:login`
+Chrome ("Continue with Google" reuses the dummy account). Discovery uses the
+browser context's own cookies (`page.request`), no fake User-Agent.
 
-Leaning towards (1) for whatever ends up in the CI-gating suite, since (2)'s
-premise (works locally ⇒ works in CI) is specifically undermined by the
-datacenter-IP theory above.
+This is manual-local, not CI-gating — same tier as Claude/Gemini. The rejected
+alternative was a static local HTML fixture (deterministic, CI-runnable, but
+blind to Reddit DOM changes — and a live spec catches those, which is the whole
+point for a scraper).
 
 ### Not yet started
 Claude auth setup (manual login → `storageState.json`) for real auto-send
