@@ -121,7 +121,7 @@ IIFEs, no imports) and the per-content-script `js: [...]` arrays a recurring
 edit. Migrated to **WXT** (wxt.dev): `entrypoints/` + `src/**` ES modules;
 `manifest.json` is generated from `wxt.config.ts` + each entrypoint. `chrome.*`
 kept as-is (Chrome-only) to minimise the diff. Unit tests (Vitest) were written
-*first* as the migration's safety net — now 66 tests, ~93% coverage on the pure
+*first* as the migration's safety net — now 71 tests, ~93% coverage on the pure
 modules (`reddit-parse`, `medium-markdown`, budget, formatter, schema, time,
 presence). Playwright E2E (L2) followed — see below. [[../CLAUDE.md]] Development Setup.
 

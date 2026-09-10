@@ -16,18 +16,32 @@ export class ClaudePlatform extends AIPlatform {
         window.open(`${this.baseUrl}/new?q=${encodeURIComponent(text)}${modelParam}`, '_blank');
     }
 
-    // Injected on claude.ai — auto-sends only when URL has a pre-filled ?q= param
+    // Injected on claude.ai — auto-sends only when the URL has a pre-filled ?q=
+    // param. Clicking Send ourselves (rather than relying on Claude's own
+    // prefill send) is what lets MessageTimer's click-capture listener add the
+    // [TimeContext:] prefix first.
     injectUI() {
         if (!new URLSearchParams(window.location.search).has('q')) return;
         let attempts = 0;
+        let clickedAt = -Infinity;
         const interval = setInterval(() => {
+            attempts++;
+            // Already sent (by us or by Claude) — the prompt left the composer.
+            if (document.querySelector('[data-testid="user-message"]')) {
+                clearInterval(interval);
+                return;
+            }
+            if (attempts > 75) { clearInterval(interval); return; } // ~15s: banner + a slow/backgrounded tab
+
+            // Re-try at most once a second — the "use caution" banner can hold
+            // Send inert for a beat, and a click before focus does nothing.
+            if (attempts - clickedAt < 5) return;
             const inputBox = document.querySelector('div[contenteditable="true"]');
             const sendButton = document.querySelector('button[aria-label="Send message"]');
-            if (inputBox && sendButton && inputBox.innerText.trim().length > 0 && !sendButton.disabled) {
+            if (inputBox && inputBox.innerText.trim().length > 0 && sendButton && !sendButton.disabled) {
+                inputBox.focus();
                 sendButton.click();
-                clearInterval(interval);
-            } else if (++attempts > 30) {
-                clearInterval(interval);
+                clickedAt = attempts;
             }
         }, 200);
     }

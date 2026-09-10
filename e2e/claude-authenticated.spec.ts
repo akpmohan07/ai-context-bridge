@@ -20,6 +20,7 @@ test('claude.ai real auto-send: ?q= prefill sends, and Time Awareness prefixes t
   connectedPage,
 }) => {
   const testMsg = 'What is 1 + 1?';
+  await connectedPage.bringToFront(); // the "use caution" banner holds Send inert on a backgrounded tab
   await connectedPage.goto(`https://claude.ai/new?q=${encodeURIComponent(testMsg)}`, {
     waitUntil: 'domcontentloaded',
   });

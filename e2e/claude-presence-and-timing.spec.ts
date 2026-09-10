@@ -35,6 +35,7 @@ test('claude.ai real conversation: Time Awareness branches + Presence state mach
   const stopButton = connectedPage.locator('button[aria-label="Stop response"]');
 
   await test.step('message 1 (new chat): bare TimeContext prefix + Presence SENT→GENERATING→REPLIED', async () => {
+    await connectedPage.bringToFront(); // the "use caution" banner holds Send inert on a backgrounded tab
     await connectedPage.goto(`https://claude.ai/new?q=${encodeURIComponent('What is 1 + 1?')}`, {
       waitUntil: 'domcontentloaded',
     });

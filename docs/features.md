@@ -30,7 +30,7 @@ Full feature catalog. See [CLAUDE.md](../CLAUDE.md) for architecture,
 
 | Item | Source | AI Platform | Type |
 |---|---|---|---|
-| Vitest unit suite (L1, 66 tests) | Testing | N/A | Test |
+| Vitest unit suite (L1, 71 tests) | Testing | N/A | Test |
 | Playwright E2E scaffold | Testing | N/A | Test |
 | Medium E2E (3 destinations) | Testing | N/A | Test |
 | ChatGPT E2E (guest mode) | Testing | N/A | Test |
@@ -38,7 +38,7 @@ Full feature catalog. See [CLAUDE.md](../CLAUDE.md) for architecture,
 | Reddit E2E (3 destinations, connected/manual-local) | Reddit | N/A | Test |
 | Claude E2E: auto-send + Time Awareness | N/A | Claude | Test |
 | Claude E2E: Presence state machine | N/A | Claude | Test |
-| Claude E2E: settings toggles | N/A | Claude | Test |
+| Claude E2E: timerEnabled gating | N/A | Claude | Test |
 | Gemini E2E: Time Awareness branches (manual-local) | N/A | Gemini | Test |
 | Gemini E2E: large-content handoff (manual-local) | N/A | Gemini | Test |
 

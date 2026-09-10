@@ -97,6 +97,16 @@ export async function readExtensionStorage(context: BrowserContext, key: string)
   }
 }
 
+// chrome.storage.sync — the popup's feature toggles live here.
+export async function writeExtensionSyncStorage(context: BrowserContext, obj: Record<string, unknown>) {
+  const ext = await extensionEval(context);
+  try {
+    await ext.evaluate((o: any) => chrome.storage.sync.set(o), obj);
+  } finally {
+    await ext.dispose();
+  }
+}
+
 // Arms a capture of the FIRST write to `key` (via chrome.storage.onChanged) and
 // returns a promise for that value. Must be called before the action that
 // triggers the write — the popup's own content script (gemini.content.js →
