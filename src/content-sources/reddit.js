@@ -4,7 +4,7 @@ import { Theme } from '../ui/theme.js';
 import { Budget } from '../core/budget.js';
 import { Formatter } from '../core/formatter.js';
 import { createContentDocument } from '../core/schema.js';
-import { mapComment } from './reddit-parse.js';
+import { parsePost, parseComments } from './reddit-parse.js';
 
 class RedditMenuInjector extends MenuInjector {
     constructor() {
@@ -258,22 +258,21 @@ export class RedditSource extends ContentSource {
         return /reddit\.com\/r\/[^/]+\/comments\//.test(window.location.href);
     }
 
+    // Reads the page's own <shreddit-*> components — no network. See
+    // reddit-parse.js for why the .json endpoint was dropped.
     async fetchContent() {
-        const url = window.location.href.split('?')[0].replace(/\/$/, '') + '.json';
-        const response = await fetch(url);
-        const data = await response.json();
+        const postEl = document.querySelector('shreddit-post');
+        if (!postEl) throw new Error('[ACB] Reddit: no <shreddit-post> on this page');
 
-        const post = data[0].data.children[0].data;
-        const items = (data[1].data.children || [])
-            .map(c => mapComment(c, 0))
-            .filter(Boolean);
+        const { title, body, community } = parsePost(postEl);
+        const items = parseComments([...document.querySelectorAll('shreddit-comment')]);
 
         return createContentDocument({
-            title: post.title,
-            body: post.selftext || '',
+            title,
+            body,
             sourceUrl: window.location.href,
             platform: 'reddit',
-            community: `r/${post.subreddit}`,
+            community,
             items
         });
     }
