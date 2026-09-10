@@ -121,7 +121,7 @@ IIFEs, no imports) and the per-content-script `js: [...]` arrays a recurring
 edit. Migrated to **WXT** (wxt.dev): `entrypoints/` + `src/**` ES modules;
 `manifest.json` is generated from `wxt.config.ts` + each entrypoint. `chrome.*`
 kept as-is (Chrome-only) to minimise the diff. Unit tests (Vitest) were written
-*first* as the migration's safety net — now 71 tests, ~93% coverage on the pure
+*first* as the migration's safety net — now 77 tests, ~93% coverage on the pure
 modules (`reddit-parse`, `medium-markdown`, budget, formatter, schema, time,
 presence). Playwright E2E (L2) followed — see below. [[../CLAUDE.md]] Development Setup.
 
@@ -238,7 +238,7 @@ Then, once per profile (not once per run — Chrome remembers it after):
 **Built and verified working, live, against the real site:**
 `e2e/connected-fixtures.ts` (connect-based, distinct from the
 `launchPersistentContext`-based `e2e/fixtures.ts` used for the unauthenticated
-specs) and `e2e/claude-authenticated.spec.ts` — confirms `ClaudePlatform.injectUI()`'s
+specs) — confirms receiveHandoff()'s
 real auto-send (not just URL construction) and, as a side effect of the
 programmatic `sendButton.click()` genuinely dispatching a real DOM event,
 confirms `MessageTimer`'s Time Awareness prefix fires correctly on the first
@@ -272,7 +272,7 @@ All surfaces now have E2E coverage:
 | Medium → 3 destinations | `medium.spec.ts` | CI (launchPersistentContext) |
 | ChatGPT guest auto-send | `chatgpt.spec.ts` | CI |
 | Reddit → 3 destinations | `reddit.spec.ts` | connected / manual-local |
-| Claude auto-send + Time Awareness | `claude-authenticated.spec.ts` | connected / manual-local |
+| Claude handoff + Time Awareness + Presence | `claude-presence-and-timing.spec.ts` | connected / manual-local |
 | Claude Presence + settings toggles | `claude-*.spec.ts` | connected / manual-local |
 | Gemini Time Awareness (3 branches) | `gemini-timing.spec.ts` | connected / manual-local |
 | Gemini large-content handoff | `gemini-handoff.spec.ts` | connected / manual-local |

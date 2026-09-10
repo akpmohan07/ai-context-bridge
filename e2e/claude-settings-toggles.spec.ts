@@ -1,9 +1,10 @@
 import { test, expect } from './connected-fixtures';
 import { DESTINATIONS, handoffTo, writeExtensionSyncStorage } from './helpers';
 
-// Same prerequisites as claude-authenticated.spec.ts. Verifies the popup's
-// timerEnabled toggle actually gates its feature, not just that the feature
-// works under default settings (covered by the other claude specs).
+// Requires a real authenticated claude.ai session (npm run e2e:login →
+// e2e:connect → Load unpacked). Verifies the popup's timerEnabled toggle
+// actually gates its feature, not just that the feature works under default
+// settings (covered by claude-presence-and-timing.spec.ts).
 //
 // soundsEnabled is NOT checked here: what it gates (soundRegistry.play()) lazily
 // creates a Web Audio AudioContext in the content script's *isolated* world,

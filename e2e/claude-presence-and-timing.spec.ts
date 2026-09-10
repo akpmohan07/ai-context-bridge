@@ -1,8 +1,14 @@
 import { test, expect } from './connected-fixtures';
 import { DESTINATIONS, handoffTo, writeExtensionStorage } from './helpers';
 
-// Same prerequisites as claude-authenticated.spec.ts — see that file's header
-// comment (npm run e2e:login → e2e:connect → Load unpacked once via the UI).
+// Requires a real authenticated claude.ai session:
+//   npm run e2e:login   (sign in by hand)
+//   npm run e2e:connect  (relaunch with the debug port)
+//   then once: chrome://extensions → Load unpacked → .output/chrome-mv3
+//
+// The single most complete Claude spec: message 1 covers the real handoff
+// (receiveHandoff types + sends) + the bare-TimeContext branch + the Presence
+// state machine; 2 and 3 cover the active-conversation and after-a-gap branches.
 // Self-contained: step 3 backdates the stored last-message time, so no source
 // edit / THRESHOLD_MS lowering is needed.
 //

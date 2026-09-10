@@ -135,14 +135,24 @@ export async function assertDestinationHandoff(context: BrowserContext, page: Pa
     route.fulfill({ status: 200, contentType: 'text/html', body: '' })
   );
   try {
-    const [popup] = await Promise.all([
-      context.waitForEvent('page'),
-      page.getByRole('menuitem', { name: dest.menuItemName }).click(),
-    ]);
-    await expect.poll(() => popup.url(), { timeout: 10_000 }).toMatch(dest.urlPrefix);
-    expect(popup.url()).toMatch(/#acb=[\w-]+$/); // context id in the fragment…
-    expect(new URL(popup.url()).search).not.toMatch(/[?&](q|prompt)=/); // …never the query
-    await popup.close();
+    // Find the NEW page whose URL matches this destination — not just "the next
+    // page created", which on a shared browser can be a stray tab.
+    const before = new Set(context.pages());
+    await page.getByRole('menuitem', { name: dest.menuItemName }).click();
+    let popup: Page | undefined;
+    await expect
+      .poll(
+        () => {
+          popup = context.pages().find((p) => !before.has(p) && dest.urlPrefix.test(p.url()));
+          return popup?.url();
+        },
+        { timeout: 10_000 }
+      )
+      .toMatch(dest.urlPrefix);
+
+    expect(popup!.url()).toMatch(/#acb=[\w-]+$/); // context id in the fragment…
+    expect(new URL(popup!.url()).search).not.toMatch(/[?&](q|prompt)=/); // …never the query
+    await popup!.close();
   } finally {
     await context.unroute(dest.hostPattern);
   }
