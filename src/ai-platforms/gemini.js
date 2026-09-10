@@ -6,7 +6,6 @@ export class GeminiPlatform extends AIPlatform {
             name: 'Gemini',
             baseUrl: 'https://gemini.google.com',
             newChatPath: '/app',
-            pendingKey: 'pendingGeminiPrompt',
             // Gemini's composer is a Quill editor, not a textarea.
             composerSelector: '.ql-editor[contenteditable="true"]',
             sendButtonSelector:

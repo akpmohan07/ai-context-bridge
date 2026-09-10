@@ -1,11 +1,15 @@
 // How context reaches a destination AI:
 //   SENDING side  (openWithContext, on the source page) — stash the text in
-//     chrome.storage.local and open a bare new-chat tab. Never the URL: a
-//     4000-word thread is a 40k-char ?q= URL and the server 414s / 400s it.
+//     chrome.storage.local under a one-time id, open the new-chat tab with that
+//     id in the URL #fragment. Never the URL query: a 4000-word thread is a
+//     40k-char ?q= and the server 414s / 400s it. The fragment isn't sent to
+//     the server, so it has no such limit.
 //   ARRIVAL side  (receiveHandoff, in the destination tab's own content script)
-//     — poll for the stash, type it into the composer, click send.
+//     — read the id from location.hash, take THAT stash (not a shared slot, so
+//     a stale or foreign handoff is invisible), type it in, click send.
 // Both halves live here; a subclass only supplies selectors + its new-chat URL.
 
+const HANDOFF_PREFIX = 'handoff:';
 const HANDOFF_TTL_MS = 60_000; // a real handoff is consumed in ~1s; older = orphaned
 
 export class AIPlatform {
@@ -15,29 +19,32 @@ export class AIPlatform {
         }
         this.name = config.name;
         this.baseUrl = config.baseUrl;
-        this.pendingKey = config.pendingKey;            // chrome.storage.local key
         this.composerSelector = config.composerSelector;
         this.sendButtonSelector = config.sendButtonSelector;
         this._newChatPath = config.newChatPath;         // e.g. '/new', '/app', '/'
     }
 
-    // Bare new-chat URL. Claude overrides to append ?model=.
+    // Bare new-chat URL (no fragment). Claude overrides to append ?model=.
     async newChatUrl() {
         return this.baseUrl + this._newChatPath;
     }
 
     // MUST stay: opens a new conversation pre-filled with `text`.
     async openWithContext(text) {
+        const id = crypto.randomUUID();
         // window.open first, synchronously in the click gesture — an await
         // before it (a large storage write) can get the popup blocked.
-        window.open(await this.newChatUrl(), '_blank');
-        await chrome.storage.local.set({ [this.pendingKey]: { text, ts: Date.now() } });
+        window.open(`${await this.newChatUrl()}#acb=${id}`, '_blank');
+        await chrome.storage.local.set({
+            [HANDOFF_PREFIX + id]: { text, ts: Date.now() },
+        });
     }
 
-    // Runs on arrival in the destination tab. If a handoff is pending for this
-    // platform, type it into the composer and send.
+    // Runs on arrival in the destination tab.
     async receiveHandoff() {
-        const text = await this._takePendingHandoff();
+        const id = new URLSearchParams(location.hash.slice(1)).get('acb');
+        if (!id) return;
+        const text = await this._takeHandoff(HANDOFF_PREFIX + id);
         if (!text) return;
         console.log(`[ACB] ${this.name}: handoff received, ${text.length} chars`);
         this._fillComposerAndSend(text);
@@ -45,12 +52,12 @@ export class AIPlatform {
 
     // openWithContext opens the tab, THEN writes the key — so it may not be
     // there on the first look. Poll ~3s, drop a stale payload, consume once.
-    async _takePendingHandoff() {
+    async _takeHandoff(key) {
         for (let i = 0; i < 15; i++) {
-            const stored = await chrome.storage.local.get(this.pendingKey);
-            const pending = stored[this.pendingKey];
+            const stored = await chrome.storage.local.get(key);
+            const pending = stored[key];
             if (pending) {
-                await chrome.storage.local.remove(this.pendingKey);
+                await chrome.storage.local.remove(key);
                 return Date.now() - pending.ts < HANDOFF_TTL_MS ? pending.text : null;
             }
             await new Promise((r) => setTimeout(r, 200));

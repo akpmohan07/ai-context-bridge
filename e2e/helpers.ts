@@ -6,11 +6,11 @@ type Destination = {
   hostPattern: string;
   urlPrefix: RegExp;
   newChatUrl: string;
-  // Every destination now carries the context in chrome.storage.local (a
-  // 4000-word thread 414s/400s as a query string). storageKey names the key;
-  // the payload is { text, ts }.
-  storageKey: string;
 };
+
+// The context rides chrome.storage.local under `handoff:<uuid>`, with the uuid
+// in the opened tab's #fragment — see AIPlatform in src/ai-platforms/base.js.
+const HANDOFF_PREFIX = 'handoff:';
 
 // Mirrors src/ai-platforms/registry.js — one entry per live destination the
 // dropdown offers, keyed so a spec can assert a single named destination
@@ -23,36 +23,36 @@ export const DESTINATIONS = {
     menuItemName: /Open in Claude/,
     hostPattern: 'https://claude.ai/**',
     newChatUrl: 'https://claude.ai/new',
-    urlPrefix: /^https:\/\/claude\.ai\/new(\?model=[^&]+)?$/,
-    storageKey: 'pendingClaudePrompt',
+    urlPrefix: /^https:\/\/claude\.ai\/new(\?model=[^#]+)?(#acb=[\w-]+)?$/,
   },
   chatgpt: {
     menuItemName: /Open in ChatGPT/,
     hostPattern: 'https://chatgpt.com/**',
     newChatUrl: 'https://chatgpt.com/',
-    urlPrefix: /^https:\/\/chatgpt\.com\/(c\/[^/]+)?$/,
-    storageKey: 'pendingChatgptPrompt',
+    urlPrefix: /^https:\/\/chatgpt\.com\/(c\/[^/#]+)?(#acb=[\w-]+)?$/,
   },
   gemini: {
     menuItemName: /Open in Gemini/,
     hostPattern: 'https://gemini.google.com/**',
     newChatUrl: 'https://gemini.google.com/app',
-    urlPrefix: /^https:\/\/gemini\.google\.com\/app(\/[a-f0-9]+)?$/,
-    storageKey: 'pendingGeminiPrompt',
+    urlPrefix: /^https:\/\/gemini\.google\.com\/app(\/[a-f0-9]+)?(#acb=[\w-]+)?$/,
   },
 } as const satisfies Record<string, Destination>;
 
-// The real openWithContext flow, minus the source page: stash a handoff and
-// navigate the tab to the bare new-chat URL. receiveHandoff picks it up.
+// The real openWithContext flow, minus the source page: stash a handoff under a
+// fresh id and navigate the tab to the new-chat URL with that id in the
+// fragment. receiveHandoff picks it up.
 export async function handoffTo(
   context: BrowserContext,
   page: Page,
   dest: Destination,
   text: string
-) {
-  await writeExtensionStorage(context, { [dest.storageKey]: { text, ts: Date.now() } });
+): Promise<string> {
+  const id = crypto.randomUUID();
+  await writeExtensionStorage(context, { [HANDOFF_PREFIX + id]: { text, ts: Date.now() } });
   await page.bringToFront(); // execCommand / the "use caution" banner need focus
-  await page.goto(dest.newChatUrl, { waitUntil: 'domcontentloaded' });
+  await page.goto(`${dest.newChatUrl}#acb=${id}`, { waitUntil: 'domcontentloaded' });
+  return id;
 }
 
 // A context in which chrome.* APIs are available for evaluate(). Prefers this
@@ -124,69 +124,26 @@ export async function writeExtensionSyncStorage(context: BrowserContext, obj: Re
   }
 }
 
-// Arms a capture of the FIRST write to `key` (via chrome.storage.onChanged) and
-// returns a promise for that value. Must be called before the action that
-// triggers the write — the popup's own content script (gemini.content.js →
-// injectUI) consumes and clears the key on arrival, so a plain get() after the
-// fact races and usually loses.
-async function captureFirstWrite(context: BrowserContext, key: string): Promise<unknown> {
-  const ext = await extensionEval(context);
-  try {
-    return await ext.evaluate(
-      (k: string) =>
-        new Promise((resolve) => {
-          const done = (v: unknown) => {
-            chrome.storage.onChanged.removeListener(listener);
-            resolve(v);
-          };
-          const listener = (changes: any, area: string) => {
-            if (area === 'local' && changes[k]?.newValue !== undefined) done(changes[k].newValue);
-          };
-          chrome.storage.onChanged.addListener(listener);
-          setTimeout(() => done(undefined), 8000);
-        }),
-      key
-    );
-  } finally {
-    await ext.dispose();
-  }
-}
-
 // Blocks the destination's own host so its page never actually loads (avoids
-// depending on — and racing — a live third-party app's client-side behavior,
-// see reddit.spec.ts/medium.spec.ts comments), then asserts what
-// openWithContext() built: a bare new-chat URL, and the context stashed in
-// chrome.storage.local (never the URL).
-export async function assertDestinationHandoff(
-  context: BrowserContext,
-  page: Page,
-  dest: Destination,
-  expectedPromptSubstring: string,
-  // Reading the payload needs the extension's MV3 service worker awake and
-  // enumerable — reliable in a launchPersistentContext, flaky on a
-  // connectOverCDP browser full of other extensions. Off there; the payload is
-  // still covered by unit tests + medium.spec.ts + gemini-handoff.spec.ts.
-  { verifyPayload = true }: { verifyPayload?: boolean } = {}
-) {
+// depending on — and racing — a live third-party app), then asserts what
+// openWithContext() built: the menu item opens a NEW page at the bare new-chat
+// URL with a `#acb=<uuid>` fragment and nothing in the query string. That the
+// storage key `handoff:<uuid>` holds the right text is unit-tested
+// (test/platforms.test.js) and proven end-to-end by gemini-handoff.spec.ts.
+export async function assertDestinationHandoff(context: BrowserContext, page: Page, dest: Destination) {
   await context.route(dest.hostPattern, (route) =>
     route.fulfill({ status: 200, contentType: 'text/html', body: '' })
   );
-
-  // Arm the storage capture BEFORE the click.
-  const writePromise = verifyPayload ? captureFirstWrite(context, dest.storageKey) : null;
-
-  const [popup] = await Promise.all([
-    context.waitForEvent('page'),
-    page.getByRole('menuitem', { name: dest.menuItemName }).click(),
-  ]);
-  await expect.poll(() => popup.url(), { timeout: 10_000 }).toMatch(dest.urlPrefix);
-  expect(new URL(popup.url()).search).not.toMatch(/[?&](q|prompt)=/); // context never rides the URL
-
-  if (writePromise) {
-    const payload = (await writePromise) as { text?: string } | undefined;
-    expect(payload?.text ?? '').toContain(expectedPromptSubstring);
+  try {
+    const [popup] = await Promise.all([
+      context.waitForEvent('page'),
+      page.getByRole('menuitem', { name: dest.menuItemName }).click(),
+    ]);
+    await expect.poll(() => popup.url(), { timeout: 10_000 }).toMatch(dest.urlPrefix);
+    expect(popup.url()).toMatch(/#acb=[\w-]+$/); // context id in the fragment…
+    expect(new URL(popup.url()).search).not.toMatch(/[?&](q|prompt)=/); // …never the query
+    await popup.close();
+  } finally {
+    await context.unroute(dest.hostPattern);
   }
-
-  await popup.close();
-  await context.unroute(dest.hostPattern);
 }

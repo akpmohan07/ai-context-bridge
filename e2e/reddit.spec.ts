@@ -67,15 +67,7 @@ test.describe('Reddit → AI destinations', () => {
     test(`Reddit → ${name} opens a correct handoff`, async ({ connectedContext }) => {
       const { page, toggle } = await openRedditThread(connectedContext);
       await toggle.click();
-      await assertDestinationHandoff(
-        connectedContext,
-        page,
-        dest,
-        "Here's a Reddit thread I'd like to discuss",
-        // payload verification needs the extension SW / a popup page; skip it on
-        // this cluttered connectOverCDP browser — medium.spec.ts covers it.
-        { verifyPayload: false }
-      );
+      await assertDestinationHandoff(connectedContext, page, dest);
       await page.close();
     });
   }

@@ -11,15 +11,20 @@ destinations** — the whole mechanism lives in `AIPlatform`
 `AIPlatform.openWithContext(text)` — the SENDING side, on the source page:
 
 ```
-window.open('<dest>/<newChatPath>')                       // sync, in the click gesture
-chrome.storage.local.set({ [pendingKey]: { text, ts } })  // never the URL
+id = crypto.randomUUID()
+window.open('<dest>/<newChatPath>#acb=' + id)              // sync, in the click gesture
+chrome.storage.local.set({ ['handoff:' + id]: { text, ts } })
 ```
+
+The query string 414s / 400s on a 4000-word thread; the `#fragment` isn't sent
+to the server, so it carries the id with no limit.
 
 `<dest>.content.js` → `AIPlatform.receiveHandoff()` — the ARRIVAL side, in the
 destination tab's own content script:
 
 ```
-poll ~3s for pendingKey (the set above may not have landed yet)
+id = new URLSearchParams(location.hash.slice(1)).get('acb')   → no id, no handoff
+poll ~3s for handoff:<id>  (the set above may not have landed yet)
   → drop it if ts is > 60s old (tab was closed mid-handoff)
   → remove it (consume once)
 poll for the composer
@@ -28,9 +33,10 @@ poll for the composer
 poll the send button → click when enabled
 ```
 
-Per-platform config only: `newChatPath`, `pendingKey`, `composerSelector`,
-`sendButtonSelector`. Claude additionally overrides `newChatUrl()` to append
-`?model=` (short, no 414 risk).
+Each tab reads only *its own* id's key — a stale entry (tab never loaded) or a
+foreign one (you typed something into storage by hand) has a different id and is
+invisible. Per-platform config: `newChatPath`, `composerSelector`,
+`sendButtonSelector`. Claude overrides `newChatUrl()` to append `?model=`.
 
 ## Why not `?prompt=`
 
@@ -64,16 +70,21 @@ programmatic `DataTransfer` on Gemini's `<input type="file">`. Rejected:
 File attach stays a possible future refinement (a 4000-word doc arguably reads
 better to Gemini as an attachment), not a v3 blocker.
 
-## Consume-once + TTL
+## Why a nonce, not a fixed key
 
-Two guards against a stale payload landing in the wrong chat:
+The context used to sit in one fixed slot per destination (`pendingGeminiPrompt`).
+*Any* gemini.google.com tab that loaded read that slot — so a leftover from a
+crashed handoff, or something a developer wrote there by hand, would be sent
+into the next chat. The per-handoff `handoff:<uuid>` key + the id in the
+`#fragment` means each tab reads only the payload minted for it.
 
-- **Consume-once** — `receiveHandoff()` `remove()`s the key the moment it reads
-  it, so a second destination tab (or a later poll) sees nothing.
-- **TTL** — if the tab is closed before `receiveHandoff` ever runs, nothing
-  consumes the key. The next visit to that destination would then inject a
-  week-old thread. So a payload whose `ts` is more than 60s old is dropped
-  (and cleared) instead. A real handoff is consumed in ~1–2s.
+Three guards, in order of what they catch:
+
+- **Nonce** — a stale or foreign key has a different id; this tab never looks at it.
+- **Consume-once** — `receiveHandoff()` `remove()`s the key the moment it reads it.
+- **TTL** — if the tab is closed before `receiveHandoff` runs, nothing consumes
+  the key; a payload whose `ts` is more than 60s old is dropped (and cleared) so
+  it can't resurface. A real handoff is consumed in ~1–2s.
 
 ## Permissions / manifest
 

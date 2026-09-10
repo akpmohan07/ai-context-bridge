@@ -7,7 +7,6 @@ export class ClaudePlatform extends AIPlatform {
             name: 'Claude',
             baseUrl: 'https://claude.ai',
             newChatPath: '/new',
-            pendingKey: 'pendingClaudePrompt',
             composerSelector: 'div[contenteditable="true"]',
             sendButtonSelector: 'button[aria-label="Send message"]',
         });

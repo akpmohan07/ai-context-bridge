@@ -52,11 +52,13 @@ Extracts content from a web page and injects UI buttons/menus.
 ### AI Platforms (`src/ai-platforms/`)
 Destinations that receive context.
 - Base class: `AIPlatform` (base.js) — carries the whole handoff:
-  `openWithContext(text)` stashes `{text, ts}` in `chrome.storage.local` and
-  opens a bare new-chat tab; `receiveHandoff()` (run by the destination's own
-  content script) polls for the stash, types it into the composer and sends.
-  Context never rides the URL — it 414s / 400s. A subclass supplies only
-  `pendingKey` + `composerSelector` + `sendButtonSelector` + `newChatPath`.
+  `openWithContext(text)` stashes `{text, ts}` in `chrome.storage.local` under a
+  fresh `handoff:<uuid>` key and opens `<newChatUrl>#acb=<uuid>`;
+  `receiveHandoff()` (run by the destination's own content script) reads the
+  uuid from `location.hash`, takes *that* key (so a stale/foreign handoff is
+  invisible), types it into the composer and sends. Context never rides the URL
+  query — it 414s / 400s; the `#fragment` isn't sent to the server. A subclass
+  supplies only `composerSelector` + `sendButtonSelector` + `newChatPath`.
 - **ClaudePlatform**: overrides `newChatUrl()` to add `?model=` (short, safe).
 - **GeminiPlatform**: selectors only (Quill `.ql-editor`).
 - **ChatGPTPlatform**: selectors (handles both the logged-in contenteditable and

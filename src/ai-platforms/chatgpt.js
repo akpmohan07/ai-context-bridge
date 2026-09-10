@@ -6,7 +6,6 @@ export class ChatGPTPlatform extends AIPlatform {
             name: 'ChatGPT',
             baseUrl: 'https://chatgpt.com',
             newChatPath: '/',
-            pendingKey: 'pendingChatgptPrompt',
             // #prompt-textarea = the logged-in contenteditable composer;
             // #mobile-composer-prompt = the logged-out <textarea> "welcome mat".
             composerSelector: '#prompt-textarea, #mobile-composer-prompt, .wm-composer-textarea',

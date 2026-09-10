@@ -1,5 +1,5 @@
 import { test, expect } from './connected-fixtures';
-import { writeExtensionStorage, readExtensionStorage } from './helpers';
+import { DESTINATIONS, handoffTo, readExtensionStorage } from './helpers';
 
 // Gemini large-content handoff — the composer-insert path that replaces the
 // ?prompt= URL param (which 400s past ~6k chars). Manual-local tier: needs a
@@ -10,9 +10,9 @@ import { writeExtensionStorage, readExtensionStorage } from './helpers';
 //   npm run e2e:connect
 //   then once: chrome://extensions → Load unpacked → .output/chrome-mv3
 //
-// Simulates openWithContext()'s stash (large payloads through Reddit/Medium are
-// covered by reddit.spec.ts), then asserts gemini.content.js → injectUI()
-// inserts it into the real Quill composer and sends it.
+// Runs the real openWithContext flow (handoffTo), then asserts
+// gemini.content.js → receiveHandoff() inserts it into the real Quill composer
+// and sends it. Large Reddit/Medium payloads are covered by reddit.spec.ts.
 
 test('Gemini: an 11k-char payload is inserted into the composer and sent', async ({
   connectedContext,
@@ -24,25 +24,20 @@ test('Gemini: an 11k-char payload is inserted into the composer and sent', async
     `${marker}\n\n` + 'The quick brown fox jumps over the lazy dog. '.repeat(250); // ~11k chars
   expect(payload.length).toBeGreaterThan(6_000); // past the ?prompt= ceiling
 
-  await writeExtensionStorage(connectedContext, {
-    pendingGeminiPrompt: { text: payload, ts: Date.now() },
-  });
-
   const page = await connectedContext.newPage();
   page.on('console', (m) => {
     if (m.text().includes('[ACB]')) console.log('  page>', m.text());
   });
-  await page.bringToFront(); // execCommand('insertText') no-ops without doc focus
-  await page.goto('https://gemini.google.com/app', { waitUntil: 'domcontentloaded' });
+  const id = await handoffTo(connectedContext, page, DESTINATIONS.gemini, payload);
 
-  // injectUI polls the composer, inserts, then clicks send — the payload should
-  // land as a sent user turn, not sit in the composer.
+  // receiveHandoff polls the composer, inserts, then clicks send — the payload
+  // should land as a sent user turn, not sit in the composer.
   await expect(page.locator('user-query').filter({ hasText: marker })).toBeVisible({
     timeout: 25_000,
   });
 
-  // Consumed once — a later plain visit must not re-inject.
-  expect(await readExtensionStorage(connectedContext, 'pendingGeminiPrompt')).toBeUndefined();
+  // Consumed once — the handoff:<id> key is gone.
+  expect(await readExtensionStorage(connectedContext, `handoff:${id}`)).toBeUndefined();
 
   await page.close();
 });

@@ -48,32 +48,17 @@ test('Medium menu lists Claude, ChatGPT, Gemini and Copy for AI', async ({ conte
 test('Medium → Claude opens a correct handoff', async ({ context }) => {
   const { page, toggle } = await openMediumArticle(context);
   await toggle.click();
-  await assertDestinationHandoff(
-    context,
-    page,
-    DESTINATIONS.claude,
-    "Here's a Medium article I'd like to discuss"
-  );
+  await assertDestinationHandoff(context, page, DESTINATIONS.claude);
 });
 
 test('Medium → ChatGPT opens a correct handoff', async ({ context }) => {
   const { page, toggle } = await openMediumArticle(context);
   await toggle.click();
-  await assertDestinationHandoff(
-    context,
-    page,
-    DESTINATIONS.chatgpt,
-    "Here's a Medium article I'd like to discuss"
-  );
+  await assertDestinationHandoff(context, page, DESTINATIONS.chatgpt);
 });
 
 test('Medium → Gemini opens a correct handoff', async ({ context }) => {
   const { page, toggle } = await openMediumArticle(context);
   await toggle.click();
-  await assertDestinationHandoff(
-    context,
-    page,
-    DESTINATIONS.gemini,
-    "Here's a Medium article I'd like to discuss"
-  );
+  await assertDestinationHandoff(context, page, DESTINATIONS.gemini);
 });
