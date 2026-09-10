@@ -1,13 +1,10 @@
 import { test, expect } from './connected-fixtures';
+import { writeExtensionStorage } from './helpers';
 
 // Same prerequisites as claude-authenticated.spec.ts — see that file's header
 // comment (npm run e2e:login → e2e:connect → Load unpacked once via the UI).
-//
-// ALSO REQUIRES: src/time/time-logic.js's THRESHOLD_MS temporarily lowered
-// (e.g. 15s) from its real 30-minute value, with the extension rebuilt —
-// otherwise the "after a gap" step below would need an actual 30-minute
-// real wait. Revert THRESHOLD_MS and rebuild before shipping/committing;
-// this spec is not meant to run against the real 30-minute threshold.
+// Self-contained: step 3 backdates the stored last-message time, so no source
+// edit / THRESHOLD_MS lowering is needed.
 //
 // Combines the remaining Time Awareness branches (active-conversation /
 // after-a-gap) and the Presence state machine into ONE continuous real
@@ -24,9 +21,10 @@ import { test, expect } from './connected-fixtures';
 // already covered by unit tests.
 
 test('claude.ai real conversation: Time Awareness branches + Presence state machine', async ({
+  connectedContext,
   connectedPage,
 }) => {
-  test.setTimeout(150_000); // waits for two real Claude replies + a deliberate gap
+  test.setTimeout(150_000); // waits for two real Claude replies
 
   const presenceStates: string[] = [];
   connectedPage.on('console', (msg) => {
@@ -71,11 +69,13 @@ test('claude.ai real conversation: Time Awareness branches + Presence state mach
     await expect(stopButton).toBeHidden({ timeout: 60_000 });
   });
 
-  await test.step('message 3 (same chat, after crossing the — temporarily lowered — threshold): TimeContext prefix WITH elapsed duration', async () => {
-    // Real wait past THRESHOLD_MS (15s while lowered for this test), rather
-    // than faking a stored last-message timestamp — simpler and exercises
-    // the actual elapsed-time computation for real.
-    await connectedPage.waitForTimeout(16_000);
+  await test.step('message 3 (same chat, after backdating the last-message time): TimeContext prefix WITH elapsed duration', async () => {
+    const convId = new URL(connectedPage.url()).pathname.match(/\/chat\/([^/?]+)/)?.[1];
+    expect(convId, 'on a /chat/<uuid> conversation after two sends').toBeTruthy();
+    await writeExtensionStorage(connectedContext, {
+      claudeLastMessageAt: { [convId!]: Date.now() - 31 * 60 * 1000 },
+    });
+    await connectedPage.waitForTimeout(300); // let storage.onChanged reach the content script
 
     const input = connectedPage.locator('div[contenteditable="true"]').first();
     await input.click();

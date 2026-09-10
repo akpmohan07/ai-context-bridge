@@ -22,6 +22,13 @@ a manifest.
 - `npm run dev` — WXT dev server with HMR (loads into a dev browser)
 - `npm run build` — production build into `.output/chrome-mv3/`
 - `npm test` — Vitest unit tests (pure logic; see `test/`)
+- `npm run test:e2e` — Playwright, CI tier (own headed Chrome, no login):
+  smoke, medium, chatgpt
+- `npm run test:e2e:local` — every spec, including the **connected** tier
+  (reddit, gemini-*, claude-*) which attaches to a Chrome you launch with
+  `npm run e2e:connect`, signed into a dummy Google account. Without that
+  browser the connected specs skip. See `docs/tech-backlog.md` § Playwright E2E.
+- `npm run test:all` — unit + `test:e2e:local`
 
 **To load manually:** `npm run build`, then in `chrome://extensions/` (Developer
 mode) → "Load unpacked" → select `.output/chrome-mv3/`. Rebuild + refresh after
