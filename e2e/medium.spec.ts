@@ -4,16 +4,18 @@ import { DESTINATIONS, assertDestinationHandoff } from './helpers';
 
 // Discovers a live article via Medium's public tag RSS feed rather than
 // hardcoding a URL that will eventually 404 or get paywalled. The <channel>
-// carries its own <link> (and a duplicate inside <image>) before any <item>,
-// so scope the match to the first <item> block rather than picking by
-// position.
+// carries its own <link> (and a duplicate inside <image>) pointing at
+// /tag/<x>/latest before any <item>; item links are either medium.com/@user/…
+// or a <publication>.medium.com/… subdomain. Walk every <item> and take the
+// first real article link, so a subdomain-hosted lead story doesn't break it.
 async function findMediumArticleUrl(request: APIRequestContext): Promise<string> {
   const res = await request.get('https://medium.com/feed/tag/javascript');
   const xml = await res.text();
-  const firstItem = xml.match(/<item>([\s\S]*?)<\/item>/)?.[1];
-  const articleUrl = firstItem?.match(/<link>(https:\/\/medium\.com\/[^<]+)<\/link>/)?.[1];
-  if (!articleUrl) throw new Error('No article link found in medium.com/feed/tag/javascript');
-  return articleUrl;
+  for (const [, item] of xml.matchAll(/<item>([\s\S]*?)<\/item>/g)) {
+    const link = item.match(/<link>(https:\/\/[\w.-]*medium\.com\/[^<]+)<\/link>/)?.[1];
+    if (link && !/\/tag\/[^/]+\/latest/.test(link)) return link.replace(/\?source=.*$/, '');
+  }
+  throw new Error('No article link found in medium.com/feed/tag/javascript');
 }
 
 // Navigates to a live article, confirms the launcher injected, and returns
