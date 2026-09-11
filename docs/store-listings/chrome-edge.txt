@@ -1,0 +1,76 @@
+=== Detailed description (plain text, no Markdown rendering) ===
+
+I built this because I was tired of doing it manually.
+
+Every time I found a Reddit thread worth discussing, I'd copy the post, copy the comments, open Claude, paste everything, add context explaining what I was looking at... by the time I hit send, I'd lost the thread entirely. Same thing when I wanted a second opinion from Claude on a ChatGPT conversation. Same thing with Medium articles. And every time I came back to Claude after a break, it had no idea how much time had passed, like picking up a conversation with someone who forgot you ever spoke.
+
+It was friction that shouldn't exist. So I built the shortcut I wished someone else had already made.
+
+Here's what it does:
+
+★ Sources
+
+🧵 Reddit
+A small button appears on every thread. Click it, pick Claude, ChatGPT, or Gemini, and the full discussion lands in your AI ready to go. Post, comments, context, all of it.
+
+📝 Medium
+Reading something interesting? One click sends the whole article to Claude, ChatGPT, or Gemini. No selecting, no copying, no tab juggling.
+
+★ Time Awareness
+
+⏱ Works on Claude, ChatGPT, and Gemini
+Your AI has no idea how long it's been since your last message. Now it does. Conversations feel continuous, not cold restarts, whichever AI you're talking to.
+
+★ ChatGPT Assistant
+
+🚀 Summarize and Continue in New Chat
+One click condenses your entire conversation into a focused summary and opens a fresh chat, so you never lose momentum.
+
+🤔 Get Claude's Opinion
+Still on ChatGPT but want a second perspective? One click sends your conversation to Claude and asks for its take.
+
+★ Claude.ai
+
+🎵 Ambient Sounds
+The silence while Claude thinks feels oddly empty. A soft sound when you send, a quiet hum while it thinks, a gentle chime when it responds.
+
+Every feature above is its own toggle in the popup. Turn on only what you actually want, per platform.
+
+🔒 Privacy
+Nothing leaves your browser. No account. No servers. No tracking. Open source.
+
+github.com/akpmohan07/ai-context-bridge
+
+💡 If something's broken or you want a feature, open an issue. I read them.
+
+=== Single purpose description ===
+
+Sends content from a web page (a Reddit thread, a Medium article, a ChatGPT conversation) into an AI chat of the user's choice (Claude, ChatGPT, or Gemini) with one click, and adds small enhancements to that same AI conversation (awareness of time since the last message, optional ambient audio on Claude.ai). Every feature serves this one purpose: getting context into, and lightly enhancing, an AI chat session.
+
+=== Permission justifications ===
+
+webRequest:
+Detects when a ChatGPT response finishes streaming, for the Summarize and Continue / Get Claude's Opinion features. The listener is scoped to exactly one URL via the API's own filter, https://chatgpt.com/backend-api/f/conversation, not general network monitoring. It only reads request completion metadata, never response bodies or user data.
+
+tabs:
+Used for two narrow purposes: (1) relaying a "conversation completed" signal back to the specific ChatGPT tab that triggered Summarize and Continue / Get Claude's Opinion, since the webRequest listener can't message a content script directly; (2) reading only the active tab's URL in the popup, to show the relevant platform's settings section first. No tab content is read via this permission.
+
+storage:
+Two uses: (1) chrome.storage.sync stores the user's own feature toggles so they sync across signed-in browsers; (2) chrome.storage.local briefly stages content being handed off from a source page to an AI chat tab, a short-lived key removed immediately once read (under a minute), plus a small per-conversation cache of last-message timestamps for Time Awareness. Nothing is ever sent off-device.
+
+Host permission:
+Each host serves a distinct purpose: reddit.com and medium.com/*.medium.com let a content script read the current Reddit thread or Medium article's own rendered content when the user clicks "Open in AI," and inject that button. chatgpt.com lets a content script inject the floating Assistant Button, read the current conversation for Summarize/second-opinion, and lets the webRequest listener above detect completion of that one specific endpoint. No host permission is requested for Claude.ai or Gemini; those are only ever the destination of a user-initiated handoff, never read automatically.
+
+=== Data usage declaration ===
+
+Check ONLY: "Website content" (this extension reads visible page content on click; nothing else — no PII, health, financial, auth, personal communications as a messaging system, location, web history log, or user-activity monitoring).
+Certify all three "I do not..." disclosures: true for this codebase.
+Privacy policy URL: https://github.com/akpmohan07/ai-context-bridge/blob/main/PRIVACY.md
+
+=== Other fields ===
+
+Category: Productivity
+Support email: akpmohan07@gmail.com
+Website: https://github.com/akpmohan07/ai-context-bridge
+Publisher/Company name: Mohankumar Muthusamy (no registered company; use legal name)
+Mature content: No
