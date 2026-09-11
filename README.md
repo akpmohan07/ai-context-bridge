@@ -21,7 +21,7 @@
 
 ## What it does
 
-AI Context Bridge is a Chrome extension that bridges content from the web into your AI conversations — without copy-pasting.
+AI Context Bridge is a Chrome extension that bridges content from the web into your AI conversations, without copy-pasting.
 
 **Sources → Destinations:**
 - Reddit thread → Claude, ChatGPT, Gemini, or clipboard
@@ -29,10 +29,10 @@ AI Context Bridge is a Chrome extension that bridges content from the web into y
 - ChatGPT conversation → Claude (summarize & continue, or get a second opinion)
 
 **On-platform extras:**
-- **Time Awareness** — on Claude, ChatGPT *and* Gemini: prepends a time-context
+- **Time Awareness** on Claude, ChatGPT *and* Gemini: prepends a time-context
   tag when it's the first message of a chat or there's been a 30+ minute gap
-- **Ambient sounds** (Claude.ai) — subtle audio presence during conversations
-- **Default Model** (Claude.ai) — pick the model handoffs open in
+- **Ambient sounds** (Claude.ai): subtle audio presence during conversations
+- **Default Model** (Claude.ai): pick the model handoffs open in
 
 ## Installation
 
@@ -52,10 +52,10 @@ Full catalog: [docs/features.md](docs/features.md).
 
 **Reddit**
 An "Open in AI ▼" button appears on any Reddit thread. Click to choose:
-- Open in Claude — sends the full thread with top comments
-- Open in ChatGPT — same, opens in ChatGPT
-- Open in Gemini — same, opens in Gemini
-- Copy for AI — copies formatted context to clipboard
+- Open in Claude: sends the full thread with top comments
+- Open in ChatGPT: same, opens in ChatGPT
+- Open in Gemini: same, opens in Gemini
+- Copy for AI: copies formatted context to clipboard
 
 **Medium**
 Same dropdown appears on any Medium article, with the same four destinations.
@@ -63,24 +63,24 @@ Same dropdown appears on any Medium article, with the same four destinations.
 ### ChatGPT
 
 A floating **Assistant Button** appears on ChatGPT conversations (toggle in the popup):
-- **Summarize and Continue** — asks ChatGPT to summarize the conversation, then opens a new ChatGPT chat with that summary pre-loaded
-- **Get Claude's Opinion** — sends the conversation to Claude for a second take
+- **Summarize and Continue**: asks ChatGPT to summarize the conversation, then opens a new ChatGPT chat with that summary pre-loaded
+- **Get Claude's Opinion**: sends the conversation to Claude for a second take
 
-**Time Awareness** — prepends a time-context tag to your message when it's the first message in a new chat, or there's been a 30+ minute gap. Toggle in the popup.
+**Time Awareness**: prepends a time-context tag to your message when it's the first message in a new chat, or there's been a 30+ minute gap. Toggle in the popup.
 
 ### Gemini
 
-**Time Awareness** — same behavior as ChatGPT's. Record-only (no history seed),
-so the first message in a chat started on another device shows a bare timestamp
-rather than the gap; it self-heals on the next send. Toggle in the popup.
+**Time Awareness**: same behavior as ChatGPT's, but record-only (no history
+seed). The first message in a chat started on another device shows a bare
+timestamp rather than the gap; it self-heals on the next send. Toggle in the popup.
 
 ### Claude.ai
 
-**Ambient Sounds (Presence)** — plays subtle background audio (breath on send, hum while generating, chime on reply). Toggle in the popup.
+**Ambient Sounds (Presence)**: plays subtle background audio (breath on send, hum while generating, chime on reply). Toggle in the popup.
 
-**Time Awareness** — same behavior as ChatGPT's: a time-context tag on the first message or after a real gap. Toggle in the popup.
+**Time Awareness**: same behavior as ChatGPT's. A time-context tag on the first message or after a real gap. Toggle in the popup.
 
-**Default Model** — pick a model in the popup to use whenever content is handed off to Claude from Reddit, Medium, or ChatGPT.
+**Default Model**: pick a model in the popup to use whenever content is handed off to Claude from Reddit, Medium, or ChatGPT.
 
 ## Privacy
 
@@ -95,12 +95,12 @@ Built with [WXT](https://wxt.dev). `manifest.json` is generated from
 ai-context-bridge/
 ├── wxt.config.ts                  # manifest name/permissions/icons
 ├── entrypoints/
-│   ├── background.js              # service worker — ChatGPT API response listener
-│   ├── claude.content.js          # claude.ai   — auto-send, Presence, Time Awareness, model catalog
-│   ├── chatgpt.content.js         # chatgpt.com  — floating button, Time Awareness
-│   ├── gemini.content.js          # gemini.google.com — handoff insert, Time Awareness
-│   ├── reddit.content.js          # reddit.com   — menu injection
-│   ├── medium.content.js          # medium.com   — menu injection
+│   ├── background.js              # service worker: ChatGPT API response listener
+│   ├── claude.content.js          # claude.ai: auto-send, Presence, Time Awareness, model catalog
+│   ├── chatgpt.content.js         # chatgpt.com: floating button, Time Awareness
+│   ├── gemini.content.js          # gemini.google.com: handoff insert, Time Awareness
+│   ├── reddit.content.js          # reddit.com: menu injection
+│   ├── medium.content.js          # medium.com: menu injection
 │   └── popup/                     # index.html / main.js / style.css
 └── src/
     ├── core/                      # schema, budget trimmer, formatter, defaults
@@ -112,7 +112,7 @@ ai-context-bridge/
 ```
 
 See <a href="CLAUDE.md" target="_blank">CLAUDE.md</a> for full architecture details and contribution guide, or
-<a href="docs/key-engineering-decisions" target="_blank">docs/key-engineering-decisions</a> for write-ups (lightweight ADRs) of the harder problems this project solved — the backend-less content handoff, reverse-engineering each platform's timing API, and more.
+<a href="docs/key-engineering-decisions" target="_blank">docs/key-engineering-decisions</a> for write-ups (lightweight ADRs) of the harder problems this project solved: the backend-less content handoff, reverse-engineering each platform's timing API, and more.
 
 ## Contributing
 
@@ -124,7 +124,7 @@ See <a href="CLAUDE.md" target="_blank">CLAUDE.md</a> for full architecture deta
 
 ## License
 
-Apache 2.0 — see <a href="LICENSE" target="_blank">LICENSE</a>
+Apache 2.0. See <a href="LICENSE" target="_blank">LICENSE</a>.
 
 ---
 
