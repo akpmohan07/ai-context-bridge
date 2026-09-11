@@ -31,12 +31,21 @@ export default defineConfig({
       48: 'icons/48-icon.png',
       128: 'icons/128-icon.png',
     },
-    // Firefox-only. `gecko.id` is left unset — AMO assigns one on first
-    // upload. data_collection_permissions is required for any new AMO
-    // listing since 2025-11-03; 'none' is accurate — see README § Privacy
-    // (all processing is local, nothing is ever sent to a server).
+    // Firefox-only. gecko.id: Mozilla's own warning is specifically scoped
+    // to "loaded temporarily using about:debugging" — without a stable id,
+    // storage.sync can't attach reliably to a temp-loaded identity that
+    // changes every reload. Observed exactly that locally: every popup
+    // toggle read as off because popup/main.js's storage.sync.get(...)
+    // callback never resolved. A real AMO-signed install gets a permanent
+    // identity regardless, so this is a local-testing fix more than a
+    // production one — but Mozilla recommends setting it outright anyway
+    // ("will become mandatory"), so worth having either way. data_collection
+    // _permissions is required for any new AMO listing since 2025-11-03;
+    // 'none' is accurate — see README § Privacy (all processing is local,
+    // nothing is ever sent to a server).
     browser_specific_settings: {
       gecko: {
+        id: 'ai-context-bridge@akpmohan07.github.io',
         data_collection_permissions: { required: ['none'] },
       },
     },
