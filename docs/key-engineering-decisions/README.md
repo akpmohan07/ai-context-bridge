@@ -119,5 +119,5 @@ poll-retry-give-up loop because SPA composers mount late.
 
 ---
 
-See also [`CLAUDE.md`](../../CLAUDE.md) for the full architecture reference and
-contribution guide.
+See also [`ARCHITECTURE.md`](../../ARCHITECTURE.md) for the full architecture
+reference and contribution guide.

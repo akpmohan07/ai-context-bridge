@@ -1,7 +1,7 @@
 # Docs Manifest
 
 Design notes and feature history for AI Context Bridge. Architecture and setup
-live in the root [`README.md`](../README.md) and [`CLAUDE.md`](../CLAUDE.md) —
+live in the root [`README.md`](../README.md) and [`ARCHITECTURE.md`](../ARCHITECTURE.md);
 these are the longer-form notes that don't belong in either.
 
 | Doc | What it is | Status |
@@ -29,4 +29,4 @@ these are the longer-form notes that don't belong in either.
   yet, and what should cause it to be picked up.
 
 Not here: how to install, load, or reload the extension (root `README.md`), or
-the module/extension-point structure (`CLAUDE.md`).
+the module/extension-point structure (`ARCHITECTURE.md`).

@@ -3,7 +3,7 @@
 One folder per AI destination platform. Each holds the detailed, feature-level
 notes for that platform — the things too specific for the cross-platform
 [`../provider-features.md`](../provider-features.md) matrix or the root
-`CLAUDE.md` architecture.
+`ARCHITECTURE.md`.
 
 ```
 platforms/

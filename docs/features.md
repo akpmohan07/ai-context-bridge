@@ -1,6 +1,6 @@
 # Features
 
-Full feature catalog. See [CLAUDE.md](../CLAUDE.md) for architecture,
+Full feature catalog. See [ARCHITECTURE.md](../ARCHITECTURE.md) for architecture,
 [README.md](../README.md) for the user-facing summary.
 
 ## Shipped

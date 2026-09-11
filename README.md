@@ -111,7 +111,7 @@ ai-context-bridge/
     └── time/                      # message-timer.js, time-logic.js
 ```
 
-See <a href="CLAUDE.md" target="_blank">CLAUDE.md</a> for full architecture details and contribution guide, or
+See <a href="ARCHITECTURE.md" target="_blank">ARCHITECTURE.md</a> for full details and the contribution guide, or
 <a href="docs/key-engineering-decisions" target="_blank">docs/key-engineering-decisions</a> for write-ups (lightweight ADRs) of the harder problems this project solved: the backend-less content handoff, reverse-engineering each platform's timing API, and more.
 
 ## Contributing

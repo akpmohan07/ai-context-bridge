@@ -123,7 +123,8 @@ edit. Migrated to **WXT** (wxt.dev): `entrypoints/` + `src/**` ES modules;
 kept as-is (Chrome-only) to minimise the diff. Unit tests (Vitest) were written
 *first* as the migration's safety net — now 77 tests, ~93% coverage on the pure
 modules (`reddit-parse`, `medium-markdown`, budget, formatter, schema, time,
-presence). Playwright E2E (L2) followed — see below. [[../CLAUDE.md]] Development Setup.
+presence). Playwright E2E (L2) followed — see below. See
+[`../ARCHITECTURE.md`](../ARCHITECTURE.md) § Development Setup.
 
 ---
 
