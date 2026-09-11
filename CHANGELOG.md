@@ -23,8 +23,9 @@ write-ups of the harder problems this cycle solved.
 - Popup redesigned: tinted per-platform section bands, Sources grouped last,
   and the section for whatever site you're currently on surfaces first.
 - `CHANGELOG.md`, `docs/key-engineering-decisions/` (5 ADRs), a `release`
-  GitHub Actions workflow wired to `wxt submit` (Chrome Web Store + Edge
-  Add-ons), and `npm run submit` / `npm run submit:init`.
+  GitHub Actions workflow wired to `wxt submit` — **Chrome Web Store, Edge
+  Add-ons, and Firefox Add-ons (AMO), all three from one command** — and
+  `npm run submit` / `npm run submit:init` / `npm run zip:firefox`.
 
 ### Changed
 - **Content handoff rebuilt**: content now travels through

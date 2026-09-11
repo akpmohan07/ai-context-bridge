@@ -7,7 +7,7 @@ export default defineConfig({
   manifest: {
     name: 'AI Context Bridge',
     description:
-      'One click sends Reddit threads, Medium articles & ChatGPT conversations to Claude or ChatGPT. No copy-paste, full context preserved.',
+      "One click carries full context into your AI chat, no copy-paste, and adds what it's missing, like a sense of time, and more.",
     permissions: ['scripting', 'activeTab', 'webRequest', 'tabs', 'storage'],
     host_permissions: [
       'https://chatgpt.com/*',
@@ -23,6 +23,15 @@ export default defineConfig({
       32: 'icons/32-icon.png',
       48: 'icons/48-icon.png',
       128: 'icons/128-icon.png',
+    },
+    // Firefox-only. `gecko.id` is left unset — AMO assigns one on first
+    // upload. data_collection_permissions is required for any new AMO
+    // listing since 2025-11-03; 'none' is accurate — see README § Privacy
+    // (all processing is local, nothing is ever sent to a server).
+    browser_specific_settings: {
+      gecko: {
+        data_collection_permissions: { required: ['none'] },
+      },
     },
   },
 });

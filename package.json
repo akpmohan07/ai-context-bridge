@@ -7,6 +7,7 @@
     "dev": "wxt",
     "build": "wxt build",
     "zip": "wxt zip",
+    "zip:firefox": "wxt zip -b firefox",
     "test": "vitest run",
     "test:watch": "vitest",
     "coverage": "vitest run --coverage",
@@ -16,7 +17,7 @@
     "e2e:login": "\"/Applications/Google Chrome.app/Contents/MacOS/Google Chrome\" --user-data-dir=\"$(pwd)/e2e/.auth/chrome-profile\"",
     "e2e:connect": "npm run build && \"/Applications/Google Chrome.app/Contents/MacOS/Google Chrome\" --remote-debugging-port=9222 --user-data-dir=\"$(pwd)/e2e/.auth/chrome-profile\"",
     "submit:init": "wxt submit init",
-    "submit": "wxt submit --chrome-zip .output/*-chrome.zip --edge-zip .output/*-chrome.zip"
+    "submit": "wxt submit --chrome-zip .output/*-chrome.zip --edge-zip .output/*-chrome.zip --firefox-zip .output/*-firefox.zip --firefox-sources-zip .output/*-sources.zip"
   },
   "devDependencies": {
     "@playwright/test": "^1.62.1",

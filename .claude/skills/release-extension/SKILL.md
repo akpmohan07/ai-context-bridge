@@ -101,19 +101,34 @@ the tag name alone).
 
 The `release` GitHub Actions workflow (`.github/workflows/release.yml`) is
 `workflow_dispatch`-only by design — it never fires on push. It gates on the
-full `ci.yml` suite, then runs `wxt submit` against Chrome Web Store + Edge
-Add-ons.
+full `ci.yml` suite, then runs `wxt submit` against Chrome Web Store, Edge
+Add-ons, **and Firefox Add-ons (AMO)** — one command submitting to all three,
+since `wxt submit` (built on `publish-browser-extension`) already *is* the
+central multi-store system; there's no separate tool to reach for. Safari is
+the one platform that structurally can't join this — it's a native app
+wrapper, not a store API, and needs a paid ($99/yr) Apple Developer account;
+not pursued unless the user explicitly decides it's worth that cost.
 
 1. **Dry run first, always**, if store credentials haven't been exercised
    recently: `gh workflow run release.yml -f dry_run=true`. Confirm it goes
    green before anything real.
 2. Get explicit go-ahead, then the real run: `gh workflow run release.yml`.
-3. If store secrets (`CHROME_EXTENSION_ID`, `CHROME_CLIENT_ID`,
-   `CHROME_CLIENT_SECRET`, `CHROME_REFRESH_TOKEN`, `EDGE_PRODUCT_ID`,
-   `EDGE_CLIENT_ID`, `EDGE_API_KEY`) aren't set as repo Actions secrets yet,
-   that's a manual step only the user can do (`npm run submit:init` locally,
-   then paste the results into `Settings → Secrets and variables → Actions`)
-   — don't attempt to obtain OAuth credentials on their behalf.
+3. If store secrets aren't set as repo Actions secrets yet, that's a manual
+   step only the user can do — don't attempt to obtain credentials on their
+   behalf:
+   - Chrome: `CHROME_EXTENSION_ID`, `CHROME_CLIENT_ID`, `CHROME_CLIENT_SECRET`,
+     `CHROME_REFRESH_TOKEN` (`npm run submit:init` generates these
+     interactively via Google Cloud Console OAuth)
+   - Edge: `EDGE_PRODUCT_ID`, `EDGE_CLIENT_ID`, `EDGE_API_KEY` (Microsoft
+     Partner Center)
+   - Firefox: `FIREFOX_JWT_ISSUER`, `FIREFOX_JWT_SECRET` (AMO API key,
+     https://addons.mozilla.org/developers/addon/api/key/) — `FIREFOX_EXTENSION_ID`
+     doesn't exist yet on a first submission; AMO assigns one, add it as a
+     secret afterward for subsequent releases.
+   - Firefox also requires a **source code review** — `npm run zip:firefox`
+     produces both the extension zip and the sources zip WXT needs for that
+     (excludes tests/config/hidden files automatically; verify no stray build
+     artifacts like a local `coverage/` directory snuck in before shipping).
 4. **Expect variable review time.** Chrome Web Store review typically runs
    from under an hour to a few days for an extension with narrow permissions
    (this one requests specific `host_permissions`, not `<all_urls>`), but 2026

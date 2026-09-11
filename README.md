@@ -1,6 +1,6 @@
 # AI Context Bridge
 
-> One click sends Reddit threads, Medium articles & ChatGPT conversations to Claude, ChatGPT, Gemini or your clipboard. No copy-paste, full context preserved.
+> One click carries full context into your AI chat, no copy-paste, and adds what it's missing, like a sense of time, and more.
 
 <a href="https://opensource.org/licenses/Apache-2.0" target="_blank">![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)</a>
 <a href="https://chromewebstore.google.com/detail/ai-context-bridge/kjgmboacclalfjgcmooplnpimjalikfo" target="_blank">![Chrome Extension](https://img.shields.io/badge/Chrome_Extension-v2.0.0-green)</a>
