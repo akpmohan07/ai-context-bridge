@@ -1,4 +1,7 @@
-class FloatingButton extends UIInjector {
+import { UIInjector } from './base.js';
+import { Theme } from './theme.js';
+
+export class FloatingButton extends UIInjector {
     constructor() {
         super({ name: 'FloatingButton' });
     }

@@ -1,4 +1,13 @@
-class PresenceLayer {
+import { SentTrigger } from './triggers/sent.js';
+import { StopButtonTrigger } from './triggers/stop-button.js';
+import { PresenceStateMachine } from './state-machine.js';
+import { PRESENCE_CONFIG } from './config.js';
+import { soundRegistry } from './sounds/registry.js';
+import './sounds/breath.js';
+import './sounds/hum.js';
+import './sounds/chime.js';
+
+export class PresenceLayer {
   constructor() {
     this._triggers = [
       new SentTrigger(),
@@ -10,7 +19,7 @@ class PresenceLayer {
 
   init() {
     this._triggers.forEach(t => t.attach(event => this._sm.handle(event)));
-    console.log('[AI Presence] initialized');
+    console.log('[ACB] Presence: initialized');
   }
 
   destroy() {
@@ -28,7 +37,7 @@ class PresenceLayer {
   }
 
   _onTransition(state) {
-    console.log(`[AI Presence] state: ${state}`);
+    console.log(`[ACB] Presence: state: ${state}`);
     if (!this._enabled) return;
 
     const cfg = PRESENCE_CONFIG[state];

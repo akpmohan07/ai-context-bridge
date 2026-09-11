@@ -1,29 +1,37 @@
+import { ContentSource } from './base.js';
+import { Theme } from '../ui/theme.js';
+import { Budget } from '../core/budget.js';
+import { Formatter } from '../core/formatter.js';
+import { createContentDocument } from '../core/schema.js';
+import { extractBody } from './medium-markdown.js';
+
 class MediumToolbarInjector {
     constructor() {
-        this._injected = false;
         this._observer = null;
     }
 
     observe(actions) {
-        if (this._tryInject(actions)) return;
+        this._tryInject(actions);
+        if (this._observer) return;
 
-        this._observer = new MutationObserver(() => {
-            if (this._tryInject(actions)) {
-                this._observer.disconnect();
-                this._observer = null;
-            }
-        });
+        // Stay connected for the page's lifetime. Medium hydrates/re-renders the
+        // footer after load and removes our button (a foreign node in
+        // React-managed DOM), so a one-shot injector shows it then loses it. The
+        // presence guard in _tryInject keeps this to a single button.
+        this._observer = new MutationObserver(() => this._tryInject(actions));
         this._observer.observe(document.body, { childList: true, subtree: true });
     }
 
     _tryInject(actions) {
-        if (this._injected) return true;
+        if (document.querySelector('.acb-medium-launcher')) return true;
 
         // The share button's wrapper has a stable aria-describedby attribute
         const shareWrapper = document.querySelector('[aria-describedby="postFooterSocialMenu"]');
         if (!shareWrapper || !shareWrapper.parentElement) return false;
 
-        this._injected = true;
+        // Remove any dropdown orphaned in <body> by a button that got re-rendered away.
+        document.querySelectorAll('.acb-medium-dropdown').forEach(d => d.remove());
+
         const btn = this._buildButtonWrapper(actions);
         shareWrapper.parentElement.insertBefore(btn, shareWrapper.nextSibling);
         return true;
@@ -31,6 +39,7 @@ class MediumToolbarInjector {
 
     _buildButtonWrapper(actions) {
         const wrapper = document.createElement('div');
+        wrapper.className = 'acb-medium-launcher';
         wrapper.style.cssText = 'display: inline-flex; align-items: center;';
 
         // Dropdown is appended to document.body so it escapes any overflow:hidden on the toolbar
@@ -92,6 +101,7 @@ class MediumToolbarInjector {
 
     _buildDropdown(actions) {
         const dropdown = document.createElement('div');
+        dropdown.className = 'acb-medium-dropdown';
         dropdown.style.cssText = `
             display: none;
             flex-direction: column;
@@ -106,17 +116,14 @@ class MediumToolbarInjector {
             padding: 4px 0;
         `;
 
-        dropdown.appendChild(this._createItem('Open in Claude', Theme.claude.accent, `linear-gradient(135deg, ${Theme.claude.bg} 0%, ${Theme.claude.bgTo} 100%)`, async () => {
-            dropdown.style.display = 'none';
-            this._showNotification('Opening in Claude…');
-            await actions.openInClaude();
-        }));
-
-        dropdown.appendChild(this._createItem('Open in ChatGPT', Theme.chatgpt.accent, `linear-gradient(135deg, ${Theme.chatgpt.bg} 0%, ${Theme.chatgpt.bgTo} 100%)`, async () => {
-            dropdown.style.display = 'none';
-            this._showNotification('Opening in ChatGPT…');
-            await actions.openInChatGPT();
-        }));
+        actions.destinations.forEach(dest => {
+            const t = Theme[dest.theme];
+            dropdown.appendChild(this._createItem(dest.label, t.accent, `linear-gradient(135deg, ${t.bg} 0%, ${t.bgTo} 100%)`, async () => {
+                dropdown.style.display = 'none';
+                this._showNotification(`Opening in ${dest.platform.name}…`);
+                await actions.openIn(dest.platform);
+            }));
+        });
 
         dropdown.appendChild(this._createItem('Copy for AI', Theme.copy.accent, `linear-gradient(135deg, ${Theme.copy.bg} 0%, ${Theme.copy.bgTo} 100%)`, async () => {
             dropdown.style.display = 'none';
@@ -222,7 +229,7 @@ class MediumToolbarInjector {
     }
 }
 
-class MediumSource extends ContentSource {
+export class MediumSource extends ContentSource {
     constructor() {
         super({ name: 'Medium' });
         this._injector = new MediumToolbarInjector();
@@ -249,7 +256,7 @@ class MediumSource extends ContentSource {
             document.querySelector('time')
         )?.textContent?.trim() || '';
 
-        const body = this._extractBody(article);
+        const body = extractBody(article);
 
         return createContentDocument({
             title,
@@ -259,60 +266,6 @@ class MediumSource extends ContentSource {
             community: date ? `${author} • ${date}` : author,
             items: []
         });
-    }
-
-    // Converts article DOM to markdown-like text, preserving structure and code blocks.
-    // Queries top-level semantic blocks only (filters out nested matches to avoid duplication).
-    _extractBody(article) {
-        const selector = 'h2, h3, h4, p, pre, blockquote, ul, ol';
-
-        const topLevel = Array.from(article.querySelectorAll(selector))
-            .filter(el => !el.parentElement.closest(selector));
-
-        return topLevel
-            .map(el => this._toMarkdown(el))
-            .filter(Boolean)
-            .join('\n\n');
-    }
-
-    _toMarkdown(el) {
-        const tag = el.tagName.toLowerCase();
-        const text = el.textContent.trim();
-        if (!text) return null;
-
-        switch (tag) {
-            case 'h2': return `## ${text}`;
-            case 'h3': return `### ${text}`;
-            case 'h4': return `#### ${text}`;
-            case 'pre': return `\`\`\`\n${this._extractPreText(el)}\n\`\`\``;
-            case 'blockquote':
-                return text.split('\n').filter(l => l.trim()).map(l => `> ${l}`).join('\n');
-            case 'ul':
-                return Array.from(el.querySelectorAll('li'))
-                    .map(li => `- ${li.textContent.trim()}`)
-                    .filter(Boolean).join('\n');
-            case 'ol':
-                return Array.from(el.querySelectorAll('li'))
-                    .map((li, i) => `${i + 1}. ${li.textContent.trim()}`)
-                    .filter(Boolean).join('\n');
-            default: return text; // p
-        }
-    }
-
-    // Recursively extracts text from a <pre>, converting <br> to \n so each
-    // code line is preserved (Medium renders lines as <span>s with <br> separators).
-    _extractPreText(node) {
-        let text = '';
-        for (const child of node.childNodes) {
-            if (child.nodeType === Node.TEXT_NODE) {
-                text += child.textContent;
-            } else if (child.nodeName === 'BR') {
-                text += '\n';
-            } else {
-                text += this._extractPreText(child);
-            }
-        }
-        return text;
     }
 
     async getFormattedContent() {

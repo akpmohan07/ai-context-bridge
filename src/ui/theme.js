@@ -1,4 +1,4 @@
-const Theme = (() => {
+export const Theme = (() => {
     const dark = window.matchMedia('(prefers-color-scheme: dark)').matches;
 
     return {
@@ -12,6 +12,11 @@ const Theme = (() => {
             accent: '#10a37f',
             bg:     dark ? '#0f2420' : '#f0f9f7',
             bgTo:   dark ? '#0d2e28' : '#d1eee9',
+        },
+        gemini: {
+            accent: '#4285F4',
+            bg:     dark ? '#12203d' : '#f0f5ff',
+            bgTo:   dark ? '#152a52' : '#dbe8ff',
         },
         copy: {
             accent: '#f59e0b',

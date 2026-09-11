@@ -134,3 +134,23 @@ dist
 .yarn/build-state.yml
 .yarn/install-state.gz
 .pnp.*
+
+# WXT
+.output
+.wxt
+
+# Playwright
+/test-results/
+/playwright-report/
+/blob-report/
+e2e/.auth/
+
+# macOS
+.DS_Store
+**/.DS_Store
+
+# Claude Code — local session state, never committed without explicit review
+# (may carry session transcript content). .claude/skills/ IS meant to be
+# committed — only the two paths below are excluded.
+.claude/custom_data/
+.claude/settings.local.json

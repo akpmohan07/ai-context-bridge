@@ -1,4 +1,4 @@
-const Budget = (() => {
+export const Budget = (() => {
     const DEFAULT_WORD_BUDGET = 4000;
 
     function countWords(text) {

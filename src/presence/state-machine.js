@@ -1,4 +1,4 @@
-const PRESENCE_STATES = {
+export const PRESENCE_STATES = {
   IDLE:       'IDLE',
   SENT:       'SENT',
   GENERATING: 'GENERATING',
@@ -13,7 +13,7 @@ const TRANSITIONS = {
   REPLIED:    { sent: PRESENCE_STATES.SENT, reset: PRESENCE_STATES.IDLE },
 };
 
-class PresenceStateMachine {
+export class PresenceStateMachine {
   constructor(onTransition) {
     this._state = PRESENCE_STATES.IDLE;
     this._onTransition = onTransition;
@@ -26,7 +26,7 @@ class PresenceStateMachine {
 
     const prev = this._state;
     this._state = next;
-    console.log(`[AI Presence] ${prev} → ${next}`);
+    console.log(`[ACB] Presence: ${prev} → ${next}`);
     this._onTransition(next, prev);
 
     // Auto-reset to IDLE after REPLIED so we're ready for next message

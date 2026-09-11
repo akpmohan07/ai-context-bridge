@@ -1,3 +1,5 @@
+import { soundRegistry } from './registry.js';
+
 // Three sine tones (110hz, 145hz, 180hz) stepping up, each fading in/out. Almost subliminal.
 function humSound(ctx, volume) {
   const now = ctx.currentTime;

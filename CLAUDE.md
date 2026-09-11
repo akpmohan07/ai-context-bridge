@@ -4,22 +4,44 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-**AI Context Bridge** is a Chrome Extension (Manifest V3) that enables context transfer between AI platforms and content sources. Current supported flows:
+**AI Context Bridge** is a Chrome Extension (Manifest V3) that enables context transfer between AI platforms and content sources. Current supported flows (full catalog: `docs/features.md`):
+- Reddit thread → Claude / ChatGPT / Gemini / Clipboard
+- Medium article → Claude / ChatGPT / Gemini / Clipboard
 - ChatGPT → Claude (summarize & continue, second opinion)
-- Reddit thread → Claude (formatted discussion context)
-- Reddit thread → Clipboard
+- Claude.ai: Presence (ambient sound), Time Awareness, Default Model preference
+- ChatGPT: Time Awareness
+- Gemini: Time Awareness (record-only)
 
 ## Development Setup
 
-No build process. This is pure JavaScript loaded directly by Chrome.
+Built with **WXT** (wxt.dev). Source lives in `entrypoints/` (per-surface
+entrypoints) and `src/**` (shared ES modules); `manifest.json` is **generated**
+from `wxt.config.ts` + each entrypoint's own `matches`/`runAt` — do not hand-edit
+a manifest.
 
-**To install/reload:**
-1. Open `chrome://extensions/`
-2. Enable Developer mode
-3. "Load unpacked" → select this directory
-4. After code changes, click the refresh icon on the extension card
+- `npm run dev` — WXT dev server with HMR (loads into a dev browser)
+- `npm run build` — production build into `.output/chrome-mv3/`
+- `npm test` — Vitest unit tests (pure logic; see `test/`)
+- `npm run test:e2e` — Playwright, CI tier (own headed Chrome, no login):
+  smoke, medium, chatgpt
+- `npm run test:e2e:local` — every spec, including the **connected** tier
+  (reddit, gemini-*, claude-*) which attaches to a Chrome you launch with
+  `npm run e2e:connect`, signed into a dummy Google account. Without that
+  browser the connected specs skip. See `docs/tech-backlog.md` § Playwright E2E.
+- `npm run test:all` — unit + `test:e2e:local`
+- `npm run submit:init` / `npm run submit` — local equivalents of the
+  `release` GitHub Actions workflow's store-submission step (Chrome Web Store
+  + Edge Add-ons); see the `release-extension` skill (`.claude/skills/`) for
+  the full release pipeline.
 
-**To test changes:** Reload the extension and navigate to ChatGPT, Claude, or Reddit.
+**To load manually:** `npm run build`, then in `chrome://extensions/` (Developer
+mode) → "Load unpacked" → select `.output/chrome-mv3/`. Rebuild + refresh after
+changes (or use `npm run dev`).
+
+Content scripts run in the isolated world and use `chrome.*` directly (Chrome-only
+target). Add a new surface as a file in `entrypoints/` (e.g. `foo.content.js` with
+`defineContentScript({ matches, runAt, main() })`), importing what it needs from
+`src/**`.
 
 ## Architecture
 
@@ -33,10 +55,20 @@ Extracts content from a web page and injects UI buttons/menus.
 
 ### AI Platforms (`src/ai-platforms/`)
 Destinations that receive context.
-- Base class: `AIPlatform` (base.js) — implement `openWithContext(text)`
-- `extractConversation()` and `injectUI()` are optional overrides
-- **ClaudePlatform**: opens `claude.ai/new?q=<encoded>`, then auto-sends via DOM polling
-- **ChatGPTPlatform**: triggers summarization by editing last message, waits for API response
+- Base class: `AIPlatform` (base.js) — carries the whole handoff:
+  `openWithContext(text)` stashes `{text, ts}` in `chrome.storage.local` under a
+  fresh `handoff:<uuid>` key and opens `<newChatUrl>#acb=<uuid>`;
+  `receiveHandoff()` (run by the destination's own content script) reads the
+  uuid from `location.hash`, takes *that* key (so a stale/foreign handoff is
+  invisible), types it into the composer and sends. Context never rides the URL
+  query — it 414s / 400s; the `#fragment` isn't sent to the server. A subclass
+  supplies only `composerSelector` + `sendButtonSelector` + `newChatPath`.
+- **ClaudePlatform**: overrides `newChatUrl()` to add `?model=` (short, safe).
+- **GeminiPlatform**: selectors only (Quill `.ql-editor`).
+- **ChatGPTPlatform**: selectors (handles both the logged-in contenteditable and
+  the logged-out `<textarea>`), plus `summarizeAndContinue()` /
+  `getClaudeOpinion()` for the floating button (self-summarize via `webRequest`).
+- `extractConversation()` is an optional override (unused so far).
 
 ### UI Components (`src/ui/`)
 DOM injection with MutationObserver-based targeting.
@@ -52,15 +84,17 @@ DOM injection with MutationObserver-based targeting.
 ### Cross-Script Communication
 - **background.js** (service worker): One-shot listener for ChatGPT API completion (`/backend-api/f/conversation`). Sends `{ event: 'conversation_completed' }` to content script.
 - **content-script.js** (ChatGPT): Listens for that event, then calls `chatgpt.handleConversationCompleted(claude)` to open Claude with the response.
-- **reddit-content-script.js**: Initializes `RedditSource` + `ClaudePlatform`, injects menu.
-- **claude-content-script.js**: Calls `claude.injectUI()` to auto-send URL-pre-filled messages.
+- **entrypoints/reddit.content.js**: Initializes `RedditSource` + the destination
+  registry, injects the "Open with AI" menu.
+- **entrypoints/{claude,chatgpt,gemini}.content.js**: call
+  `<platform>.receiveHandoff()` to pick up a stashed handoff on arrival.
 
 ## Adding New Platforms
 
 **New content source** (e.g., HackerNews):
-1. Create `src/content-sources/hackernews.js`, extend `ContentSource`
+1. Create `src/content-sources/hackernews.js`, extend `ContentSource` (use `export class`)
 2. Implement `isMatch()`, `fetchContent()` (return `ContentDocument`), `injectUI(actions)`
-3. Register in `manifest.json` as a new content script
+3. Add `entrypoints/hackernews.content.js` with `defineContentScript({ matches, runAt, main() })`, importing the source — WXT adds it to the generated manifest
 
 **New AI destination** (e.g., Gemini):
 1. Create `src/ai-platforms/gemini.js`, extend `AIPlatform`
@@ -75,6 +109,6 @@ DOM injection with MutationObserver-based targeting.
 | `background.js` | Service worker, ChatGPT API response listener |
 | `src/core/schema.js` | Universal `ContentDocument`/`Item` schema |
 | `src/core/budget.js` | Word budget trimming (default 4000 words) |
-| `src/content-sources/reddit.js` | Reddit fetch + UI injection |
-| `src/ai-platforms/claude.js` | Claude URL opener + auto-send |
+| `src/content-sources/reddit.js` | Reddit DOM read + menu injection |
+| `src/ai-platforms/base.js` | Shared handoff: stash to storage.local, receiveHandoff types+sends on arrival |
 | `src/ui/floating-button.js` | ChatGPT floating button component |

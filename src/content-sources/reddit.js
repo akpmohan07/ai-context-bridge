@@ -1,3 +1,11 @@
+import { ContentSource } from './base.js';
+import { MenuInjector } from '../ui/menu-injector.js';
+import { Theme } from '../ui/theme.js';
+import { Budget } from '../core/budget.js';
+import { Formatter } from '../core/formatter.js';
+import { createContentDocument } from '../core/schema.js';
+import { parsePost, parseComments } from './reddit-parse.js';
+
 class RedditMenuInjector extends MenuInjector {
     constructor() {
         super({ name: 'RedditMenuInjector' });
@@ -16,19 +24,21 @@ class RedditMenuInjector extends MenuInjector {
     observe(actions) {
         if (this._observer) return;
 
+        // Inject into a menu already present on first load.
         const existing = document.querySelector('shreddit-post-overflow-menu');
-        if (existing && this._injectButton(existing, actions)) return;
+        if (existing) this._injectButton(existing, actions);
 
+        // Keep watching for the lifetime of the page. Reddit is an SPA:
+        // navigating to another thread swaps in a fresh overflow menu with no
+        // full reload, so a one-shot observer would miss every thread after the
+        // first. The _injected WeakSet guards against re-injecting a menu we've
+        // already handled, so leaving the observer connected is safe.
         this._observer = new MutationObserver((mutations) => {
             for (const mutation of mutations) {
                 for (const node of mutation.addedNodes) {
                     if (node.nodeType !== Node.ELEMENT_NODE) continue;
                     const target = this.findTarget(node);
-                    if (target && this._injectButton(target, actions)) {
-                        this._observer.disconnect();
-                        this._observer = null;
-                        return;
-                    }
+                    if (target) this._injectButton(target, actions);
                 }
             }
         });
@@ -37,6 +47,15 @@ class RedditMenuInjector extends MenuInjector {
     }
 
     _injectButton(overflowEl, actions) {
+        // Only on a thread/comments page — not the home or subreddit feed, where
+        // every listed post also carries an overflow menu.
+        if (!location.pathname.includes('/comments/')) return false;
+        // One button per thread: skip if one is already on the page. On SPA
+        // navigation Reddit tears down the old post (and our button with it), so
+        // this still allows a fresh inject on the next thread — it only blocks
+        // the extra "more posts like this" cards within the current one.
+        if (document.querySelector('.acb-reddit-launcher')) return false;
+
         if (this._injected.has(overflowEl)) return false;
         if (overflowEl.closest('shreddit-comments-page-ad, shreddit-feed-promotable-item, [data-adunit]')) return false;
         this._injected.add(overflowEl);
@@ -45,6 +64,7 @@ class RedditMenuInjector extends MenuInjector {
         if (!asyncLoader?.parentElement) return;
 
         const wrapper = document.createElement('div');
+        wrapper.className = 'acb-reddit-launcher';
         wrapper.style.cssText = 'position: relative; display: inline-flex; align-items: center;';
 
         const button = document.createElement('button');
@@ -115,17 +135,14 @@ class RedditMenuInjector extends MenuInjector {
             padding: 4px 0;
         `;
 
-        dropdown.appendChild(this._createItem('Open in Claude', Theme.claude.accent, `linear-gradient(135deg, ${Theme.claude.bg} 0%, ${Theme.claude.bgTo} 100%)`, async () => {
-            dropdown.style.display = 'none';
-            this._showNotification('Opening in Claude…');
-            await actions.openInClaude();
-        }));
-
-        dropdown.appendChild(this._createItem('Open in ChatGPT', Theme.chatgpt.accent, `linear-gradient(135deg, ${Theme.chatgpt.bg} 0%, ${Theme.chatgpt.bgTo} 100%)`, async () => {
-            dropdown.style.display = 'none';
-            this._showNotification('Opening in ChatGPT…');
-            await actions.openInChatGPT();
-        }));
+        actions.destinations.forEach(dest => {
+            const t = Theme[dest.theme];
+            dropdown.appendChild(this._createItem(dest.label, t.accent, `linear-gradient(135deg, ${t.bg} 0%, ${t.bgTo} 100%)`, async () => {
+                dropdown.style.display = 'none';
+                this._showNotification(`Opening in ${dest.platform.name}…`);
+                await actions.openIn(dest.platform);
+            }));
+        });
 
         dropdown.appendChild(this._createItem('Copy for AI', Theme.copy.accent, `linear-gradient(135deg, ${Theme.copy.bg} 0%, ${Theme.copy.bgTo} 100%)`, async () => {
             dropdown.style.display = 'none';
@@ -231,7 +248,7 @@ class RedditMenuInjector extends MenuInjector {
 
 }
 
-class RedditSource extends ContentSource {
+export class RedditSource extends ContentSource {
     constructor() {
         super({ name: 'Reddit' });
         this._injector = new RedditMenuInjector();
@@ -241,22 +258,21 @@ class RedditSource extends ContentSource {
         return /reddit\.com\/r\/[^/]+\/comments\//.test(window.location.href);
     }
 
+    // Reads the page's own <shreddit-*> components — no network. See
+    // reddit-parse.js for why the .json endpoint was dropped.
     async fetchContent() {
-        const url = window.location.href.split('?')[0].replace(/\/$/, '') + '.json';
-        const response = await fetch(url);
-        const data = await response.json();
+        const postEl = document.querySelector('shreddit-post');
+        if (!postEl) throw new Error('[ACB] Reddit: no <shreddit-post> on this page');
 
-        const post = data[0].data.children[0].data;
-        const items = (data[1].data.children || [])
-            .map(c => this._mapComment(c, 0))
-            .filter(Boolean);
+        const { title, body, community } = parsePost(postEl);
+        const items = parseComments([...document.querySelectorAll('shreddit-comment')]);
 
         return createContentDocument({
-            title: post.title,
-            body: post.selftext || '',
+            title,
+            body,
             sourceUrl: window.location.href,
             platform: 'reddit',
-            community: `r/${post.subreddit}`,
+            community,
             items
         });
     }
@@ -273,25 +289,5 @@ class RedditSource extends ContentSource {
 
     injectUI(actions) {
         this._injector.observe(actions);
-    }
-
-    // --- private ---
-
-    _mapComment(comment, depth) {
-        if (comment.kind !== 't1') return null;
-        const d = comment.data;
-        if (!d.body || d.body === '[deleted]' || d.body === '[removed]') return null;
-
-        const children = d.replies?.data?.children
-            ? d.replies.data.children.map(c => this._mapComment(c, depth + 1)).filter(Boolean)
-            : [];
-
-        return createItem({
-            author: d.author,
-            score: d.score || 0,
-            text: d.body,
-            depth,
-            children
-        });
     }
 }

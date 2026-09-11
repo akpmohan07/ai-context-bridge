@@ -1,4 +1,4 @@
-const Formatter = (() => {
+export const Formatter = (() => {
     function formatItem(item, scoreLabel = '') {
         const indent = '  '.repeat(item.depth);
         const prefix = item.depth > 0 ? '> ' : '';

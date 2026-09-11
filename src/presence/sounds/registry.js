@@ -37,10 +37,10 @@ class SoundRegistry {
       if (this._ctx.state === 'suspended') this._ctx.resume();
       return this._ctx;
     } catch (e) {
-      console.warn('[AI Presence] AudioContext unavailable', e);
+      console.warn('[ACB] Presence: AudioContext unavailable', e);
       return null;
     }
   }
 }
 
-const soundRegistry = new SoundRegistry();
+export const soundRegistry = new SoundRegistry();

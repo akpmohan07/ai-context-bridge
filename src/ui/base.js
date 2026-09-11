@@ -1,4 +1,4 @@
-class UIInjector {
+export class UIInjector {
     constructor(config) {
         if (new.target === UIInjector) {
             throw new Error('UIInjector is abstract and cannot be instantiated directly');

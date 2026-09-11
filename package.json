@@ -1,0 +1,28 @@
+{
+  "name": "ai-context-bridge",
+  "version": "2.0.0",
+  "private": true,
+  "description": "Chrome extension — transfer context between AI platforms.",
+  "scripts": {
+    "dev": "wxt",
+    "build": "wxt build",
+    "zip": "wxt zip",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "coverage": "vitest run --coverage",
+    "test:e2e": "npm run build && playwright test",
+    "test:e2e:local": "curl -sf http://127.0.0.1:9222/json/version >/dev/null 2>&1 && echo '✓ e2e:connect browser detected — running every spec' || echo '⚠  no e2e:connect browser on :9222 — connected specs (reddit, gemini-*, claude-*) will skip'; npm run test:e2e",
+    "test:all": "npm test && npm run test:e2e:local",
+    "e2e:login": "\"/Applications/Google Chrome.app/Contents/MacOS/Google Chrome\" --user-data-dir=\"$(pwd)/e2e/.auth/chrome-profile\"",
+    "e2e:connect": "npm run build && \"/Applications/Google Chrome.app/Contents/MacOS/Google Chrome\" --remote-debugging-port=9222 --user-data-dir=\"$(pwd)/e2e/.auth/chrome-profile\"",
+    "submit:init": "wxt submit init",
+    "submit": "wxt submit --chrome-zip .output/*-chrome.zip --edge-zip .output/*-chrome.zip"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.62.1",
+    "@vitest/coverage-v8": "^4.1.10",
+    "jsdom": "^29.1.1",
+    "vitest": "^4.1.10",
+    "wxt": "^0.20.27"
+  }
+}
