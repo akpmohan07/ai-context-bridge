@@ -65,6 +65,10 @@ test.describe('Reddit → AI destinations', () => {
 
   for (const [name, dest] of Object.entries(DESTINATIONS)) {
     test(`Reddit → ${name} opens a correct handoff`, async ({ connectedContext }) => {
+      // openRedditThread alone budgets up to 30s (15s post wait + 15s launcher
+      // wait) on a slow real-site load — the global 30s test timeout left no
+      // room for assertDestinationHandoff's own poll on top of that.
+      test.setTimeout(60_000);
       const { page, toggle } = await openRedditThread(connectedContext);
       await toggle.click();
       await assertDestinationHandoff(connectedContext, page, dest);
