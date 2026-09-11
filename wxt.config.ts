@@ -8,7 +8,14 @@ export default defineConfig({
     name: 'AI Context Bridge',
     description:
       "One click carries full context into your AI chat, no copy-paste, and adds what it's missing, like a sense of time, and more.",
-    permissions: ['scripting', 'activeTab', 'webRequest', 'tabs', 'storage'],
+    // scripting/activeTab were declared but never used — content scripts are
+    // all statically registered via content_scripts matches (host_permissions
+    // below), never dynamically injected. Confirmed via grep across src/,
+    // entrypoints/, and the compiled build output: zero calls to
+    // chrome.scripting.* anywhere. Unnecessary permissions risk store
+    // rejection (Edge's submission form says so explicitly) and just scare
+    // users at install for no reason.
+    permissions: ['webRequest', 'tabs', 'storage'],
     host_permissions: [
       'https://chatgpt.com/*',
       'https://www.reddit.com/*',
