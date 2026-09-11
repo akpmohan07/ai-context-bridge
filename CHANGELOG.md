@@ -22,17 +22,19 @@ write-ups of the harder problems this cycle solved.
   replacing one global switch.
 - Popup redesigned: tinted per-platform section bands, Sources grouped last,
   and the section for whatever site you're currently on surfaces first.
-- `CHANGELOG.md`, `docs/key-engineering-decisions/` (5 ADRs), a `release`
-  GitHub Actions workflow wired to `wxt submit`: **Chrome Web Store, Edge
-  Add-ons, and Firefox Add-ons (AMO), all three from one command**, and
-  `npm run submit` / `npm run submit:init` / `npm run zip:firefox`.
+- `CHANGELOG.md` and `docs/key-engineering-decisions/` (5 ADRs).
+- A `release` GitHub Actions workflow wired to `wxt submit`, submitting to
+  **Chrome Web Store, Edge Add-ons, and Firefox Add-ons (AMO)** all in one
+  command.
+- New scripts: `npm run submit`, `npm run submit:init`, `npm run zip:firefox`.
 
 ### Changed
 - **Content handoff rebuilt**: content now travels through
   `chrome.storage.local` with a one-time id in the URL fragment instead of a
-  `?q=`/`?prompt=` query string. See
-  [ADR-1](docs/key-engineering-decisions/ADR-1-handoff-transport.md). Fixes an
-  `HTTP 414` on large Reddit/Medium threads and a cross-tab payload collision.
+  `?q=`/`?prompt=` query string (see
+  [ADR-1](docs/key-engineering-decisions/ADR-1-handoff-transport.md)).
+- Fixes an `HTTP 414` on large Reddit/Medium threads and a cross-tab payload
+  collision.
 - Reddit extraction reads the rendered `<shreddit-post>`/`<shreddit-comment>`
   DOM instead of the `.json` API, which had become 403/throttled for anonymous
   requests.
@@ -55,8 +57,8 @@ write-ups of the harder problems this cycle solved.
 - 77 unit tests (up from ~50), functional-core/imperative-shell split.
 - Two-tier E2E: a CI-gating tier with no login, and a "connected" tier
   (`connectOverCDP` into a real, signed-in Chrome) for Reddit and each
-  platform's authenticated flows, see
-  [ADR-3](docs/key-engineering-decisions/ADR-3-testing-strategy.md).
+  platform's authenticated flows (see
+  [ADR-3](docs/key-engineering-decisions/ADR-3-testing-strategy.md)).
 
 [Unreleased]: https://github.com/akpmohan07/ai-context-bridge/compare/v2.0.0...HEAD
 [2.0.0]: https://github.com/akpmohan07/ai-context-bridge/releases/tag/v2.0.0
