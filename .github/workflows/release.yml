@@ -1,0 +1,63 @@
+name: release
+
+# Manual only — a version bump + store submission is a deliberate act, never
+# something that should fire on a push. Run from the Actions tab (or
+# `gh workflow run release.yml`) once package.json's version + CHANGELOG.md
+# are ready.
+on:
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Authenticate + validate only, do not upload or submit for review'
+        type: boolean
+        default: false
+      chrome_skip_submit_review:
+        description: 'Upload the Chrome zip but do not submit it for review (use for a first-time auth check)'
+        type: boolean
+        default: false
+
+jobs:
+  # Full test suite gates a release the same way it gates a merge — a release
+  # is not exempt from the bar a normal PR has to clear.
+  test:
+    uses: ./.github/workflows/ci.yml
+
+  submit:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm ci
+
+      - name: Build + zip
+        run: npm run zip
+
+      - name: Submit to Chrome Web Store + Edge Add-ons
+        run: >
+          npx wxt submit
+          --chrome-zip .output/*-chrome.zip
+          --edge-zip .output/*-chrome.zip
+          ${{ inputs.dry_run && '--dry-run' || '' }}
+          ${{ inputs.chrome_skip_submit_review && '--chrome-skip-submit-review' || '' }}
+        env:
+          # Chrome Web Store (API v1.1 — OAuth client from Google Cloud Console).
+          # See docs/key-engineering-decisions/README.md § publishing, or
+          # `npm run submit:init` to generate these interactively.
+          CHROME_EXTENSION_ID: ${{ secrets.CHROME_EXTENSION_ID }}
+          CHROME_CLIENT_ID: ${{ secrets.CHROME_CLIENT_ID }}
+          CHROME_CLIENT_SECRET: ${{ secrets.CHROME_CLIENT_SECRET }}
+          CHROME_REFRESH_TOKEN: ${{ secrets.CHROME_REFRESH_TOKEN }}
+          # Edge Add-ons — same zip as Chrome, separate credentials from the
+          # Microsoft Partner Center dashboard.
+          EDGE_PRODUCT_ID: ${{ secrets.EDGE_PRODUCT_ID }}
+          EDGE_CLIENT_ID: ${{ secrets.EDGE_CLIENT_ID }}
+          EDGE_API_KEY: ${{ secrets.EDGE_API_KEY }}
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: extension-zips
+          path: .output/*.zip
+          retention-days: 90

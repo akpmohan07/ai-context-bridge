@@ -29,6 +29,10 @@ a manifest.
   `npm run e2e:connect`, signed into a dummy Google account. Without that
   browser the connected specs skip. See `docs/tech-backlog.md` § Playwright E2E.
 - `npm run test:all` — unit + `test:e2e:local`
+- `npm run submit:init` / `npm run submit` — local equivalents of the
+  `release` GitHub Actions workflow's store-submission step (Chrome Web Store
+  + Edge Add-ons); see the `release-extension` skill (`.claude/skills/`) for
+  the full release pipeline.
 
 **To load manually:** `npm run build`, then in `chrome://extensions/` (Developer
 mode) → "Load unpacked" → select `.output/chrome-mv3/`. Rebuild + refresh after
