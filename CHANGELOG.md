@@ -6,7 +6,7 @@ All notable changes to this project are documented here. Format follows
 
 ## [Unreleased]
 
-## [2.0.0] — first release of the WXT rewrite
+## [2.0.0] - 2026-09-11 — first release of the WXT rewrite
 
 A full rewrite onto [WXT](https://wxt.dev), built for feature parity and
 stability across all three destinations rather than new features. See
