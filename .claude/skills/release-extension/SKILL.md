@@ -151,6 +151,103 @@ not pursued unless the user explicitly decides it's worth that cost.
 **Exit condition:** workflow run succeeded, listing(s) show the new version
 pending review (or live, depending on store review time).
 
+### v2.0.0's actual submission: automation status + what to reuse
+
+**v2.0.0 was submitted manually to all three stores, not via `release.yml`.**
+That's not a shortcut taken, it's what WXT's own docs say is required for a
+*first* listing on any store (`wxt submit` can only push new versions to a
+listing that already exists — see Phase 6's main text). Confirmed in
+practice this cycle: all three needed a full manual dashboard pass (account
+creation, category, description, screenshots, license, privacy answers).
+
+**Explicit decision, don't relitigate:** once all three v2.0.0 listings are
+approved and live, set up the GitHub Actions secrets (Phase 6, step 3) so
+v2.1+ goes through `release.yml` automatically. Don't wire the secrets
+speculatively before that point, and don't keep doing manual dashboard
+passes once the listings exist, that defeats the reason the automation was
+built.
+
+**A permission audit belongs in Phase 1, every release, from now on.** v2.0.0
+shipped with `scripting` and `activeTab` declared but never called by any
+code, old and new, discovered only when Edge's justification form forced the
+question. Don't wait for a store form to prompt this again:
+
+```sh
+grep -rn "chrome\.<api>\." src/ entrypoints/          # per declared permission
+grep -rn "<api>\." .output/chrome-mv3/*.js .output/chrome-mv3/**/*.js  # compiled output too
+```
+Remove anything declared in `wxt.config.ts`'s `permissions`/`host_permissions`
+that has zero real call sites in both source and the compiled build. Fewer
+permissions review faster and scare users less at install, with zero
+functional cost if verified unused.
+
+**Chrome & Edge — identical MV3 review flow, real lessons:**
+- The **Data usage / Privacy practices** form's checkbox list should reflect
+  only what's actually read: for this codebase, check **"Website content"**
+  only (that's literally the core feature) and none of the others (no PII,
+  health, financial, auth, "personal communications" as a messaging system,
+  location, web-history log, or user-activity monitoring). Certify all three
+  "I do not..." disclosures, they're true here.
+- Checking any data-usage box makes a **Privacy policy URL mandatory**.
+  `PRIVACY.md` exists at the repo root for exactly this
+  (`https://github.com/akpmohan07/ai-context-bridge/blob/main/PRIVACY.md`) —
+  update it if what's read/stored ever changes, don't let it drift stale.
+- **Permission-justification fields are generated from whatever manifest is
+  in the *currently uploaded* package**, not edited directly. To make a
+  justification field for a removed permission disappear, upload the
+  corrected zip first (Packages/Package tab), then the form regenerates.
+- Justification text that names the **exact URL/API** (e.g. the literal
+  `webRequest` filter string) reviews better than vague claims, it's
+  verifiable against the source in the same package.
+- Edge Partner Center: **Publisher display name** = your own legal name
+  absent a registered company. **Country/region** on the registration form
+  can be locked to your Microsoft account's own region setting, not freely
+  editable per-registration, check the account level if it needs to change.
+- Chrome/Edge's detailed-description field is **plain text, no Markdown
+  rendering** — `**bold**` shows as literal asterisks. Use emoji/star markers
+  for visual hierarchy instead (see `docs/store-listings/chrome-edge.txt`).
+  The manifest `description` field also has a **hard 132-character limit**.
+
+**Firefox (AMO) — a structurally different flow, real lessons:**
+- "Do you use code generators, minifiers, or bundlers (e.g. webpack)?" is
+  **always Yes** for this project (WXT's build uses Vite, which bundles and
+  minifies). Answering Yes requires the sources zip + real build instructions
+  in "Notes to Reviewer" — `npm run zip:firefox` produces both the extension
+  zip and the sources zip in one command.
+- **Categories are a different list** than Chrome/Edge (no "Productivity").
+  Used "Social & Communication" + "Feeds, News & Blogging" instead.
+- **`browser_specific_settings.gecko.id`**: set a stable, self-chosen one
+  proactively (this repo uses `ai-context-bridge@akpmohan07.github.io`)
+  rather than leaving it for AMO to assign. Its absence causes
+  `storage.sync` to misbehave, but **only under temporary local loading**
+  (`about:debugging` → "Load Temporary Add-on"), per Mozilla's own validator
+  warning text ("can cause issues when loaded temporarily"). A real
+  AMO-signed install gets a permanent identity from Mozilla regardless, so
+  don't chase this as a production bug if it's only reproducible locally,
+  but do set it before submitting so local testing isn't confusing next time.
+- **Compatibility checkbox**: leave "Firefox for Android" unchecked unless
+  actually tested on mobile. This codebase's DOM selectors
+  (`shreddit-post-overflow-menu`, `.ql-editor`, `#prompt-textarea`, etc.) are
+  built against desktop layouts, which often differ from mobile-responsive
+  ones.
+- AMO's description field *does* support real Markdown, unlike Chrome/Edge,
+  but check `docs/store-listings/firefox.md` for what's actually live before
+  assuming which format was used.
+
+**Testing a temp-loaded Firefox build:** `about:debugging#/runtime/this-firefox`
+→ "Load Temporary Add-on..." → select `.output/firefox-mv2/manifest.json`
+directly (the file, not the folder or a zip). **Firefox does not auto-reload
+from disk** when files change, click "Reload" in `about:debugging` after
+every rebuild, or you'll be testing stale code and chasing a bug that no
+longer exists, confirmed happening this cycle.
+
+**Listing content lives outside git entirely, on purpose.** `wxt submit`
+never touches a store's name/description/category/screenshots, only the code
+package. `docs/store-listings/` keeps a durable record of what's actually
+submitted, so it doesn't only exist in an ephemeral scratchpad file. Update
+those files whenever a listing changes, they're documentation of reality, not
+a draft.
+
 ## Phase 7 — Post-release
 
 - Close the release tracking issue (there should be one per release, mirroring
@@ -164,6 +261,40 @@ pending review (or live, depending on store review time).
 
 **Exit condition:** the board reflects reality — nothing marked open that this
 release actually resolved, nothing marked closed that it didn't.
+
+## Per-release checklist — what actually needs touching each time
+
+Split by whether it's a one-time setup cost or a recurring one, so it's
+never re-derived from scratch. This is deliberately more concrete than the
+phases above; use it as the checklist once secrets exist and `release.yml`
+is doing the code submission.
+
+**One-time only (done for v2.0.0, do not repeat):**
+- Create each store's developer account (Chrome, Edge, AMO)
+- Bootstrap each store's *first* listing by hand: category, license,
+  support links, description, screenshots (`release.yml` cannot do this,
+  see Phase 6's main text)
+- Set `browser_specific_settings.gecko.id` and `data_collection_permissions`
+  in `wxt.config.ts` — stable once set, no reason to touch again
+
+**Every release:**
+- [ ] Version bump (`package.json`) → rebuild all packages: `npm run zip`
+      (Chrome/Edge) + `npm run zip:firefox` (Firefox, also produces the
+      sources zip)
+- [ ] **Re-run the permission audit** (see Phase 6 above) — don't assume a
+      past audit still holds if any code changed since; a new feature can
+      make a previously-unused permission newly-necessary, or vice versa
+- [ ] If the feature set changed: update the listing description in each
+      store's dashboard by hand (three separate manual edits, `wxt submit`
+      never touches this) — then update `docs/store-listings/*` to match
+      what's actually live, so the repo stays a real record
+- [ ] If what's read/stored changed: update `PRIVACY.md`, and re-check the
+      Chrome/Edge Data usage declaration still matches
+- [ ] CHANGELOG + GitHub release (Phases 4-5, unchanged)
+- [ ] Once secrets are configured: `gh workflow run release.yml -f
+      dry_run=true` first, then the real run, instead of manual dashboard
+      uploads for the *code* package (listing content is still always
+      manual, per above)
 
 ## Phase 8 — If it breaks in production
 
