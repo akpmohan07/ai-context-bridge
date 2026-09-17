@@ -1,0 +1,37 @@
+site/style.css
+  s_3a9bb0973df34e::t_ac8081815a5bd2 113-118
+  s_3a9bb0973df34e::t_f618082fcffc37 33,119-135
+  s_3a9bb0973df34e::t_7b2c30f82b4f78 13-14,16,26-32
+  s_3a9bb0973df34e::t_2afa213c8b69e7 34
+site/index.html
+  s_3a9bb0973df34e::t_70daa096a88324 295
+  s_3a9bb0973df34e::t_32381f957bff85 18
+  s_3a9bb0973df34e::t_8f6e8653d65931 108-110,113
+  s_3a9bb0973df34e::t_0d5731f7f215e8 101
+site/features.html
+  s_3a9bb0973df34e::t_32381f957bff85 16
+  s_3a9bb0973df34e::t_8f6e8653d65931 51-53,56
+  s_3a9bb0973df34e::t_574dc0c5ef75e1 158-159
+site/privacy.html
+  s_3a9bb0973df34e::t_41704125f44a72 87
+  s_3a9bb0973df34e::t_8f6e8653d65931 35-37,40
+  s_3a9bb0973df34e::t_32381f957bff85 16
+site/theme.js
+  s_3a9bb0973df34e::t_c011c5d8835084 1-45
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "24edacb6b6919acb63b05debfa5fbacae96d4639",
+  "prompts": {},
+  "sessions": {
+    "s_3a9bb0973df34e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "da414916-d00d-4a4f-a8db-371f917c284d",
+        "model": "claude-sonnet-5"
+      },
+      "human_author": "Mohankumar Muthusamy <akpmohan07@gmail.com>"
+    }
+  }
+}
