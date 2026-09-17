@@ -41,6 +41,18 @@
       }
     },
     {
+      "@type": "ItemList",
+      "name": "AI Context Bridge features",
+      "itemListElement": [
+        {"@type": "ListItem", "position": 1, "name": "Reddit thread handoff"},
+        {"@type": "ListItem", "position": 2, "name": "Medium article handoff"},
+        {"@type": "ListItem", "position": 3, "name": "ChatGPT conversation handoff to Claude"},
+        {"@type": "ListItem", "position": 4, "name": "Time Awareness"},
+        {"@type": "ListItem", "position": 5, "name": "Ambient Sounds"},
+        {"@type": "ListItem", "position": 6, "name": "Default Model preference"}
+      ]
+    },
+    {
       "@type": "FAQPage",
       "mainEntity": [
         {
@@ -99,7 +111,7 @@
     </a>
     <nav class="site-nav">
       <a href="index.html">Home</a>
-      <a href="features.html">Features</a>
+      <a href="#features">Features</a>
       <a class="icon-link" href="https://github.com/akpmohan07/ai-context-bridge" target="_blank" rel="noopener">
         <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M6.766 11.328c-2.063-.25-3.516-1.734-3.516-3.656 0-.781.281-1.625.75-2.188-.203-.515-.172-1.609.063-2.062.625-.078 1.468.25 1.968.703.594-.187 1.219-.281 1.985-.281.765 0 1.39.094 1.953.265.484-.437 1.344-.765 1.969-.687.218.422.25 1.515.046 2.047.5.593.766 1.39.766 2.203 0 1.922-1.453 3.375-3.547 3.64.531.344.89 1.094.89 1.954v1.625c0 .468.391.734.86.547C13.781 14.359 16 11.53 16 8.03 16 3.61 12.406 0 7.984 0 3.563 0 0 3.61 0 8.031a7.88 7.88 0 0 0 5.172 7.422c.422.156.828-.125.828-.547v-1.25c-.219.094-.5.156-.75.156-1.031 0-1.64-.562-2.078-1.609-.172-.422-.36-.672-.719-.719-.187-.015-.25-.093-.25-.187 0-.188.313-.328.625-.328.453 0 .844.281 1.25.86.313.452.64.655 1.031.655s.641-.14 1-.5c.266-.265.47-.5.657-.656"/></svg>
         GitHub
@@ -156,49 +168,68 @@
     </div>
   </section>
 
-  <section>
+  <section id="features">
     <div class="wrap">
-      <h2>What it moves, and where</h2>
-      <table class="matrix">
-        <thead>
-          <tr><th>Source</th><th>Destinations</th></tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td>Reddit thread</td>
-            <td><span class="pill claude">Claude</span> <span class="pill chatgpt">ChatGPT</span> <span class="pill gemini">Gemini</span> <span class="pill clip">Clipboard</span></td>
-          </tr>
-          <tr>
-            <td>Medium article</td>
-            <td><span class="pill claude">Claude</span> <span class="pill chatgpt">ChatGPT</span> <span class="pill gemini">Gemini</span> <span class="pill clip">Clipboard</span></td>
-          </tr>
-          <tr>
-            <td>ChatGPT conversation</td>
-            <td><span class="pill claude">Claude</span> (summarize &amp; continue, or a second opinion)</td>
-          </tr>
-        </tbody>
-      </table>
-      <p style="text-align:center; margin-top:16px; font-size:14px;"><a href="features.html">See every feature explained &rarr;</a></p>
+      <h2>Content handoff</h2>
+      <div class="extras">
+        <div class="extra-card">
+          <h3>Reddit thread</h3>
+          <p>Copying a Reddit post plus its comments normally means losing the formatting along the way. This adds a menu right on the thread page: pick a destination, and the whole thing arrives in a new tab, already formatted.</p>
+          <div class="feature-pills"><span class="pill claude">Claude</span> <span class="pill chatgpt">ChatGPT</span> <span class="pill gemini">Gemini</span> <span class="pill clip">Clipboard</span></div>
+        </div>
+        <div class="extra-card">
+          <h3>Medium article</h3>
+          <p>Same problem, same fix, for Medium. Whatever you can read on the page gets sent through, with no copy-paste and no stripped formatting.</p>
+          <div class="feature-pills"><span class="pill claude">Claude</span> <span class="pill chatgpt">ChatGPT</span> <span class="pill gemini">Gemini</span> <span class="pill clip">Clipboard</span></div>
+        </div>
+        <div class="extra-card">
+          <h3>ChatGPT conversation</h3>
+          <p>Want a second opinion, or to keep going in Claude without retyping everything? This reads your ChatGPT conversation and hands it to Claude: summarized and continued, or reviewed for a second opinion.</p>
+          <div class="feature-pills"><span class="pill claude">Claude</span></div>
+        </div>
+      </div>
     </div>
   </section>
 
-  <section id="extras" class="alt">
+  <section class="alt">
     <div class="wrap">
       <h2>The extras that come along for free</h2>
       <div class="extras">
         <div class="extra-card">
           <h3>Time Awareness</h3>
-          <p>An AI chat has no idea how long you were gone: 3 hours or 3 days look identical to it. Time Awareness tells it the real gap, so it stops pretending no time passed. Works on Claude, ChatGPT, and Gemini.</p>
+          <p>Ask an AI what changed since your last message and it has no way to know: a 3-hour gap and a 3-day gap read exactly the same to it. This closes that gap by passing along the real elapsed time, so the AI reacts to it instead of assuming nothing changed.</p>
+          <div class="feature-pills"><span class="pill claude">Claude</span> <span class="pill chatgpt">ChatGPT</span> <span class="pill gemini">Gemini</span></div>
         </div>
         <div class="extra-card claude">
           <h3>Ambient Sounds</h3>
-          <p>A text-only chat can feel like talking into silence. On Claude.ai, a subtle ambient sound gives a sense that something's actually alive on the other end.</p>
+          <p>Every reply lands as silent text, which can make a conversation feel one-sided. On Claude.ai, this adds a quiet audio presence: a small signal that something's actually there.</p>
+          <div class="feature-pills"><span class="pill claude">Claude only</span></div>
         </div>
         <div class="extra-card claude">
           <h3>Default Model</h3>
-          <p>Picking a model on every single handoff gets old fast. Set yours once on Claude.ai, and every handoff opens there automatically.</p>
+          <p>Picking a model on every handoff gets old fast. Set your preferred Claude model once in the popup, and every handoff opens directly there from then on.</p>
+          <div class="feature-pills"><span class="pill claude">Claude only</span></div>
         </div>
       </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="wrap">
+      <h2>Feature matrix</h2>
+      <table class="matrix">
+        <thead>
+          <tr><th>Feature</th><th>Works with</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Reddit thread</td><td><span class="pill claude">Claude</span> <span class="pill chatgpt">ChatGPT</span> <span class="pill gemini">Gemini</span> <span class="pill clip">Clipboard</span></td></tr>
+          <tr><td>Medium article</td><td><span class="pill claude">Claude</span> <span class="pill chatgpt">ChatGPT</span> <span class="pill gemini">Gemini</span> <span class="pill clip">Clipboard</span></td></tr>
+          <tr><td>ChatGPT conversation</td><td><span class="pill claude">Claude</span> (Summarize &amp; Continue, or Second Opinion)</td></tr>
+          <tr><td>Time Awareness</td><td><span class="pill claude">Claude</span> <span class="pill chatgpt">ChatGPT</span> <span class="pill gemini">Gemini</span></td></tr>
+          <tr><td>Ambient Sounds</td><td><span class="pill claude">Claude</span> only</td></tr>
+          <tr><td>Default Model</td><td><span class="pill claude">Claude</span> only</td></tr>
+        </tbody>
+      </table>
     </div>
   </section>
 
@@ -293,7 +324,7 @@
       GitHub
     </a>
     <a href="index.html">Home</a>
-    <a href="features.html">Features</a>
+    <a href="#features">Features</a>
     <a href="privacy.html">Privacy</a>
     <a href="https://github.com/akpmohan07/ai-context-bridge/blob/main/LICENSE" target="_blank" rel="noopener">Apache 2.0 License</a>
     <p style="margin-top: 8px;">v2.0.0 &middot; Updated September 11, 2026</p>

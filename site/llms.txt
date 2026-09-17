@@ -12,8 +12,7 @@
 
 ## Key pages
 
-- [Home](https://akpmohan07.github.io/ai-context-bridge/): overview, install links, how it works, FAQ
-- [Features](https://akpmohan07.github.io/ai-context-bridge/features.html): every feature explained, plus the full source-to-destination matrix
+- [Home](https://akpmohan07.github.io/ai-context-bridge/): overview, install links, how it works, every feature explained, feature matrix, FAQ
 - [Privacy Policy](https://akpmohan07.github.io/ai-context-bridge/privacy.html): full data-handling policy
 - [Source code](https://github.com/akpmohan07/ai-context-bridge): Apache 2.0 licensed, open source
 
