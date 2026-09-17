@@ -4,6 +4,8 @@
 
 <a href="https://opensource.org/licenses/Apache-2.0" target="_blank">![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)</a>
 <a href="https://chromewebstore.google.com/detail/ai-context-bridge/kjgmboacclalfjgcmooplnpimjalikfo" target="_blank">![Chrome Extension](https://img.shields.io/badge/Chrome_Extension-v2.0.0-green)</a>
+<a href="https://microsoftedge.microsoft.com/addons/detail/jfnfbefcfahohimpnbelabdbohimlmfi" target="_blank">![Edge Add-on](https://img.shields.io/badge/Edge_Add--on-v2.0.0-blue)</a>
+<a href="https://addons.mozilla.org/en-US/firefox/addon/ai-context-bridge/" target="_blank">![Firefox Add-on](https://img.shields.io/badge/Firefox_Add--on-v2.0.0-orange)</a>
 
 ## Screenshots
 
@@ -38,6 +40,12 @@ AI Context Bridge is a Chrome extension that bridges content from the web into y
 
 **Chrome Web Store (recommended):**
 <a href="https://chromewebstore.google.com/detail/ai-context-bridge/kjgmboacclalfjgcmooplnpimjalikfo" target="_blank">Install AI Context Bridge</a>
+
+**Edge Add-ons:**
+<a href="https://microsoftedge.microsoft.com/addons/detail/jfnfbefcfahohimpnbelabdbohimlmfi" target="_blank">Install AI Context Bridge</a>
+
+**Firefox Add-ons:**
+<a href="https://addons.mozilla.org/en-US/firefox/addon/ai-context-bridge/" target="_blank">Install AI Context Bridge</a>
 
 **Manual:**
 1. Clone the repo, `npm install`, `npm run build`
