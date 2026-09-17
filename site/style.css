@@ -455,8 +455,57 @@ footer.site a { color: var(--text-weak); margin: 0 8px; }
 .doc p, .doc li { color: var(--text-weak); font-size: 15px; margin-bottom: 8px; }
 .doc ul { padding-left: 20px; margin-bottom: 12px; }
 
+/* Analytics consent banner */
+.consent-banner {
+    display: none;
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 200;
+    background: var(--bg);
+    border-top: 1px solid var(--border);
+    box-shadow: 0 -6px 20px var(--card-shadow);
+    padding: 14px 20px;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+.consent-banner.show { display: flex; }
+
+.consent-banner p {
+    font-size: 13px;
+    color: var(--text-weak);
+    margin: 0;
+}
+
+.consent-actions {
+    display: flex;
+    gap: 10px;
+    flex-shrink: 0;
+}
+
+.consent-btn {
+    border-radius: 6px;
+    padding: 7px 14px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    border: 1px solid var(--border);
+    background: var(--accent);
+    color: #fff;
+}
+
+.consent-btn.secondary {
+    background: none;
+    color: var(--text);
+}
+
 @media (max-width: 640px) {
     nav.site-nav { display: none; }
     .steps, .extras { grid-template-columns: 1fr; }
     .hero h1 { font-size: 26px; }
+    .consent-banner { justify-content: flex-start; padding: 14px 16px; }
 }

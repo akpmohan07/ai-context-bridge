@@ -68,6 +68,9 @@
       <li>Share data with any third party, for any purpose.</li>
     </ul>
 
+    <h2>This website</h2>
+    <p>Everything above is about the extension. This marketing website is a separate thing: it uses Google Analytics to see basic traffic (pages visited, referring sites, rough location, device type), only if you click "Accept" on the banner. Declining, or not answering, means Analytics is never loaded at all. This tracking is limited to the website; it plays no part in how the extension works.</p>
+
     <h2>Source code</h2>
     <p>This extension is open source. Every line of what it does is readable at <a href="https://github.com/akpmohan07/ai-context-bridge" target="_blank" rel="noopener">github.com/akpmohan07/ai-context-bridge</a>.</p>
 
@@ -89,6 +92,15 @@
     <p style="margin-top: 8px;">v2.0.0 &middot; Updated September 11, 2026</p>
   </div>
 </footer>
+
+<div class="consent-banner" id="consentBanner">
+  <p>This site uses Google Analytics to understand traffic. <a href="privacy.html">Learn more</a>.</p>
+  <div class="consent-actions">
+    <button id="consentDecline" class="consent-btn secondary">Decline</button>
+    <button id="consentAccept" class="consent-btn">Accept</button>
+  </div>
+</div>
+<script src="consent.js"></script>
 
 </body>
 </html>
