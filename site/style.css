@@ -10,8 +10,10 @@
     --card-shadow: rgba(0, 0, 0, 0.06);
 }
 
+/* Follows the OS by default. An explicit choice from the theme toggle
+   (data-theme, set by theme.js) overrides that either direction. */
 @media (prefers-color-scheme: dark) {
-    :root {
+    :root:not([data-theme="light"]) {
         --bg: #1a1a1a;
         --bg-alt: #222222;
         --text: #e5e5e5;
@@ -19,6 +21,15 @@
         --border: #2a2a2a;
         --card-shadow: rgba(0, 0, 0, 0.4);
     }
+}
+
+:root[data-theme="dark"] {
+    --bg: #1a1a1a;
+    --bg-alt: #222222;
+    --text: #e5e5e5;
+    --text-weak: #999999;
+    --border: #2a2a2a;
+    --card-shadow: rgba(0, 0, 0, 0.4);
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -98,6 +109,29 @@ nav.site-nav a.icon-link svg { fill: currentColor; }
 }
 
 .header-badge { height: 36px; }
+
+.header-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.theme-toggle {
+    background: none;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    width: 32px;
+    height: 32px;
+    font-size: 15px;
+    line-height: 1;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text);
+}
+
+.theme-toggle:hover { background: var(--bg-alt); }
 
 footer.site a.icon-link {
     display: inline-flex;
