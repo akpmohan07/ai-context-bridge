@@ -1,0 +1,28 @@
+site/index.html
+  s_3a9bb0973df34e::t_db707ab0d29f80 171,173-190,194,200-201,205-206,210-211,218-232
+  s_3a9bb0973df34e::t_e60fb9ee33a842 114,327
+  s_3a9bb0973df34e::t_8d6c44b0431a82 44-54
+  s_3a9bb0973df34e::t_ef05f3b42856cb 217
+  s_3a9bb0973df34e::t_5fe2550a22bfad 43
+  s_3a9bb0973df34e::t_2e6043056859ee 233-235
+site/privacy.html
+  s_3a9bb0973df34e::t_e60fb9ee33a842 29,86
+site/llms.txt
+  s_3a9bb0973df34e::t_58e59ae9084041 15
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "17402127ba657e13be18e6f37e9a23f442b64631",
+  "prompts": {},
+  "sessions": {
+    "s_3a9bb0973df34e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "da414916-d00d-4a4f-a8db-371f917c284d",
+        "model": "claude-sonnet-5"
+      },
+      "human_author": "Mohankumar Muthusamy <akpmohan07@gmail.com>"
+    }
+  }
+}
