@@ -1,0 +1,27 @@
+.agents/product-marketing.md
+  s_3a9bb0973df34e::t_d6f4b3082772fa 1-102
+site/index.html
+  s_3a9bb0973df34e::t_0ab65de3c544d6 244
+  s_3a9bb0973df34e::t_16cf91797da61d 74
+  s_3a9bb0973df34e::t_2399be0d4d121d 212
+  s_3a9bb0973df34e::t_da5100f945b93a 256
+site/features.html
+  s_3a9bb0973df34e::t_0305ba29f92efc 98
+  s_3a9bb0973df34e::t_0ab758182863f9 93
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "5fa0ff39563e7d0c437acc3bda2f5d8dfb4684b9",
+  "prompts": {},
+  "sessions": {
+    "s_3a9bb0973df34e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "da414916-d00d-4a4f-a8db-371f917c284d",
+        "model": "claude-sonnet-5"
+      },
+      "human_author": "Mohankumar Muthusamy <akpmohan07@gmail.com>"
+    }
+  }
+}
