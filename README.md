@@ -7,6 +7,8 @@
 <a href="https://microsoftedge.microsoft.com/addons/detail/jfnfbefcfahohimpnbelabdbohimlmfi" target="_blank">![Edge Add-on](https://img.shields.io/badge/Edge_Add--on-v2.0.0-blue)</a>
 <a href="https://addons.mozilla.org/en-US/firefox/addon/ai-context-bridge/" target="_blank">![Firefox Add-on](https://img.shields.io/badge/Firefox_Add--on-v2.0.0-orange)</a>
 
+**Roadmap:** [Next Release](https://github.com/users/akpmohan07/projects/5/views/3?sliceBy%5Bvalue%5D=v2.1.0) · [Future Release](https://github.com/users/akpmohan07/projects/5/views/3?sliceBy%5Bvalue%5D=type%3Aidea)
+
 ## Screenshots
 
 | Reddit | Medium |
