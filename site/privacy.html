@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Privacy Policy | AI Context Bridge</title>
+<meta name="description" content="AI Context Bridge's privacy policy: everything happens locally in your browser. No server, no analytics, no tracking, no data collection.">
+<link rel="canonical" href="https://akpmohan07.github.io/ai-context-bridge/privacy.html">
+<link rel="icon" href="assets/icons/32-icon.png" type="image/png">
+
+<meta property="og:type" content="website">
+<meta property="og:title" content="Privacy Policy | AI Context Bridge">
+<meta property="og:description" content="Everything happens locally in your browser. No server, no analytics, no tracking.">
+<meta property="og:url" content="https://akpmohan07.github.io/ai-context-bridge/privacy.html">
+
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="site">
+  <div class="wrap">
+    <a class="brand" href="/">
+      <img src="assets/icons/32-icon.png" alt="">
+      AI Context Bridge
+    </a>
+    <nav class="site-nav">
+      <a href="/">Home</a>
+      <a href="features.html">Features</a>
+      <a class="icon-link" href="https://github.com/akpmohan07/ai-context-bridge" target="_blank" rel="noopener">
+        <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M6.766 11.328c-2.063-.25-3.516-1.734-3.516-3.656 0-.781.281-1.625.75-2.188-.203-.515-.172-1.609.063-2.062.625-.078 1.468.25 1.968.703.594-.187 1.219-.281 1.985-.281.765 0 1.39.094 1.953.265.484-.437 1.344-.765 1.969-.687.218.422.25 1.515.046 2.047.5.593.766 1.39.766 2.203 0 1.922-1.453 3.375-3.547 3.64.531.344.89 1.094.89 1.954v1.625c0 .468.391.734.86.547C13.781 14.359 16 11.53 16 8.03 16 3.61 12.406 0 7.984 0 3.563 0 0 3.61 0 8.031a7.88 7.88 0 0 0 5.172 7.422c.422.156.828-.125.828-.547v-1.25c-.219.094-.5.156-.75.156-1.031 0-1.64-.562-2.078-1.609-.172-.422-.36-.672-.719-.719-.187-.015-.25-.093-.25-.187 0-.188.313-.328.625-.328.453 0 .844.281 1.25.86.313.452.64.655 1.031.655s.641-.14 1-.5c.266-.265.47-.5.657-.656"/></svg>
+        GitHub
+      </a>
+    </nav>
+    <a href="https://chromewebstore.google.com/detail/ai-context-bridge/kjgmboacclalfjgcmooplnpimjalikfo" target="_blank" rel="noopener">
+      <img class="store-badge header-badge" src="assets/badges/chrome-webstore-colored.png" alt="Available in the Chrome Web Store">
+    </a>
+  </div>
+</header>
+
+<main class="doc">
+  <div class="wrap">
+    <h1>Privacy Policy</h1>
+    <p>AI Context Bridge is built around one principle: everything happens locally in your browser, on your device. There is no server operated by this extension's developer, so there is nowhere for your data to go except your own browser and the AI chat tab you choose to open.</p>
+
+    <h2>What the extension reads, and when</h2>
+    <ul>
+      <li>The content of the current page (a Reddit thread, a Medium article, or a ChatGPT conversation), <strong>only when you click a button the extension has added to that page</strong>. It never reads page content automatically or in the background.</li>
+      <li>The currently active tab's URL, only to decide which supported site you're on and to order the settings popup so the platform you're using appears first.</li>
+      <li>The completion of one specific ChatGPT network request (<code>https://chatgpt.com/backend-api/f/conversation</code>), for the Summarize and Continue / Get Claude's Opinion features. Only the request's completion is observed, never its contents.</li>
+    </ul>
+    <p>That content is used for exactly one purpose: handing it off to an AI chat you choose (Claude, ChatGPT, or Gemini), by opening a new tab to that AI and inserting the content into its message box.</p>
+
+    <h2>What is stored, and where</h2>
+    <ul>
+      <li><strong>Browser sync storage</strong>: your own feature toggles (which platforms and features are enabled). Synced by your browser across your own signed-in devices, never accessible to anyone else.</li>
+      <li><strong>Browser local storage</strong>: two things. First, a short-lived handoff payload, the content you're sending to an AI, which is deleted automatically the moment the destination tab reads it, or after 60 seconds if it's never read. Second, a small cache of per-conversation "last message" timestamps, used only to power the Time Awareness feature.</li>
+    </ul>
+
+    <h2>What this extension does not do</h2>
+    <ul>
+      <li>Operate a server, collect analytics, or use any tracking or telemetry.</li>
+      <li>Collect, transmit, or sell personal information, browsing history, keystrokes, or account credentials.</li>
+      <li>Access any site beyond the ones it's built for (Reddit, Medium, ChatGPT, Claude.ai, Gemini). No broad host permission is requested.</li>
+      <li>Share data with any third party, for any purpose.</li>
+    </ul>
+
+    <h2>Source code</h2>
+    <p>This extension is open source. Every line of what it does is readable at <a href="https://github.com/akpmohan07/ai-context-bridge" target="_blank" rel="noopener">github.com/akpmohan07/ai-context-bridge</a>.</p>
+
+    <h2>Contact</h2>
+    <p>Questions about this policy: <a href="mailto:akpmohan07@gmail.com">akpmohan07@gmail.com</a></p>
+  </div>
+</main>
+
+<footer class="site">
+  <div class="wrap">
+    <a class="icon-link" href="https://github.com/akpmohan07/ai-context-bridge" target="_blank" rel="noopener">
+      <svg width="14" height="14" viewBox="0 0 16 16" aria-hidden="true"><path d="M6.766 11.328c-2.063-.25-3.516-1.734-3.516-3.656 0-.781.281-1.625.75-2.188-.203-.515-.172-1.609.063-2.062.625-.078 1.468.25 1.968.703.594-.187 1.219-.281 1.985-.281.765 0 1.39.094 1.953.265.484-.437 1.344-.765 1.969-.687.218.422.25 1.515.046 2.047.5.593.766 1.39.766 2.203 0 1.922-1.453 3.375-3.547 3.64.531.344.89 1.094.89 1.954v1.625c0 .468.391.734.86.547C13.781 14.359 16 11.53 16 8.03 16 3.61 12.406 0 7.984 0 3.563 0 0 3.61 0 8.031a7.88 7.88 0 0 0 5.172 7.422c.422.156.828-.125.828-.547v-1.25c-.219.094-.5.156-.75.156-1.031 0-1.64-.562-2.078-1.609-.172-.422-.36-.672-.719-.719-.187-.015-.25-.093-.25-.187 0-.188.313-.328.625-.328.453 0 .844.281 1.25.86.313.452.64.655 1.031.655s.641-.14 1-.5c.266-.265.47-.5.657-.656"/></svg>
+      GitHub
+    </a>
+    <a href="/">Home</a>
+    <a href="features.html">Features</a>
+    <a href="https://github.com/akpmohan07/ai-context-bridge/blob/main/LICENSE" target="_blank" rel="noopener">Apache 2.0 License</a>
+    <p style="margin-top: 8px;">v2.0.0 &middot; Updated September 11, 2026</p>
+  </div>
+</footer>
+
+</body>
+</html>

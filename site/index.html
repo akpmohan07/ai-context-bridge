@@ -1,0 +1,522 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AI Context Bridge | Send Reddit, Medium & ChatGPT into Claude, ChatGPT, or Gemini</title>
+<meta name="description" content="One click carries full context from Reddit, Medium, or ChatGPT straight into Claude, ChatGPT, or Gemini. No copy-paste. Free, open-source, and fully local: nothing ever leaves your browser.">
+<link rel="canonical" href="https://akpmohan07.github.io/ai-context-bridge/">
+<link rel="icon" href="assets/icons/32-icon.png" type="image/png">
+
+<meta property="og:type" content="website">
+<meta property="og:title" content="AI Context Bridge: Stop copy-pasting into your AI chat">
+<meta property="og:description" content="Send a Reddit thread, a Medium article, or a ChatGPT conversation straight into Claude, ChatGPT, or Gemini, in one click.">
+<meta property="og:image" content="https://akpmohan07.github.io/ai-context-bridge/assets/screenshots/Popup.png">
+<meta property="og:url" content="https://akpmohan07.github.io/ai-context-bridge/">
+<meta name="twitter:card" content="summary_large_image">
+
+<link rel="stylesheet" href="style.css">
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "WebSite",
+      "name": "AI Context Bridge",
+      "url": "https://akpmohan07.github.io/ai-context-bridge/"
+    },
+    {
+      "@type": "SoftwareApplication",
+      "name": "AI Context Bridge",
+      "url": "https://akpmohan07.github.io/ai-context-bridge/",
+      "description": "Bridges content from Reddit, Medium, and ChatGPT into Claude, ChatGPT, or Gemini with one click, no copy-paste.",
+      "applicationCategory": "BrowserApplication",
+      "operatingSystem": "Chrome, Edge, Firefox",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD"
+      }
+    },
+    {
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "Is AI Context Bridge free?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Yes, with no catch, no premium tier, and no account required. It's open-source under the Apache 2.0 license and available for Chrome, Edge, and Firefox, so there's nothing hidden to find."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Which AI platforms does it work with?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "All three major ones: Claude, ChatGPT, and Gemini, so you're never locked into one. Sources are Reddit threads, Medium articles, and ChatGPT conversations."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Does AI Context Bridge collect my data?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "No. There's no server for your data to go to. It runs entirely locally in your browser, with no analytics or tracking. Page content is only read when you click the extension's button, and it's used only to hand off to the AI chat you choose."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "What is Time Awareness?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "An AI chat has no built-in sense of elapsed time, so a 3-hour gap and a 3-day gap look identical to it. Time Awareness tells your AI the real gap so it can account for it. Works on Claude, ChatGPT, and Gemini."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Is AI Context Bridge open source?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Yes. Every line is public on GitHub under the Apache 2.0 license, so the privacy claims can be verified directly in the code."
+          }
+        }
+      ]
+    }
+  ]
+}
+</script>
+</head>
+<body>
+
+<header class="site">
+  <div class="wrap">
+    <a class="brand" href="/">
+      <img src="assets/icons/32-icon.png" alt="">
+      AI Context Bridge
+    </a>
+    <nav class="site-nav">
+      <a href="#how-it-works">How it works</a>
+      <a href="features.html">Features</a>
+      <a class="icon-link" href="https://github.com/akpmohan07/ai-context-bridge" target="_blank" rel="noopener">
+        <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M6.766 11.328c-2.063-.25-3.516-1.734-3.516-3.656 0-.781.281-1.625.75-2.188-.203-.515-.172-1.609.063-2.062.625-.078 1.468.25 1.968.703.594-.187 1.219-.281 1.985-.281.765 0 1.39.094 1.953.265.484-.437 1.344-.765 1.969-.687.218.422.25 1.515.046 2.047.5.593.766 1.39.766 2.203 0 1.922-1.453 3.375-3.547 3.64.531.344.89 1.094.89 1.954v1.625c0 .468.391.734.86.547C13.781 14.359 16 11.53 16 8.03 16 3.61 12.406 0 7.984 0 3.563 0 0 3.61 0 8.031a7.88 7.88 0 0 0 5.172 7.422c.422.156.828-.125.828-.547v-1.25c-.219.094-.5.156-.75.156-1.031 0-1.64-.562-2.078-1.609-.172-.422-.36-.672-.719-.719-.187-.015-.25-.093-.25-.187 0-.188.313-.328.625-.328.453 0 .844.281 1.25.86.313.452.64.655 1.031.655s.641-.14 1-.5c.266-.265.47-.5.657-.656"/></svg>
+        GitHub
+      </a>
+    </nav>
+    <a href="https://chromewebstore.google.com/detail/ai-context-bridge/kjgmboacclalfjgcmooplnpimjalikfo" target="_blank" rel="noopener">
+      <img class="store-badge header-badge" src="assets/badges/chrome-webstore-colored.png" alt="Available in the Chrome Web Store">
+    </a>
+  </div>
+</header>
+
+<main>
+  <section class="hero">
+    <div class="wrap">
+      <h1>Stop copy-pasting into your AI chat.</h1>
+      <p class="sub">AI Context Bridge is a free, open-source browser extension for Chrome, Edge, and Firefox that sends a Reddit thread, a Medium article, or a ChatGPT conversation straight into Claude, ChatGPT, or Gemini, in one click, with nothing lost in the paste.</p>
+      <div class="install-row">
+        <a href="https://chromewebstore.google.com/detail/ai-context-bridge/kjgmboacclalfjgcmooplnpimjalikfo" target="_blank" rel="noopener">
+          <img class="store-badge" src="assets/badges/chrome-webstore-colored.png" alt="Available in the Chrome Web Store">
+        </a>
+        <a href="https://microsoftedge.microsoft.com/addons/detail/jfnfbefcfahohimpnbelabdbohimlmfi" target="_blank" rel="noopener">
+          <img class="store-badge" src="assets/badges/edge-addons.png" alt="Get it from Microsoft Edge Add-ons">
+        </a>
+        <a href="https://addons.mozilla.org/en-US/firefox/addon/ai-context-bridge/" target="_blank" rel="noopener">
+          <img class="store-badge" src="assets/badges/firefox-amo.svg" alt="Get the Add-on for Firefox">
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <section id="how-it-works" class="alt">
+    <div class="wrap">
+      <h2>How it works</h2>
+      <div class="steps">
+        <div class="step">
+          <span class="num">1</span>
+          <h3>Browse normally</h3>
+          <p>Reading a Reddit thread, a Medium article, or chatting in ChatGPT.</p>
+        </div>
+        <div class="step">
+          <span class="num">2</span>
+          <h3>Click the button it adds</h3>
+          <p>No selecting text, no copying, no switching tabs to paste.</p>
+        </div>
+        <div class="step">
+          <span class="num">3</span>
+          <h3>Land in your AI chat</h3>
+          <p>The content's already there, formatted, in a new tab, ready for your question.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="wrap">
+      <h2>What it moves, and where</h2>
+      <table class="matrix">
+        <thead>
+          <tr><th>Source</th><th>Destinations</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Reddit thread</td>
+            <td><span class="pill claude">Claude</span> <span class="pill chatgpt">ChatGPT</span> <span class="pill gemini">Gemini</span> <span class="pill clip">Clipboard</span></td>
+          </tr>
+          <tr>
+            <td>Medium article</td>
+            <td><span class="pill claude">Claude</span> <span class="pill chatgpt">ChatGPT</span> <span class="pill gemini">Gemini</span> <span class="pill clip">Clipboard</span></td>
+          </tr>
+          <tr>
+            <td>ChatGPT conversation</td>
+            <td><span class="pill claude">Claude</span> (summarize &amp; continue, or a second opinion)</td>
+          </tr>
+        </tbody>
+      </table>
+      <p style="text-align:center; margin-top:16px; font-size:14px;"><a href="features.html">See every feature explained &rarr;</a></p>
+    </div>
+  </section>
+
+  <section id="extras" class="alt">
+    <div class="wrap">
+      <h2>The extras that come along for free</h2>
+      <div class="extras">
+        <div class="extra-card">
+          <h3>Time Awareness</h3>
+          <p>An AI chat has no idea how long you were gone: 3 hours or 3 days look identical to it. Time Awareness tells it the real gap, so it stops pretending no time passed. Works on Claude, ChatGPT, and Gemini.</p>
+        </div>
+        <div class="extra-card claude">
+          <h3>Ambient Sounds</h3>
+          <p>A text-only chat can feel like talking into silence. On Claude.ai, a subtle ambient sound gives a sense that something's actually alive on the other end.</p>
+        </div>
+        <div class="extra-card claude">
+          <h3>Default Model</h3>
+          <p>Picking a model on every single handoff gets old fast. Set yours once on Claude.ai, and every handoff opens there automatically.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="wrap trust">
+      <h2>Why trust it</h2>
+      <p>"Everything happens locally, in your browser, on your device. There's no server, so there's nowhere for your data to go except your own browser and the AI tab you chose to open."</p>
+      <p><a href="privacy.html">Read the full privacy policy</a> · <a href="https://github.com/akpmohan07/ai-context-bridge" target="_blank" rel="noopener">Read the source on GitHub</a></p>
+    </div>
+  </section>
+
+  <section class="alt">
+    <div class="wrap">
+      <h2>See it in action</h2>
+      <p style="text-align:center; color:var(--text-weak); font-size:13px; margin-bottom:20px;">Drag, or click a side image to bring it forward. Click the centered image for full screen.</p>
+      <div class="coverflow-wrap" id="coverflowWrap" data-slides='[
+        {"src":"assets/screenshots/Reddit_final.png","alt":"AI Context Bridge&#39;s menu open on a Reddit thread, offering to send it to Claude, ChatGPT, Gemini, or clipboard","caption":"Reddit thread → your choice of AI"},
+        {"src":"assets/screenshots/Medium_final.png","alt":"AI Context Bridge&#39;s menu open on a Medium article, offering the same four destinations","caption":"Medium article → your choice of AI"},
+        {"src":"assets/screenshots/ChatGpt_final.png","alt":"The floating AI Context Bridge button on a ChatGPT conversation","caption":"ChatGPT → summarize &amp; continue, or ask Claude"},
+        {"src":"assets/screenshots/Claude_final.png","alt":"Claude.ai with Time Awareness, Ambient Sounds, and Default Model active","caption":"Claude.ai → Time Awareness, Ambient Sounds, Default Model"},
+        {"src":"assets/screenshots/Popup.png","alt":"AI Context Bridge&#39;s settings popup, showing per-platform feature toggles","caption":"Every feature toggles independently"}
+      ]'>
+        <div class="coverflow" id="coverflow"></div>
+      </div>
+      <p class="carousel-caption" id="carouselCaption"></p>
+      <div class="carousel-controls">
+        <div class="carousel-dots" id="carouselDots"></div>
+        <button class="carousel-pause" id="carouselPause" aria-label="Pause slideshow">&#10074;&#10074;</button>
+      </div>
+    </div>
+  </section>
+
+  <div class="lightbox" id="lightbox">
+    <button class="lightbox-close" id="lightboxClose" aria-label="Close">&times;</button>
+    <button class="lightbox-nav prev" id="lightboxPrev" aria-label="Previous screenshot">&#8249;</button>
+    <img id="lightboxImg" src="" alt="">
+    <button class="lightbox-nav next" id="lightboxNext" aria-label="Next screenshot">&#8250;</button>
+    <div class="lightbox-count" id="lightboxCount"></div>
+  </div>
+
+  <section>
+    <div class="wrap">
+      <h2>Frequently asked questions</h2>
+      <div class="faq">
+        <div class="faq-item">
+          <h3>Is AI Context Bridge free?</h3>
+          <p>Yes. No catch, no premium tier, no account required. "Free" extensions often make it up by monetizing your data instead; this one doesn't, because it's open-source under the Apache 2.0 license and available for Chrome, Edge, and Firefox, so there's nothing hidden to find.</p>
+        </div>
+        <div class="faq-item">
+          <h3>Which AI platforms does it work with?</h3>
+          <p>All three of the major ones (Claude, ChatGPT, and Gemini), so you're never locked into whichever AI you happened to open first. Sources are Reddit threads, Medium articles, and ChatGPT conversations.</p>
+        </div>
+        <div class="faq-item">
+          <h3>Does AI Context Bridge collect my data?</h3>
+          <p>No, and that's not just a policy, it's architectural: there's no server for your data to go to. It runs entirely locally in your browser, with no analytics or tracking. Page content is only read when you click the extension's button, and it's used only to hand off to the AI chat you choose.</p>
+        </div>
+        <div class="faq-item">
+          <h3>What is Time Awareness?</h3>
+          <p>An AI chat has no built-in sense of elapsed time: walk away for 3 hours or 3 days and the next message looks identical to it either way. Time Awareness tells your AI the real gap, so it can account for it instead of pretending no time passed. Works on Claude, ChatGPT, and Gemini.</p>
+        </div>
+        <div class="faq-item">
+          <h3>Is AI Context Bridge open source?</h3>
+          <p>Yes, so you don't have to take the privacy claims above on faith. Every line is public on <a href="https://github.com/akpmohan07/ai-context-bridge" target="_blank" rel="noopener">GitHub</a> under the Apache 2.0 license; you can verify exactly what the code does.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="final-cta">
+    <div class="wrap">
+      <h2>Get it for your browser</h2>
+      <p class="sub">Free, open-source, and fully local.</p>
+      <div class="install-row">
+        <a href="https://chromewebstore.google.com/detail/ai-context-bridge/kjgmboacclalfjgcmooplnpimjalikfo" target="_blank" rel="noopener">
+          <img class="store-badge" src="assets/badges/chrome-webstore-colored.png" alt="Available in the Chrome Web Store">
+        </a>
+        <a href="https://microsoftedge.microsoft.com/addons/detail/jfnfbefcfahohimpnbelabdbohimlmfi" target="_blank" rel="noopener">
+          <img class="store-badge" src="assets/badges/edge-addons.png" alt="Get it from Microsoft Edge Add-ons">
+        </a>
+        <a href="https://addons.mozilla.org/en-US/firefox/addon/ai-context-bridge/" target="_blank" rel="noopener">
+          <img class="store-badge" src="assets/badges/firefox-amo.svg" alt="Get the Add-on for Firefox">
+        </a>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="site">
+  <div class="wrap">
+    <a class="icon-link" href="https://github.com/akpmohan07/ai-context-bridge" target="_blank" rel="noopener">
+      <svg width="14" height="14" viewBox="0 0 16 16" aria-hidden="true"><path d="M6.766 11.328c-2.063-.25-3.516-1.734-3.516-3.656 0-.781.281-1.625.75-2.188-.203-.515-.172-1.609.063-2.062.625-.078 1.468.25 1.968.703.594-.187 1.219-.281 1.985-.281.765 0 1.39.094 1.953.265.484-.437 1.344-.765 1.969-.687.218.422.25 1.515.046 2.047.5.593.766 1.39.766 2.203 0 1.922-1.453 3.375-3.547 3.64.531.344.89 1.094.89 1.954v1.625c0 .468.391.734.86.547C13.781 14.359 16 11.53 16 8.03 16 3.61 12.406 0 7.984 0 3.563 0 0 3.61 0 8.031a7.88 7.88 0 0 0 5.172 7.422c.422.156.828-.125.828-.547v-1.25c-.219.094-.5.156-.75.156-1.031 0-1.64-.562-2.078-1.609-.172-.422-.36-.672-.719-.719-.187-.015-.25-.093-.25-.187 0-.188.313-.328.625-.328.453 0 .844.281 1.25.86.313.452.64.655 1.031.655s.641-.14 1-.5c.266-.265.47-.5.657-.656"/></svg>
+      GitHub
+    </a>
+    <a href="features.html">Features</a>
+    <a href="privacy.html">Privacy</a>
+    <a href="https://github.com/akpmohan07/ai-context-bridge/blob/main/LICENSE" target="_blank" rel="noopener">Apache 2.0 License</a>
+    <p style="margin-top: 8px;">v2.0.0 &middot; Updated September 11, 2026</p>
+  </div>
+</footer>
+
+<script>
+(function () {
+  // Lightbox (full-screen viewer, opened by clicking the carousel)
+  var lightbox = document.getElementById('lightbox');
+  var lightboxImg = document.getElementById('lightboxImg');
+  var lightboxCount = document.getElementById('lightboxCount');
+  var slides = JSON.parse(document.getElementById('coverflowWrap').dataset.slides);
+  var lightboxIndex = 0;
+
+  function showInLightbox(index) {
+    lightboxIndex = (index + slides.length) % slides.length;
+    var slide = slides[lightboxIndex];
+    lightboxImg.src = slide.src;
+    lightboxImg.alt = slide.alt;
+    lightboxCount.textContent = (lightboxIndex + 1) + ' / ' + slides.length;
+  }
+
+  function openLightbox(index) {
+    showInLightbox(index);
+    lightbox.classList.add('open');
+  }
+
+  function closeLightbox() {
+    lightbox.classList.remove('open');
+  }
+
+  lightbox.addEventListener('click', function (e) {
+    if (e.target === lightbox) closeLightbox();
+  });
+  document.getElementById('lightboxClose').addEventListener('click', closeLightbox);
+  document.getElementById('lightboxPrev').addEventListener('click', function (e) {
+    e.stopPropagation();
+    showInLightbox(lightboxIndex - 1);
+  });
+  document.getElementById('lightboxNext').addEventListener('click', function (e) {
+    e.stopPropagation();
+    showInLightbox(lightboxIndex + 1);
+  });
+  document.addEventListener('keydown', function (e) {
+    if (!lightbox.classList.contains('open')) return;
+    if (e.key === 'Escape') closeLightbox();
+    if (e.key === 'ArrowLeft') showInLightbox(lightboxIndex - 1);
+    if (e.key === 'ArrowRight') showInLightbox(lightboxIndex + 1);
+  });
+
+  // Coverflow carousel: real horizontal scroll-snap track. The centered
+  // slide is scaled up continuously based on scroll position (not a fixed
+  // library) so drag/swipe/scrollbar all just work as native scrolling.
+  var coverflow = document.getElementById('coverflow');
+  var carouselCaption = document.getElementById('carouselCaption');
+  var carouselDots = document.getElementById('carouselDots');
+  var pauseBtn = document.getElementById('carouselPause');
+  var carouselIndex = 0;
+  var timer = null;
+  var playing = true;
+  var userInteracting = false;
+
+  // Round-robin looping: native scroll-snap has no wraparound, so a clone
+  // of the last slide is prepended and a clone of the first is appended.
+  // Stepping past a real end lands on its neighboring clone (smooth,
+  // continuous motion), then an instant, invisible jump swaps it for the
+  // real slide at the other end once the scroll settles.
+  var N = slides.length;
+
+  function makeSlideEl(slideData, realIndex) {
+    var el = document.createElement('div');
+    el.className = 'coverflow-slide';
+    el.innerHTML = '<img src="' + slideData.src + '" alt="' + slideData.alt + '">';
+    if (realIndex === null) {
+      el.setAttribute('aria-hidden', 'true');
+      el.setAttribute('tabindex', '-1');
+    } else {
+      el.addEventListener('click', function () {
+        if (realIndex === carouselIndex) openLightbox(realIndex);
+        else scrollToIndex(realIndex);
+      });
+    }
+    coverflow.appendChild(el);
+    return el;
+  }
+
+  var trackEls = [];
+  trackEls.push(makeSlideEl(slides[N - 1], null)); // clone of last
+  var slideEls = slides.map(function (slide, i) {
+    var el = makeSlideEl(slide, i);
+    trackEls.push(el);
+    return el;
+  });
+  trackEls.push(makeSlideEl(slides[0], null)); // clone of first
+
+  function domPosOf(realIndex) { return realIndex + 1; }
+
+  slides.forEach(function (slide, i) {
+    var dot = document.createElement('button');
+    dot.className = 'dot';
+    dot.setAttribute('aria-label', 'Show slide ' + (i + 1));
+    dot.addEventListener('click', function () { scrollToIndex(i); });
+    carouselDots.appendChild(dot);
+  });
+  var dots = carouselDots.querySelectorAll('.dot');
+
+  function updateChrome() {
+    carouselCaption.textContent = slides[carouselIndex].caption;
+    dots.forEach(function (d, i) { d.classList.toggle('active', i === carouselIndex); });
+  }
+
+  function scrollToDomPos(pos, instant) {
+    trackEls[pos].scrollIntoView({ inline: 'center', block: 'nearest', behavior: instant ? 'instant' : 'smooth' });
+  }
+
+  // A direct, deliberate jump to an arbitrary real slide (dots, clicking
+  // a side slide): always targets the real element, no clone involved.
+  function scrollToIndex(i) {
+    carouselIndex = (i + N) % N;
+    scrollToDomPos(domPosOf(carouselIndex), false);
+    updateChrome();
+  }
+
+  function closestDomPos() {
+    var trackRect = coverflow.getBoundingClientRect();
+    var centerX = trackRect.left + trackRect.width / 2;
+    var pos = domPosOf(carouselIndex);
+    var closestDist = Infinity;
+    trackEls.forEach(function (el, i) {
+      var rect = el.getBoundingClientRect();
+      var dist = Math.abs((rect.left + rect.width / 2) - centerX);
+      if (dist < closestDist) { closestDist = dist; pos = i; }
+    });
+    return pos;
+  }
+
+  // Sequential step, used by autoplay: moves one DOM position at a time
+  // so the last-to-first transition passes smoothly through the clone.
+  function stepNext() {
+    scrollToDomPos(closestDomPos() + 1, false);
+  }
+
+  // After scrolling settles, silently swap a clone for its real slide.
+  function settleLoop() {
+    var pos = closestDomPos();
+    if (pos === 0) {
+      carouselIndex = N - 1;
+      scrollToDomPos(domPosOf(carouselIndex), true);
+      updateChrome();
+    } else if (pos === trackEls.length - 1) {
+      carouselIndex = 0;
+      scrollToDomPos(domPosOf(carouselIndex), true);
+      updateChrome();
+    }
+  }
+
+  // Scale/fade every slide (real or clone) by distance from center, and
+  // keep the caption/dots in sync with whatever's actually centered.
+  var ticking = false;
+  function updateScales() {
+    ticking = false;
+    var trackRect = coverflow.getBoundingClientRect();
+    var centerX = trackRect.left + trackRect.width / 2;
+    var closestPos = domPosOf(carouselIndex);
+    var closestDist = Infinity;
+    trackEls.forEach(function (el, pos) {
+      var rect = el.getBoundingClientRect();
+      var elCenter = rect.left + rect.width / 2;
+      var dist = Math.abs(elCenter - centerX);
+      var maxDist = trackRect.width / 2 + rect.width / 2;
+      var ratio = Math.max(0, 1 - dist / maxDist);
+      el.style.transform = 'scale(' + (0.8 + 0.2 * ratio) + ')';
+      el.style.opacity = 0.45 + 0.55 * ratio;
+      if (dist < closestDist) { closestDist = dist; closestPos = pos; }
+    });
+    var impliedReal = closestPos === 0 ? N - 1
+      : closestPos === trackEls.length - 1 ? 0
+      : closestPos - 1;
+    if (impliedReal !== carouselIndex) {
+      carouselIndex = impliedReal;
+      updateChrome();
+    }
+  }
+
+  var settleTimer = null;
+  coverflow.addEventListener('scroll', function () {
+    if (!ticking) { ticking = true; requestAnimationFrame(updateScales); }
+    clearTimeout(settleTimer);
+    settleTimer = setTimeout(settleLoop, 150);
+  });
+
+  function startAutoplay() {
+    stopAutoplay();
+    timer = setInterval(function () {
+      if (!userInteracting) stepNext();
+    }, 3500);
+  }
+
+  function stopAutoplay() {
+    if (timer) clearInterval(timer);
+    timer = null;
+  }
+
+  function setPlaying(next) {
+    playing = next;
+    pauseBtn.innerHTML = playing ? '&#10074;&#10074;' : '&#9654;';
+    pauseBtn.setAttribute('aria-label', playing ? 'Pause slideshow' : 'Play slideshow');
+    if (playing) startAutoplay(); else stopAutoplay();
+  }
+
+  pauseBtn.addEventListener('click', function (e) {
+    e.stopPropagation();
+    setPlaying(!playing);
+  });
+
+  // Manual drag/hover pauses autoplay without fighting the user's scroll.
+  coverflow.addEventListener('mouseenter', function () { userInteracting = true; });
+  coverflow.addEventListener('mouseleave', function () { userInteracting = false; });
+  coverflow.addEventListener('pointerdown', function () { userInteracting = true; });
+  window.addEventListener('pointerup', function () { userInteracting = false; });
+
+  // Start centered on the real first slide, not the prepended clone.
+  scrollToDomPos(domPosOf(0), true);
+  updateScales();
+  updateChrome();
+  startAutoplay();
+})();
+</script>
+</body>
+</html>

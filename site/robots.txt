@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://akpmohan07.github.io/ai-context-bridge/sitemap.xml

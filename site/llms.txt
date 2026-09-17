@@ -1,0 +1,28 @@
+# AI Context Bridge
+
+> A free, open-source browser extension (Chrome, Edge, Firefox) that sends content from Reddit, Medium, or ChatGPT straight into Claude, ChatGPT, or Gemini with one click, instead of copy-pasting. Runs entirely locally: no server, no analytics, no tracking.
+
+## What it does
+
+- Reddit thread → Claude, ChatGPT, Gemini, or clipboard
+- Medium article → Claude, ChatGPT, Gemini, or clipboard
+- ChatGPT conversation → Claude (summarize & continue, or a second opinion)
+- Time Awareness: tells the AI how long it's been since the last message (Claude, ChatGPT, Gemini)
+- Ambient Sounds and Default Model preference (Claude.ai only)
+
+## Key pages
+
+- [Home](https://akpmohan07.github.io/ai-context-bridge/): overview, install links, how it works, FAQ
+- [Features](https://akpmohan07.github.io/ai-context-bridge/features.html): every feature explained, plus the full source-to-destination matrix
+- [Privacy Policy](https://akpmohan07.github.io/ai-context-bridge/privacy.html): full data-handling policy
+- [Source code](https://github.com/akpmohan07/ai-context-bridge): Apache 2.0 licensed, open source
+
+## Install
+
+- [Chrome Web Store](https://chromewebstore.google.com/detail/ai-context-bridge/kjgmboacclalfjgcmooplnpimjalikfo)
+- [Microsoft Edge Add-ons](https://microsoftedge.microsoft.com/addons/detail/jfnfbefcfahohimpnbelabdbohimlmfi)
+- [Firefox Add-ons](https://addons.mozilla.org/en-US/firefox/addon/ai-context-bridge/)
+
+## Pricing
+
+Free. No paid tiers, no account, no signup required.

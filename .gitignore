@@ -151,8 +151,11 @@ e2e/.auth/
 
 # Claude Code — local session state, never committed without explicit review
 # (may carry session transcript content). .claude/skills/ IS meant to be
-# committed — only the two paths below are excluded.
+# committed — only the two paths below are excluded. Matched at any depth:
+# the harness can write custom_data/ into whatever directory is briefly cwd
+# (observed once under site/.claude/ after a `cd` mid-session), not just root.
 .claude/custom_data/
+**/.claude/custom_data/
 .claude/settings.local.json
 
 # Personal marketing-skills pack (coreyhaines31/marketingskills), installed
