@@ -1,0 +1,20 @@
+README.md
+  s_3a9bb0973df34e::t_78d5ab1bbe4629 44-49
+  s_3a9bb0973df34e::t_ab8a3fb5cd63e2 7-8
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "41e6cbefd7876ec9b7c9809d9fedbb027343d99b",
+  "prompts": {},
+  "sessions": {
+    "s_3a9bb0973df34e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "da414916-d00d-4a4f-a8db-371f917c284d",
+        "model": "claude-sonnet-5"
+      },
+      "human_author": "Mohankumar Muthusamy <akpmohan07@gmail.com>"
+    }
+  }
+}
