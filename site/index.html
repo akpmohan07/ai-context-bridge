@@ -106,7 +106,7 @@
       </a>
     </nav>
     <div class="header-actions">
-      <button class="theme-toggle" id="themeToggle" aria-label="Toggle theme">&#128421;&#65039;</button>
+      <select class="theme-select" id="themeSelect" aria-label="Theme"><option value="system">System</option><option value="light">Light</option><option value="dark">Dark</option></select>
       <a href="https://chromewebstore.google.com/detail/ai-context-bridge/kjgmboacclalfjgcmooplnpimjalikfo" target="_blank" rel="noopener">
       <img class="store-badge header-badge" src="assets/badges/chrome-webstore-colored.png" alt="Available in the Chrome Web Store">
     </a>
@@ -406,8 +406,19 @@
     dots.forEach(function (d, i) { d.classList.toggle('active', i === carouselIndex); });
   }
 
+  // Scrolls only the carousel's own horizontal scroll position, never the
+  // page. scrollIntoView() looked like the right tool here, but it scrolls
+  // *every* scrollable ancestor needed to reveal the element, including the
+  // whole page vertically since this section sits below the fold, that's
+  // what caused the page to jump down on load and on every "Home" click.
   function scrollToDomPos(pos, instant) {
-    trackEls[pos].scrollIntoView({ inline: 'center', block: 'nearest', behavior: instant ? 'instant' : 'smooth' });
+    var el = trackEls[pos];
+    var target = el.offsetLeft - (coverflow.clientWidth - el.clientWidth) / 2;
+    if (instant) {
+      coverflow.scrollLeft = target;
+    } else {
+      coverflow.scrollTo({ left: target, behavior: 'smooth' });
+    }
   }
 
   // A direct, deliberate jump to an arbitrary real slide (dots, clicking

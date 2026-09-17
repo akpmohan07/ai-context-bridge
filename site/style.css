@@ -116,22 +116,16 @@ nav.site-nav a.icon-link svg { fill: currentColor; }
     gap: 12px;
 }
 
-.theme-toggle {
-    background: none;
+.theme-select {
+    background: var(--bg);
+    color: var(--text);
     border: 1px solid var(--border);
     border-radius: 6px;
-    width: 32px;
     height: 32px;
-    font-size: 15px;
-    line-height: 1;
+    padding: 0 8px;
+    font-size: 13px;
     cursor: pointer;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    color: var(--text);
 }
-
-.theme-toggle:hover { background: var(--bg-alt); }
 
 footer.site a.icon-link {
     display: inline-flex;
