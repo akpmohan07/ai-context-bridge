@@ -3,6 +3,7 @@
 > One click carries full context into your AI chat, no copy-paste, and adds what it's missing, like a sense of time, and more.
 
 <a href="https://opensource.org/licenses/Apache-2.0" target="_blank">![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)</a>
+[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/akpmohan07/ai-context-bridge)
 <a href="https://chromewebstore.google.com/detail/ai-context-bridge/kjgmboacclalfjgcmooplnpimjalikfo" target="_blank">![Chrome Extension](https://img.shields.io/badge/Chrome_Extension-v2.0.0-green)</a>
 <a href="https://microsoftedge.microsoft.com/addons/detail/jfnfbefcfahohimpnbelabdbohimlmfi" target="_blank">![Edge Add-on](https://img.shields.io/badge/Edge_Add--on-v2.0.0-blue)</a>
 <a href="https://addons.mozilla.org/en-US/firefox/addon/ai-context-bridge/" target="_blank">![Firefox Add-on](https://img.shields.io/badge/Firefox_Add--on-v2.0.0-orange)</a>
