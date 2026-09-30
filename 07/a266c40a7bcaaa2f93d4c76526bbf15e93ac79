@@ -1,0 +1,21 @@
+ARCHITECTURE.md
+  s_6c5be475e8671d::t_d847616421a725 86-112,138,144-145
+README.md
+  s_6c5be475e8671d::t_d847616421a725 97
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "07a266c40a7bcaaa2f93d4c76526bbf15e93ac79",
+  "prompts": {},
+  "sessions": {
+    "s_6c5be475e8671d": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "05e43577-afc6-49f3-9e31-003d42b27d79",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Mohankumar Muthusamy <akpmohan07@gmail.com>"
+    }
+  }
+}
