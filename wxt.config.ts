@@ -15,8 +15,9 @@ export default defineConfig({
     // chrome.scripting.* anywhere. Unnecessary permissions risk store
     // rejection (Edge's submission form says so explicitly) and just scare
     // users at install for no reason.
-    permissions: ['webRequest', 'tabs', 'storage'],
+    permissions: ['webRequest', 'tabs', 'storage', 'alarms'],
     host_permissions: [
+      'https://claude.ai/*', // background usage capture (#27)
       'https://chatgpt.com/*',
       'https://www.reddit.com/*',
       'https://medium.com/*',

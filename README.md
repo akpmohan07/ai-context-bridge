@@ -95,7 +95,7 @@ timestamp rather than the gap; it self-heals on the next send. Toggle in the pop
 
 ## Privacy
 
-All processing is local. The extension reads page content only when you click a button. No data is sent to any server. No tracking.
+All processing is local. The extension reads page content only when you click a button. To show your unused Claude capacity, it also checks your Claude usage in the background: it reads the same usage numbers as claude.ai's own settings page, using your existing login. It never reads your chats, and stores only usage percentages and times on your device. No data is sent to any other server. No tracking.
 
 ## Architecture
 

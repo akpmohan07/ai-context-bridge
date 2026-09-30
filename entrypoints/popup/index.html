@@ -16,6 +16,31 @@
 
     <section class="section" data-section="claude" data-accent="claude">
       <div class="section-label">Claude.ai</div>
+      <!-- Usage (#27): the bar is the week's capacity (blue used, green
+           unused); the strip under it is the days the blue came from. The
+           replay grows each day's column together with its share of the bar. -->
+      <div class="setting-row usage-row" id="claudeUsage">
+        <div class="setting-desc usage-message" hidden></div>
+        <div class="usage-main" hidden>
+          <div class="usage-track">
+            <div class="usage-pops">
+              <span class="usage-pop used"></span>
+              <span class="usage-pop unused"></span>
+            </div>
+            <div class="usage-bar">
+              <div class="usage-fill"></div>
+              <div class="usage-used"></div>
+            </div>
+            <!-- Sits over the still-unused green, outside the bar's clip so
+                 its glow can spread. -->
+            <div class="usage-beacon" hidden></div>
+          </div>
+          <div class="usage-strip"></div>
+          <div class="setting-desc usage-reset"></div>
+          <div class="setting-desc usage-pattern"></div>
+          <div class="setting-desc usage-note" hidden></div>
+        </div>
+      </div>
       <div class="setting-row">
         <div class="setting-info">
           <div class="setting-label">Time Awareness</div>

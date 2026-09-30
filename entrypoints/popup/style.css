@@ -102,6 +102,185 @@ body {
     max-width: 150px;
 }
 
+.usage-row {
+    flex-direction: column;
+    align-items: stretch;
+    padding: 12px 4px;
+    --usage-available: #2f9e44;
+    --usage-used: #1c7ed6;
+    /* Used capacity is spent: a lighter, hatched blue, so the solid green of
+       what's still unused is what stands out. */
+    --usage-used-hatch: repeating-linear-gradient(
+        -45deg,
+        color-mix(in srgb, var(--usage-used) 55%, var(--popup-bg)) 0 3px,
+        color-mix(in srgb, var(--usage-used) 30%, var(--popup-bg)) 3px 6px
+    );
+}
+
+.usage-row [hidden] {
+    display: none;
+}
+
+.usage-row .setting-desc {
+    margin-top: 0;
+}
+
+/* Room above the bar for the day labels that pop during the replay. */
+.usage-track {
+    position: relative;
+    padding-top: 22px;
+    margin-bottom: 6px;
+}
+
+.usage-pops {
+    position: absolute;
+    inset: 0 0 auto 0;
+    height: 20px;
+}
+
+.usage-pop {
+    position: absolute;
+    bottom: 2px;
+    transform: translateX(-50%);
+    font-size: 10px;
+    font-weight: 600;
+    white-space: nowrap;
+    padding: 1px 5px;
+    border-radius: 4px;
+    color: #fff;
+    font-variant-numeric: tabular-nums;
+}
+
+.usage-pop.used {
+    background: var(--usage-used);
+}
+
+.usage-pop.unused {
+    background: var(--usage-available);
+}
+
+/* Empty track → green fill (the week's capacity) → blue used block grows
+   over it from the left. */
+.usage-bar {
+    position: relative;
+    height: 10px;
+    border-radius: 5px;
+    overflow: hidden;
+    background: color-mix(in srgb, var(--popup-text-weak) 18%, transparent);
+}
+
+.usage-fill,
+.usage-used {
+    position: absolute;
+    inset: 0 auto 0 0;
+}
+
+.usage-fill {
+    background: var(--usage-available);
+}
+
+.usage-used {
+    background: var(--usage-used-hatch);
+}
+
+/* Day strip: one column per day of the Claude week, same blue as the bar. */
+.usage-strip {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 4px;
+    margin: 10px 0 8px;
+}
+
+.strip-day {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    border-radius: 5px;
+    padding: 2px 0;
+}
+
+/* Today is highlighted once the replay lands on it, not before. */
+.strip-day {
+    transition: background 400ms;
+}
+
+.strip-day.today.lit {
+    background: color-mix(in srgb, var(--usage-used) 10%, transparent);
+}
+
+.strip-col {
+    position: relative;
+    width: 14px;
+    height: 32px;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+}
+
+.strip-fill {
+    width: 100%;
+    height: 0;
+    border-radius: 3px 3px 1px 1px;
+    background: var(--usage-used-hatch);
+}
+
+.strip-mark {
+    position: absolute;
+    bottom: 0;
+    font-size: 11px;
+    color: var(--popup-text-weak);
+    line-height: 1;
+}
+
+.strip-val {
+    font-size: 10px;
+    height: 12px;
+    color: var(--popup-text);
+    font-variant-numeric: tabular-nums;
+}
+
+.strip-label {
+    font-size: 10px;
+    color: var(--popup-text-weak);
+}
+
+.strip-day.today.lit .strip-label {
+    color: var(--popup-text);
+    font-weight: 700;
+}
+
+.usage-reset b {
+    color: var(--popup-text);
+    font-weight: 600;
+}
+
+.strip-fade {
+    transition: opacity 300ms;
+}
+
+/* Replay finished: a thin ring around the green that's still unused pulses
+   like a beacon; the green itself stays still. */
+.usage-beacon {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    height: 10px;
+    border-radius: 5px;
+    pointer-events: none;
+    animation: usage-beacon 2s ease-in-out infinite;
+}
+
+@keyframes usage-beacon {
+    0%, 100% { box-shadow: 0 0 0 1px color-mix(in srgb, var(--usage-available) 0%, transparent); }
+    50%      { box-shadow: 0 0 0 2px color-mix(in srgb, var(--usage-available) 75%, transparent),
+                           0 0 6px 2px color-mix(in srgb, var(--usage-available) 30%, transparent); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .usage-beacon { animation: none; }
+}
+
 /* Toggle switch */
 .toggle {
     position: relative;
