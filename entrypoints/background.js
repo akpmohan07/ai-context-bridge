@@ -1,3 +1,5 @@
+import { USAGE_ALARM, scheduleUsageCapture, captureUsage } from '../src/usage/scheduler.js';
+
 export default defineBackground(() => {
   // v1.x had one shared `timerEnabled` for Time Awareness; v3 splits it per
   // platform. On update, carry the old value into all three so anyone who
@@ -16,12 +18,27 @@ export default defineBackground(() => {
     console.log('[ACB] migrated timerEnabled →', timerEnabled);
   });
 
+  // Usage capture (#27): one shared timer for every platform, every 15 min,
+  // plus on install/startup. A claude.ai page load or account switch captures
+  // just Claude.
+  chrome.runtime.onInstalled.addListener(() => { scheduleUsageCapture(); captureUsage('installed'); });
+  chrome.runtime.onStartup.addListener(() => { scheduleUsageCapture(); captureUsage('startup'); });
+  chrome.alarms.onAlarm.addListener((alarm) => {
+    if (alarm.name === USAGE_ALARM) captureUsage('alarm');
+  });
+  chrome.storage.onChanged.addListener((changes, area) => {
+    if (area === 'local' && changes.claudeOrgId) captureUsage('org id changed', { only: 'claude' });
+  });
+
   let listeningTabId = null;
 
   chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     if (message.action === "enableListener") {
       listeningTabId = message.tabId;
       console.log("[ACB] Background: enableListener received for tabId:", listeningTabId);
+    }
+    if (message.action === "captureClaudeUsage") {
+      captureUsage('claude.ai opened', { only: 'claude', source: 'page' });
     }
     if (message.action === "getTabId") {
       sendResponse({ tabId: sender.tab.id });
