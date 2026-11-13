@@ -1,0 +1,38 @@
+entrypoints/youtube.content.js
+  s_1a0f6374f2b661::t_482d09c121e28b 1-11
+entrypoints/youtube-main.content.js
+  s_1a0f6374f2b661::t_cb31cc353eac0d 1-22
+src/second-viewer/link.js
+  s_1a0f6374f2b661::t_496e77f0c12c20 1-81
+  s_1a0f6374f2b661::t_2f81ce152ac8a4 82-98
+src/second-viewer/youtube-adapter.js
+  s_1a0f6374f2b661::t_36182f0d594192 1-91
+src/second-viewer/youtube-captions.js
+  s_1a0f6374f2b661::t_cdb8157cba9685 198
+  s_1a0f6374f2b661::t_c9ec493c9d783d 175-177
+  s_1a0f6374f2b661::t_1ddc4989d1e0b0 108-109,111
+  s_1a0f6374f2b661::t_bc1065ee304d19 215,219
+  s_1a0f6374f2b661::t_25ac6308678252 1-107,110,112-174,178-197,199-214,216-218,220-225,227-230
+  s_1a0f6374f2b661::t_f89c926c271e83 226
+entrypoints/background.js
+  s_1a0f6374f2b661::t_0d7feffd09d624 1-2,4-6
+wxt.config.ts
+  s_1a0f6374f2b661::t_ca7ae9389da3f6 26-28
+  s_1a0f6374f2b661::t_a8a78f712f08e8 18-20
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "c309b014a34b42bc54a4fbecee9e375dbf5a2f62",
+  "prompts": {},
+  "sessions": {
+    "s_1a0f6374f2b661": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "e5e72b06-cd0f-402d-8a6e-03a251b12c63",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Mohankumar Muthusamy <akpmohan07@gmail.com>"
+    }
+  }
+}
