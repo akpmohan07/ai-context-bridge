@@ -1,6 +1,6 @@
 // The YouTube player adapter for Second Viewer (isolated content script).
 // The background worker forwards the Second Viewer server's requests here:
-//   status | pause | play | frame | context
+//   status | pause | play | seek | frame | context
 // Nothing is sent anywhere until the server asks.
 
 const video = () => document.querySelector('#movie_player video') || document.querySelector('video');
@@ -66,6 +66,11 @@ const handlers = {
     await video()?.play();
     return status();
   },
+  seek: async ({ t } = {}) => {
+    const v = video();
+    if (v && Number.isFinite(t)) v.currentTime = Math.max(0, t);
+    return status();
+  },
   frame: async () => frame(),
   context: () => context(),
 };
@@ -76,7 +81,7 @@ export function youtubeAdapter() {
   chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
     const handler = msg && handlers[msg.sv];
     if (!handler) return undefined;
-    handler().then(
+    handler(msg.params).then(
       (result) => sendResponse({ result }),
       (err) => sendResponse({ error: String(err?.message || err) }),
     );

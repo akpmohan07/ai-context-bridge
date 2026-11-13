@@ -16,19 +16,19 @@ async function injectYouTubeScripts(tabId) {
   await chrome.scripting.executeScript({ target: { tabId }, files: ['content-scripts/youtube.js'] });
 }
 
-async function askTab(tabId, method) {
+async function askTab(tabId, method, params) {
   try {
-    return await chrome.tabs.sendMessage(tabId, { sv: method });
+    return await chrome.tabs.sendMessage(tabId, { sv: method, params });
   } catch (e) {
     if (!/Receiving end does not exist|Could not establish connection/i.test(String(e?.message))) throw e;
     await injectYouTubeScripts(tabId);
-    return chrome.tabs.sendMessage(tabId, { sv: method });
+    return chrome.tabs.sendMessage(tabId, { sv: method, params });
   }
 }
 
-function sendToTab(tabId, method, timeoutMs) {
+function sendToTab(tabId, method, timeoutMs, params) {
   return Promise.race([
-    askTab(tabId, method).then((r) => {
+    askTab(tabId, method, params).then((r) => {
       if (!r) throw new Error('no answer from the YouTube tab (reload it?)');
       if (r.error) throw new Error(r.error);
       return r.result;
@@ -53,14 +53,14 @@ async function listTabs() {
   return out;
 }
 
-const TIMEOUTS = { status: 2000, pause: 2000, play: 2000, frame: 4000, context: 25000 };
+const TIMEOUTS = { status: 2000, pause: 2000, play: 2000, seek: 2000, frame: 4000, context: 25000 };
 
 async function handle(msg) {
   const { id, method, params = {} } = msg;
   if (id === undefined) return;
   let reply;
   try {
-    const result = method === 'list' ? await listTabs() : await sendToTab(params.tabId, method, TIMEOUTS[method] ?? 3000);
+    const result = method === 'list' ? await listTabs() : await sendToTab(params.tabId, method, TIMEOUTS[method] ?? 3000, params);
     reply = { id, result };
   } catch (e) {
     reply = { id, error: String(e?.message || e) };
