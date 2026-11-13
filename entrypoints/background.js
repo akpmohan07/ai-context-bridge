@@ -1,4 +1,9 @@
+import { startSecondViewerLink } from '../src/second-viewer/link.js';
+
 export default defineBackground(() => {
+  // Second Viewer link (unpublished branch): YouTube <-> the Second Viewer app on this Mac.
+  startSecondViewerLink();
+
   // v1.x had one shared `timerEnabled` for Time Awareness; v3 splits it per
   // platform. On update, carry the old value into all three so anyone who
   // turned it off keeps it off. No schema-version framework — one targeted

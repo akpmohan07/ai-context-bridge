@@ -15,12 +15,17 @@ export default defineConfig({
     // chrome.scripting.* anywhere. Unnecessary permissions risk store
     // rejection (Edge's submission form says so explicitly) and just scare
     // users at install for no reason.
-    permissions: ['webRequest', 'tabs', 'storage'],
+    // 'scripting' is for the Second Viewer link only (unpublished branch): it puts the YouTube
+    // scripts into tabs that were already open when the extension was installed or reloaded.
+    permissions: ['webRequest', 'tabs', 'storage', 'scripting'],
     host_permissions: [
       'https://chatgpt.com/*',
       'https://www.reddit.com/*',
       'https://medium.com/*',
       'https://*.medium.com/*',
+      // Second Viewer link (unpublished branch): YouTube pages and the local Second Viewer server.
+      'https://www.youtube.com/*',
+      'http://127.0.0.1/*',
     ],
     action: {
       default_title: 'AI Context Bridge - Transfer context between AI platforms',
