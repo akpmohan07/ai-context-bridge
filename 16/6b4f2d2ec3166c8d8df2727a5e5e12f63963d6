@@ -1,0 +1,29 @@
+docs/store-listings/chrome-edge.txt
+  s_02603515f24b63::t_1f1f66b0965726 67,74
+  s_02603515f24b63::t_a92d5b85ac657b 64
+ARCHITECTURE.md
+  s_02603515f24b63::t_b4dc8f010f3329 102-104,114
+  s_02603515f24b63::t_07bb13ef3bdec5 96-97
+PRIVACY.md
+  s_02603515f24b63::t_1f1f66b0965726 10
+README.md
+  s_02603515f24b63::t_1f1f66b0965726 98
+CHANGELOG.md
+  s_02603515f24b63::t_1f1f66b0965726 8
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "166b4f2d2ec3166c8d8df2727a5e5e12f63963d6",
+  "prompts": {},
+  "sessions": {
+    "s_02603515f24b63": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c8c8f3d2-8d63-49dc-93e8-fad8b4540124",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Mohankumar Muthusamy <akpmohan07@gmail.com>"
+    }
+  }
+}
