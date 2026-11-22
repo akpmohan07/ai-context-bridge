@@ -1,0 +1,23 @@
+vitest.config.js
+  s_02603515f24b63::t_40cbacc96e035f 29-40
+package.json
+  s_02603515f24b63::t_40cbacc96e035f 13
+.github/workflows/ci.yml
+  s_02603515f24b63::t_40cbacc96e035f 18-20
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "b705105506782a47c44cf003d0e6810b35f8d3b7",
+  "prompts": {},
+  "sessions": {
+    "s_02603515f24b63": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c8c8f3d2-8d63-49dc-93e8-fad8b4540124",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Mohankumar Muthusamy <akpmohan07@gmail.com>"
+    }
+  }
+}
