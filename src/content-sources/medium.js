@@ -1,5 +1,6 @@
 import { ContentSource } from './base.js';
 import { Theme } from '../ui/theme.js';
+import { createMenuItem } from '../ui/menu-item.js';
 import { Budget } from '../core/budget.js';
 import { Formatter } from '../core/formatter.js';
 import { createContentDocument } from '../core/schema.js';
@@ -118,76 +119,31 @@ class MediumToolbarInjector {
 
         actions.destinations.forEach(dest => {
             const t = Theme[dest.theme];
-            dropdown.appendChild(this._createItem(dest.label, t.accent, `linear-gradient(135deg, ${t.bg} 0%, ${t.bgTo} 100%)`, async () => {
-                dropdown.style.display = 'none';
-                this._showNotification(`Opening in ${dest.platform.name}…`);
-                await actions.openIn(dest.platform);
+            dropdown.appendChild(createMenuItem({
+                label: dest.label,
+                accentColor: t.accent,
+                bgGradient: `linear-gradient(135deg, ${t.bg} 0%, ${t.bgTo} 100%)`,
+                onClick: async () => {
+                    dropdown.style.display = 'none';
+                    this._showNotification(`Opening in ${dest.platform.name}…`);
+                    await actions.openIn(dest.platform);
+                },
             }));
         });
 
-        dropdown.appendChild(this._createItem('Copy for AI', Theme.copy.accent, `linear-gradient(135deg, ${Theme.copy.bg} 0%, ${Theme.copy.bgTo} 100%)`, async () => {
-            dropdown.style.display = 'none';
-            await actions.copyForAI();
-            this._showNotification('Copied to clipboard!');
+        dropdown.appendChild(createMenuItem({
+            label: 'Copy for AI',
+            accentColor: Theme.copy.accent,
+            bgGradient: `linear-gradient(135deg, ${Theme.copy.bg} 0%, ${Theme.copy.bgTo} 100%)`,
+            icon: 'copy', // stays on the page — not a "go to" arrow
+            onClick: async () => {
+                dropdown.style.display = 'none';
+                await actions.copyForAI();
+                this._showNotification('Copied to clipboard!');
+            },
         }));
 
         return dropdown;
-    }
-
-    _createItem(label, accentColor, bgGradient, onClick) {
-        const item = document.createElement('div');
-        item.setAttribute('role', 'menuitem');
-        item.style.cssText = `
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 10px 14px;
-            margin: 4px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 13px;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-            font-weight: 500;
-            color: ${Theme.ui.text};
-            white-space: nowrap;
-            background: ${bgGradient};
-            border: 1px solid ${accentColor}33;
-            transition: all 0.15s ease;
-        `;
-
-        const labelEl = document.createElement('span');
-        labelEl.textContent = label;
-
-        const arrow = document.createElement('span');
-        arrow.textContent = '→';
-        arrow.style.cssText = `
-            background: ${accentColor};
-            color: white;
-            padding: 3px 7px;
-            border-radius: 50%;
-            font-size: 11px;
-            font-weight: bold;
-        `;
-
-        item.appendChild(labelEl);
-        item.appendChild(arrow);
-
-        item.addEventListener('mouseenter', () => {
-            item.style.opacity = '0.92';
-            item.style.transform = 'translateX(3px)';
-            item.style.boxShadow = `0 3px 10px ${accentColor}40`;
-        });
-        item.addEventListener('mouseleave', () => {
-            item.style.opacity = '1';
-            item.style.transform = 'translateX(0)';
-            item.style.boxShadow = 'none';
-        });
-        item.addEventListener('click', (e) => {
-            e.stopPropagation();
-            onClick();
-        });
-
-        return item;
     }
 
     _showNotification(message) {
