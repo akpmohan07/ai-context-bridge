@@ -6,7 +6,8 @@
 // Storage shape — account → weeks → days:
 //   claudeUsage[orgId] = {
 //     schemaVersion, status,
-//     weeks: { [weekStart]: { weekReset, used, lastReadingAt,
+//     session: { util, resetsAt, asOf } | null,   (latest 5-hour window only)
+//     weeks:{ [weekStart]: { weekReset, used, lastReadingAt,
 //                             days: { [YYYY-MM-DD]: used } } },
 // A day has an entry once any capture happened on it (0 = watched, no usage);
 // a past day with no entry wasn't watched (browser closed, logged out…).
@@ -59,7 +60,27 @@ export function parseUsage(json, now = new Date()) {
 
     // Overage (paid extra usage) can push utilization past 100; the week is
     // simply fully used, so clamp once here and nothing downstream goes negative.
-    return { ok: true, reading: { asOf, util: Math.min(100, util), weekStart, weekReset } };
+    return {
+        ok: true,
+        reading: { asOf, util: Math.min(100, util), weekStart, weekReset },
+        session: parseSession(json, asOf),
+    };
+}
+
+// The 5-hour session window, alongside the weekly reading: latest value only,
+// no history. Flat `five_hour` first, `limits[]` 'session' as the fallback.
+// `resetsAt` is null while no session is running. null when the response has
+// no session window at all.
+function parseSession(json, asOf) {
+    let util = json?.five_hour?.utilization;
+    let resetsAt = json?.five_hour?.resets_at;
+    if (typeof util !== 'number') {
+        const session = json?.limits?.find?.(l => l?.kind === 'session');
+        util = session?.percent;
+        resetsAt = session?.resets_at;
+    }
+    if (typeof util !== 'number' || util < 0) return null;
+    return { util: Math.min(100, util), resetsAt: toMinuteIso(resetsAt), asOf };
 }
 
 // A failed usage fetch → { state, error } for the account status. Only Claude's
@@ -334,10 +355,21 @@ function efficiencyLine(weeks, current, now) {
     return { pct: eff.pct, text: eff.weeks === 1 ? 'efficiency · last week' : `efficiency · avg of last ${eff.weeks} weeks` };
 }
 
+// The session ring: { used, resetsIn } — resetsIn null when no session is
+// running. A stored session whose window has since ended reads as 0 (the
+// limit has reset even if no capture has seen it yet). null before the first
+// capture that stored one.
+export function sessionView(session, now) {
+    if (!session) return null;
+    const reset = Date.parse(session.resetsAt);
+    if (Number.isNaN(reset) || reset <= now) return { used: 0, resetsIn: null };
+    return { used: Math.round(session.util), resetsIn: formatTimeLeft(reset - now) };
+}
+
 // What the popup's usage block shows, from stored data alone. Either
 // { message } (nothing to draw) or the selected week:
 //   { weekStart, past, used, available, strip, resetsAt, resetsIn,
-//     weeks, efficiency, note }
+//     weeks, efficiency, session, note }
 // `available` is what's left (past week: what expired). `weeks` is the chip
 // row, newest first: { weekStart, label, used, current }. `selected` is a
 // weekStart to show instead of the current week. `account` is
@@ -379,6 +411,7 @@ export function usageView(orgId, account, now, formatAgo, selected = null) {
                 current: weekStart === current.weekStart,
             })),
         efficiency: efficiencyLine(account.weeks, current, now),
+        session: sessionView(account.session, now),
         // Freshness only matters when capture is failing; the last known
         // numbers stay visible either way.
         note: state === 'error' || state === 'logged_out'

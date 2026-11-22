@@ -48,6 +48,7 @@ const TOGGLES = [
     'claudeTimerEnabled', 'soundsEnabled',
     'chatgptTimerEnabled', 'chatgptEnabled',
     'geminiTimerEnabled',
+    'claudeUsageEnabled',
 ];
 const DEFAULTS = Object.fromEntries(TOGGLES.map(k => [k, Defaults[k]]));
 
@@ -104,23 +105,27 @@ modelSelect.addEventListener('change', (e) => {
 // they can't drift apart. Click skips; reduced-motion shows the end state.
 // Opening the popup also asks for a fresh reading (throttled in the
 // background); if one lands mid-replay it's shown once the replay ends.
-// The chips above the bar switch to a past week, drawn without a replay: grey
+// History opens week chips that switch to a past week, drawn without a replay: grey
 // where capacity expired instead of green.
 const FILL_MS = 900;
 const PAUSE_MS = 250;
 const UNTRACKED_MS = 600;
 const DAY_MS = 500;      // a day's column and its share of the bar grow together
 const EMPTY_DAY_MS = 120;
-const COL_PX = 32;
+const COL_PX = 18;
 const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 let replay = null; // { skip } while a replay is running
 let refreshAfterReplay = false; // a reading landed mid-replay; show it after
 let selectedWeek = null; // weekStart of the chip picked; null = current week
 
 async function renderClaudeUsage({ animate }) {
+  const block = document.getElementById('claudeUsage');
+  // Usage Tracking off: no block at all, just the toggle row under it.
+  const { claudeUsageEnabled } = await chrome.storage.sync.get({ claudeUsageEnabled: Defaults.claudeUsageEnabled });
+  block.hidden = !claudeUsageEnabled;
+  if (!claudeUsageEnabled) { replay?.skip(); return; }
   const { claudeOrgId, claudeUsage = {} } = await chrome.storage.local.get(['claudeOrgId', 'claudeUsage']);
   const view = usageView(claudeOrgId, claudeUsage[claudeOrgId], new Date(), formatElapsed, selectedWeek);
-  const block = document.getElementById('claudeUsage');
   const main = block.querySelector('.usage-main');
   const message = block.querySelector('.usage-message');
 
@@ -130,18 +135,32 @@ async function renderClaudeUsage({ animate }) {
   if (view.message) return;
 
   block.classList.toggle('past', view.past);
-  renderWeekChips(block.querySelector('.usage-weeks'), view);
+  renderWeekChips(block.querySelector('.usage-weeks-nav'), view);
 
-  const reset = block.querySelector('.usage-reset');
   const bold = (text) => Object.assign(document.createElement('b'), { textContent: text });
-  if (view.past) reset.replaceChildren(bold(`${view.available}%`), ' expired unused that week');
-  else reset.replaceChildren(bold(view.resetsIn), ` left · resets ${view.resetsAt}`);
   const eff = block.querySelector('.usage-eff');
   if (view.efficiency.pct === null) eff.replaceChildren(view.efficiency.text);
   else eff.replaceChildren(bold(`${view.efficiency.pct}%`), ` ${view.efficiency.text}`);
   const note = block.querySelector('.usage-note');
   note.hidden = !view.note;
   note.textContent = view.note ?? '';
+
+  // Rings: the session is always the current one; the week ring follows the
+  // selected week and is drawn by drawBar below.
+  const sessionRing = block.querySelector('.usage-ring-item.session');
+  const weekRing = block.querySelector('.usage-ring-item.week');
+  sessionRing.hidden = !view.session;
+  if (view.session) {
+    setRing(sessionRing, view.session.used);
+    setRingText(sessionRing, 'Session', view.session.resetsIn ? `resets in ${view.session.resetsIn}` : 'not started');
+  }
+  if (view.past) {
+    const label = view.weeks.find(w => w.weekStart === view.weekStart)?.label ?? 'Past week';
+    setRingText(weekRing, label, `${view.available}% expired unused`);
+  } else {
+    setRingText(weekRing, 'This week', `resets ${view.resetsAt}`);
+  }
+  weekRing.title = view.past ? '' : `${view.resetsIn} left`;
 
   const fill = block.querySelector('.usage-fill');
   const usedBar = block.querySelector('.usage-used');
@@ -173,16 +192,13 @@ async function renderClaudeUsage({ animate }) {
   };
 
   // Draw the bar at one moment: `capacity` % filled green, `used` % blue.
-  // Labels sit centred over their part, kept inside the bar's ends.
+  // The week ring and the legend under the bar follow it.
   const drawBar = (capacity, used) => {
     fill.style.width = `${capacity}%`;
     usedBar.style.width = `${used}%`;
-    usedLabel.textContent = `Used ${Math.round(used)}%`;
-    unusedLabel.textContent = `${view.past ? 'Expired' : 'Unused'} ${Math.round(Math.max(0, capacity - used))}%`;
-    usedLabel.style.left = `${clamp(used / 2)}%`;
-    // Centred on the unused part's final extent, so it doesn't collide with
-    // "Used" while the green is still filling in.
-    unusedLabel.style.left = `${clamp(used + (100 - used) / 2)}%`;
+    setRing(weekRing, used);
+    usedLabel.textContent = `${Math.round(used)}% used`;
+    unusedLabel.textContent = `${Math.round(Math.max(0, capacity - used))}% ${view.past ? 'expired' : 'unused'}`;
   };
 
   const finish = () => {
@@ -239,11 +255,16 @@ async function renderClaudeUsage({ animate }) {
 }
 
 // One chip per stored week, newest first, labelled with its dates and shaded
-// up to its used %, so the row also reads as a trend. Hidden until there's a
-// second week to switch to.
-function renderWeekChips(row, view) {
-  row.hidden = view.weeks.length < 2;
-  if (row.hidden) return;
+// up to its used %, so the row also reads as a trend. Behind the History
+// toggle, which shows once there's a second week to switch to.
+let historyOpen = false;
+
+function renderWeekChips(nav, view) {
+  const toggle = document.querySelector('.usage-history');
+  toggle.hidden = view.weeks.length < 2;
+  nav.hidden = toggle.hidden || !historyOpen;
+  if (toggle.hidden) return;
+  const row = nav.querySelector('.usage-weeks');
   row.replaceChildren(...view.weeks.map(week => {
     const chip = document.createElement('button');
     const selected = week.weekStart === view.weekStart;
@@ -261,10 +282,55 @@ function renderWeekChips(row, view) {
     });
     return chip;
   }));
-  row.querySelector('.selected')?.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+  showSelectedChip(nav);
 }
 
-const clamp = (pct) => Math.min(90, Math.max(10, pct));
+// Scroll the selected chip into view (only possible while the row is shown).
+function showSelectedChip(nav) {
+  if (nav.hidden) return;
+  nav.querySelector('.selected')?.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+  updateWeekArrows(nav);
+}
+
+// Show an arrow only when there are chips hidden that way.
+function updateWeekArrows(nav) {
+  const row = nav.querySelector('.usage-weeks');
+  const max = row.scrollWidth - row.clientWidth;
+  nav.querySelector('.prev').hidden = row.scrollLeft <= 1;
+  nav.querySelector('.next').hidden = row.scrollLeft >= max - 1;
+}
+
+{
+  const nav = document.querySelector('.usage-weeks-nav');
+  const row = nav.querySelector('.usage-weeks');
+  row.addEventListener('scroll', () => updateWeekArrows(nav), { passive: true });
+  for (const [cls, dir] of [['prev', -1], ['next', 1]]) {
+    nav.querySelector(`.${cls}`).addEventListener('click', (e) => {
+      e.stopPropagation(); // the block's click skips the replay
+      row.scrollBy({ left: dir * row.clientWidth * 0.7 });
+    });
+  }
+  const toggle = document.querySelector('.usage-history');
+  toggle.addEventListener('click', (e) => {
+    e.stopPropagation(); // the block's click skips the replay
+    historyOpen = !historyOpen;
+    toggle.setAttribute('aria-expanded', String(historyOpen));
+    toggle.textContent = historyOpen ? 'History ▴' : 'History ▾';
+    nav.hidden = !historyOpen;
+    showSelectedChip(nav);
+  });
+}
+
+function setRing(item, pct) {
+  item.querySelector('.usage-ring').style.setProperty('--pct', String(pct));
+  item.querySelector('.usage-ring-val').textContent = `${Math.round(pct)}%`;
+}
+
+function setRingText(item, title, sub) {
+  item.querySelector('.usage-ring-title').textContent = title;
+  item.querySelector('.usage-ring-sub').textContent = sub;
+}
+
 const sleep = (ms) => new Promise(r => setTimeout(r, ms));
 
 // Run onFrame(k) with k eased 0 → 1 over ms (ease-out cubic), stopping early
@@ -285,6 +351,12 @@ function tween(ms, onFrame, cancelled) {
 document.getElementById('claudeUsage').addEventListener('click', () => replay?.skip());
 renderClaudeUsage({ animate: true });
 chrome.storage.onChanged.addListener((changes, area) => {
+  if (area === 'sync' && changes.claudeUsageEnabled) {
+    // Turned back on: show what's stored now and ask for a fresh reading.
+    if (changes.claudeUsageEnabled.newValue) chrome.runtime.sendMessage({ action: 'captureClaudeUsage' }).catch(() => {});
+    renderClaudeUsage({ animate: false });
+    return;
+  }
   if (area !== 'local' || !(changes.claudeUsage || changes.claudeOrgId)) return;
   if (replay) refreshAfterReplay = true;
   else renderClaudeUsage({ animate: false });

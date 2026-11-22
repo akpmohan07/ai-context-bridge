@@ -4,6 +4,7 @@
 // the claude.ai content script, or from /api/organizations when claude.ai was
 // never opened. All decisions live in claude-usage.js; this file only does
 // chrome + fetch.
+import { Defaults } from '../core/defaults.js';
 import { parseUsage, classifyFailure, applyReading, rebuildWeeks, selectOrgId, backoffMs, readingsKey, appendReading } from './claude-usage.js';
 
 // 2: days carry a 0 entry when watched, and only usage between close-together
@@ -38,6 +39,9 @@ async function resolveOrgId({ rediscover = false } = {}) {
 // opened). While logged out, background captures back off (backoffMs); a page
 // source always tries right away — the user may have just logged back in.
 export async function captureClaudeUsage(trigger, { source = 'background' } = {}) {
+    // The popup's Usage Tracking toggle: off means no request to claude.ai.
+    const { claudeUsageEnabled } = await chrome.storage.sync.get({ claudeUsageEnabled: Defaults.claudeUsageEnabled });
+    if (!claudeUsageEnabled) return;
     const orgId = await resolveOrgId();
     if (!orgId) return console.warn('[ACB] claude usage (%s): no org (logged out or never used Claude)', trigger);
     return captureOrg(orgId, trigger, source, { canRediscover: true });
@@ -95,6 +99,8 @@ async function captureOrg(orgId, trigger, source, { canRediscover }) {
                 ...account,
                 status: { ...status, state: 'ok', fails: 0, lastSuccess: now.toISOString(), lastError: null },
                 weeks,
+                // Latest 5-hour session only; not logged, no history.
+                session: parsed.session,
             },
         },
         [logKey]: appendReading(log, parsed.reading),

@@ -16,19 +16,31 @@
 
     <section class="section" data-section="claude" data-accent="claude">
       <div class="section-label">Claude.ai</div>
-      <!-- Usage (#27): the bar is the week's capacity (blue used, green
-           unused); the strip under it is the days the blue came from. The
-           replay grows each day's column together with its share of the bar.
-           Chips above switch to a past week (grey: what expired). -->
+      <!-- Usage (#27): rings for the 5-hour session and the week; the bar is
+           the week's capacity (blue used, green unused) and the strip under
+           it is the days the blue came from. The replay grows each day's
+           column together with its share of the bar. History opens a chip row
+           to switch to a past week (grey: what expired). -->
       <div class="setting-row usage-row" id="claudeUsage">
         <div class="setting-desc usage-message" hidden></div>
         <div class="usage-main" hidden>
-          <div class="usage-weeks" role="tablist" aria-label="Week" hidden></div>
-          <div class="usage-track">
-            <div class="usage-pops">
-              <span class="usage-pop used"></span>
-              <span class="usage-pop unused"></span>
+          <div class="usage-rings">
+            <div class="usage-ring-item session" hidden>
+              <div class="usage-ring"><span class="usage-ring-val"></span></div>
+              <div class="usage-ring-text">
+                <div class="usage-ring-title"></div>
+                <div class="usage-ring-sub"></div>
+              </div>
             </div>
+            <div class="usage-ring-item week">
+              <div class="usage-ring"><span class="usage-ring-val"></span></div>
+              <div class="usage-ring-text">
+                <div class="usage-ring-title"></div>
+                <div class="usage-ring-sub"></div>
+              </div>
+            </div>
+          </div>
+          <div class="usage-track">
             <div class="usage-bar">
               <div class="usage-fill"></div>
               <div class="usage-used"></div>
@@ -37,11 +49,33 @@
                  its glow can spread. -->
             <div class="usage-beacon" hidden></div>
           </div>
+          <div class="usage-legend">
+            <span class="usage-pop used"></span>
+            <span class="usage-pop unused"></span>
+          </div>
           <div class="usage-strip"></div>
-          <div class="setting-desc usage-reset"></div>
-          <div class="setting-desc usage-eff"></div>
+          <div class="usage-foot">
+            <div class="setting-desc usage-eff"></div>
+            <button class="usage-history" type="button" aria-expanded="false" hidden>History ▾</button>
+          </div>
+          <!-- Scrollbar hidden; the arrows show only when there are more
+               chips that way. -->
+          <div class="usage-weeks-nav" hidden>
+            <button class="usage-weeks-arrow prev" type="button" aria-label="Newer weeks" hidden>‹</button>
+            <div class="usage-weeks" role="tablist" aria-label="Week"></div>
+            <button class="usage-weeks-arrow next" type="button" aria-label="Older weeks" hidden>›</button>
+          </div>
           <div class="setting-desc usage-note" hidden></div>
         </div>
+      </div>
+      <div class="setting-row">
+        <div class="setting-info">
+          <div class="setting-label">Usage Tracking</div>
+          <div class="setting-desc">Reads your Claude usage every 5 min, kept on this device</div>
+        </div>
+        <label class="toggle">
+          <input type="checkbox" id="claudeUsageEnabled"><span class="slider"></span>
+        </label>
       </div>
       <div class="setting-row">
         <div class="setting-info">

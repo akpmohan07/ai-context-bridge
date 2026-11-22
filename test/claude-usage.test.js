@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import {
   parseUsage, classifyFailure, selectOrgId, backoffMs, readingsKey, appendReading, localDayKey, applyReading,
   splitByDay, rebuildWeeks, currentWeek, summarize, formatTimeLeft, usageView, weekStrip, formatShortDate,
-  formatResetAt, formatWeekRange, efficiency,
+  formatResetAt, formatWeekRange, efficiency, sessionView,
 } from '../src/usage/claude-usage.js';
 
 const HOUR = 60 * 60 * 1000;
@@ -80,6 +80,13 @@ describe('parseUsage', () => {
   it('a plan without a weekly limit is its own state, not a broken format', () => {
     expect(parseUsage(api({ seven_day: null, limits: [{ kind: 'session', percent: 14 }] })))
       .toEqual({ ok: false, reason: 'no_weekly_limit' });
+  });
+
+  it('reads the 5-hour session alongside the week', () => {
+    expect(parseUsage(api()).session).toEqual({ util: 14, resetsAt: '2026-09-30T20:20:00.000Z', asOf: '2026-09-30T16:43:13.108Z' });
+    expect(parseUsage(api({ five_hour: null })).session.util).toBe(14); // limits[] fallback
+    expect(parseUsage(api({ five_hour: { utilization: 0, resets_at: null } })).session.resetsAt).toBeNull(); // idle
+    expect(parseUsage(api({ five_hour: null, limits: [{ kind: 'weekly_all', percent: 30, resets_at: '2026-10-04T16:59:59Z' }] })).session).toBeNull();
   });
 
   it('rejects responses without a usable weekly window', () => {
@@ -434,6 +441,14 @@ describe('usageView', () => {
     expect(usageView('org', account('no_weekly_limit'), now, ago).message).toBe('Your plan has no weekly limit');
     expect(usageView('org', account('broken'), now, ago).message).toBe("Can't read usage, needs an extension update");
     expect(usageView('org', account('error', {}), now, ago).message).toBe("Couldn't reach Claude, will retry");
+  });
+
+  it('shows the latest session, reading an ended one as reset', () => {
+    const session = { util: 55.4, resetsAt: new Date(now.getTime() + 2 * HOUR + 10 * 60000).toISOString(), asOf: now.toISOString() };
+    expect(usageView('org', { ...account('ok'), session }, now, ago).session).toEqual({ used: 55, resetsIn: '2h 10m' });
+    expect(usageView('org', account('ok'), now, ago).session).toBeNull();
+    expect(sessionView({ ...session, resetsAt: new Date(now - 60000).toISOString() }, now)).toEqual({ used: 0, resetsIn: null });
+    expect(sessionView({ ...session, util: 0, resetsAt: null }, now)).toEqual({ used: 0, resetsIn: null });
   });
 
   it('does not show a finished week as current', () => {
