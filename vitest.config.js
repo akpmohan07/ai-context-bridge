@@ -23,6 +23,8 @@ module.exports = defineConfig({
         'src/content-sources/reddit-parse.js',
         'src/content-sources/medium-markdown.js',
         'src/time/time-logic.js',
+        'src/usage/claude-usage.js',
+        'src/ui/menu-item.js',
       ],
     },
   },
