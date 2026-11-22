@@ -23,7 +23,21 @@ module.exports = defineConfig({
         'src/content-sources/reddit-parse.js',
         'src/content-sources/medium-markdown.js',
         'src/time/time-logic.js',
+        'src/usage/claude-usage.js',
+        'src/ui/menu-item.js',
       ],
+      // Merge gate (CI `unit`, #37): the run fails if coverage drops below
+      // these floors, set just under today's numbers. Raise them as coverage
+      // grows; lowering one should be a deliberate, reviewed change.
+      thresholds: {
+        statements: 95,
+        branches: 92,
+        functions: 92,
+        lines: 95,
+        // Usage tracking is the newest and most stateful logic: keep it
+        // near-complete.
+        'src/usage/**': { statements: 99, branches: 93, functions: 100, lines: 100 },
+      },
     },
   },
 });
