@@ -4,6 +4,10 @@ All notable changes to this project are documented here. Format follows [Keep a 
 
 ## [Unreleased]
 
+### Added
+- **Claude unused capacity** in the popup ([#27](https://github.com/akpmohan07/ai-context-bridge/issues/27)): rings for the current 5-hour session and the week, a used vs. unused bar for the week, a column per day, when each resets, a **History** toggle with week chips to open past weeks (and how much of each expired), and an **efficiency** score, the average share of the weekly limit used over the last 6 finished weeks. Read in the background every 5 minutes from the same endpoint as claude.ai's Settings → Usage page, so Claude Code, desktop and mobile usage count too. Stored only on the device; a **Usage Tracking** toggle turns it off.
+- New permissions: `alarms`, and a host permission for `https://claude.ai/*`.
+
 ## [2.0.0] - 2026-09-11: first release of the WXT rewrite
 
 A full rewrite onto [WXT](https://wxt.dev), built for feature parity and stability across all three destinations rather than new features. See [`docs/key-engineering-decisions/`](docs/key-engineering-decisions/) for write-ups of the harder problems this cycle solved.

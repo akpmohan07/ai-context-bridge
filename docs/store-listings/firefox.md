@@ -43,8 +43,13 @@ The silence while Claude thinks feels oddly empty. A soft sound when you send, a
 
 Every feature above is its own toggle in the popup. Turn on only what you actually want, per platform.
 
+★ Claude Usage
+
+📊 Unused Capacity
+Claude shows how much of your weekly limit you've used. This shows what you're about to let expire. A used vs. unused bar for the week, a column per day, past weeks one click away, and an efficiency score: how much of what you pay for you actually use. Covers Claude Code, desktop and mobile too, because it reads the same numbers as Claude's own usage page.
+
 🔒 Privacy
-Nothing leaves your browser. No account. No servers. No tracking. Open source.
+Nothing leaves your browser. No account. No servers. No tracking. Open source. Usage history is stored only on your device.
 
 github.com/akpmohan07/ai-context-bridge
 

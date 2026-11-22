@@ -14,6 +14,9 @@ export default defineContentScript({
     const claude = new ClaudePlatform();
     claude.receiveHandoff();
     refreshModelCatalog();
+    rememberOrgId()
+      .then(() => chrome.runtime.sendMessage({ action: 'captureClaudeUsage' }))
+      .catch(() => {}); // fire-and-forget; background replies with nothing
 
     const presence = new PresenceLayer();
     presence.init();
@@ -32,6 +35,15 @@ export default defineContentScript({
     });
 
     MessageTimer.init();
+
+    // The background worker can't read document.cookie, so hand it the org id
+    // for usage capture (#27). Written on every visit so an account switch sticks.
+    async function rememberOrgId() {
+      const orgId = document.cookie.match(/(?:^|; )lastActiveOrg=([^;]+)/)?.[1];
+      if (!orgId) return;
+      const { claudeOrgId } = await chrome.storage.local.get('claudeOrgId');
+      if (claudeOrgId !== orgId) await chrome.storage.local.set({ claudeOrgId: orgId });
+    }
 
     // Caches Claude's live model catalog so the popup's model dropdown reflects
     // what this account can actually use, including availability. Read-only — see

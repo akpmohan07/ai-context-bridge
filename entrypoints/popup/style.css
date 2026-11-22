@@ -102,6 +102,381 @@ body {
     max-width: 150px;
 }
 
+.usage-row {
+    flex-direction: column;
+    align-items: stretch;
+    padding: 10px 4px;
+    --usage-available: #2f9e44;
+    --usage-used: #1c7ed6;
+    --usage-session: #e0a526;
+    /* Used capacity is spent: a lighter, hatched blue, so the solid green of
+       what's still unused is what stands out. */
+    --usage-used-hatch: repeating-linear-gradient(
+        -45deg,
+        color-mix(in srgb, var(--usage-used) 55%, var(--popup-bg)) 0 3px,
+        color-mix(in srgb, var(--usage-used) 30%, var(--popup-bg)) 3px 6px
+    );
+}
+
+.usage-row[hidden],
+.usage-row [hidden] {
+    display: none;
+}
+
+.usage-row .setting-desc {
+    margin-top: 0;
+}
+
+/* Rings: session and week side by side, the text beside each ring. --pct is
+   set from JS. */
+.usage-rings {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-bottom: 10px;
+}
+
+.usage-ring-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+    --ring: var(--usage-used);
+}
+
+.usage-ring-item.session {
+    --ring: var(--usage-session);
+}
+
+.usage-ring {
+    --pct: 0;
+    flex: none;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    background: conic-gradient(
+        var(--ring) calc(var(--pct) * 1%),
+        color-mix(in srgb, var(--popup-text-weak) 18%, transparent) 0);
+}
+
+.usage-ring-val {
+    width: 31px;
+    height: 31px;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    background: var(--popup-bg);
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--popup-text);
+    font-variant-numeric: tabular-nums;
+}
+
+.usage-ring-text {
+    min-width: 0;
+}
+
+.usage-ring-title {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--popup-text);
+    line-height: 1.3;
+    white-space: nowrap;
+}
+
+.usage-ring-sub {
+    font-size: 11px;
+    color: var(--popup-text-weak);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Empty track → green fill (the week's capacity) → blue used block grows
+   over it from the left. */
+.usage-track {
+    position: relative;
+}
+
+.usage-bar {
+    position: relative;
+    height: 8px;
+    border-radius: 4px;
+    overflow: hidden;
+    background: color-mix(in srgb, var(--popup-text-weak) 18%, transparent);
+}
+
+.usage-fill,
+.usage-used {
+    position: absolute;
+    inset: 0 auto 0 0;
+}
+
+.usage-fill {
+    background: var(--usage-available);
+}
+
+.usage-used {
+    background: var(--usage-used-hatch);
+}
+
+/* A past week: what expired is grey, not green. */
+.usage-row.past .usage-fill {
+    background: color-mix(in srgb, var(--popup-text-weak) 40%, transparent);
+}
+
+/* "36% used · 64% unused", under the bar's two ends. */
+.usage-legend {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 3px;
+    font-size: 11px;
+    font-variant-numeric: tabular-nums;
+}
+
+.usage-pop.used {
+    color: var(--usage-used);
+}
+
+.usage-pop.unused {
+    color: var(--usage-available);
+    font-weight: 600;
+}
+
+.usage-row.past .usage-pop.unused {
+    color: var(--popup-text-weak);
+}
+
+/* Day strip: one column per day of the Claude week, same blue as the bar. */
+.usage-strip {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 3px;
+    margin-top: 6px;
+}
+
+.strip-day {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    border-radius: 4px;
+    padding: 2px 0 1px;
+    transition: background 400ms;
+}
+
+/* Today is highlighted once the replay lands on it, not before. */
+.strip-day.today.lit {
+    background: color-mix(in srgb, var(--usage-used) 10%, transparent);
+}
+
+.strip-col {
+    position: relative;
+    width: 10px;
+    height: 18px;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+}
+
+.strip-fill {
+    width: 100%;
+    height: 0;
+    border-radius: 2px 2px 1px 1px;
+    background: var(--usage-used-hatch);
+}
+
+.strip-mark {
+    position: absolute;
+    bottom: 0;
+    font-size: 11px;
+    color: var(--popup-text-weak);
+    line-height: 1;
+}
+
+.strip-fade {
+    transition: opacity 300ms;
+}
+
+.strip-val {
+    font-size: 10px;
+    height: 12px;
+    line-height: 12px;
+    color: var(--popup-text);
+    font-variant-numeric: tabular-nums;
+}
+
+.strip-label {
+    font-size: 10px;
+    line-height: 12px;
+    color: var(--popup-text-weak);
+}
+
+.strip-day.today.lit .strip-label {
+    color: var(--popup-text);
+    font-weight: 700;
+}
+
+/* Efficiency on the left, the History toggle on the right. */
+.usage-foot {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-top: 6px;
+    padding-top: 6px;
+    border-top: 1px solid var(--popup-border);
+}
+
+.usage-eff b {
+    color: var(--popup-text);
+    font-weight: 700;
+    font-size: 12px;
+}
+
+.usage-history {
+    flex: none;
+    border: none;
+    background: none;
+    padding: 2px 0;
+    font: inherit;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--usage-used);
+    cursor: pointer;
+}
+
+.usage-history:hover {
+    text-decoration: underline;
+}
+
+.usage-history:focus-visible {
+    outline: 2px solid var(--usage-used);
+    outline-offset: 2px;
+    border-radius: 3px;
+}
+
+/* Week chips (behind History): one per stored week, newest first, shaded up
+   to its used %. Scrolls sideways with no scrollbar; arrows at either end
+   when it overflows. */
+.usage-weeks-nav {
+    position: relative;
+    margin-top: 8px;
+}
+
+.usage-weeks {
+    display: flex;
+    gap: 5px;
+    overflow-x: auto;
+    padding: 2px;
+    scrollbar-width: none;
+    scroll-behavior: smooth;
+    /* Keep a chip scrolled into view clear of the arrow overlays. */
+    scroll-padding-inline: 26px;
+}
+
+.usage-weeks::-webkit-scrollbar {
+    display: none;
+}
+
+.usage-weeks-arrow {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    z-index: 1;
+    width: 30px;
+    display: flex;
+    align-items: center;
+    border: none;
+    padding: 0 2px;
+    font: inherit;
+    font-size: 18px;
+    font-weight: 600;
+    line-height: 1;
+    color: var(--popup-text);
+    cursor: pointer;
+}
+
+.usage-weeks-arrow.prev {
+    left: 0;
+    justify-content: flex-start;
+    background: linear-gradient(90deg, var(--popup-bg) 55%, transparent);
+}
+
+.usage-weeks-arrow.next {
+    right: 0;
+    justify-content: flex-end;
+    background: linear-gradient(270deg, var(--popup-bg) 55%, transparent);
+}
+
+.usage-weeks-arrow:hover {
+    color: var(--usage-used);
+}
+
+.usage-weeks-arrow:focus-visible {
+    outline: 2px solid var(--usage-used);
+    outline-offset: -2px;
+    border-radius: 4px;
+}
+
+.usage-chip {
+    flex: none;
+    position: relative;
+    overflow: hidden;
+    border: 1px solid var(--popup-border);
+    border-radius: 999px;
+    padding: 2px 8px;
+    font: inherit;
+    font-size: 11px;
+    color: var(--popup-text);
+    white-space: nowrap;
+    cursor: pointer;
+    background: linear-gradient(90deg,
+        color-mix(in srgb, var(--usage-used) 20%, transparent) var(--chip-used, 0%),
+        transparent var(--chip-used, 0%));
+}
+
+.usage-chip.selected {
+    border-color: var(--usage-used);
+    color: #fff;
+    font-weight: 600;
+    background: linear-gradient(90deg,
+        color-mix(in srgb, var(--usage-used) 80%, #000) var(--chip-used, 0%),
+        var(--usage-used) var(--chip-used, 0%));
+}
+
+.usage-chip:focus-visible {
+    outline: 2px solid var(--usage-used);
+    outline-offset: 1px;
+}
+
+.usage-note {
+    margin-top: 6px;
+}
+
+/* Replay finished: a thin ring around the green that's still unused pulses
+   like a beacon; the green itself stays still. */
+.usage-beacon {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    height: 8px;
+    border-radius: 4px;
+    pointer-events: none;
+    animation: usage-beacon 2s ease-in-out infinite;
+}
+
+@keyframes usage-beacon {
+    0%, 100% { box-shadow: 0 0 0 1px color-mix(in srgb, var(--usage-available) 0%, transparent); }
+    50%      { box-shadow: 0 0 0 2px color-mix(in srgb, var(--usage-available) 75%, transparent),
+                           0 0 6px 2px color-mix(in srgb, var(--usage-available) 30%, transparent); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .usage-beacon { animation: none; }
+}
+
 /* Toggle switch */
 .toggle {
     position: relative;

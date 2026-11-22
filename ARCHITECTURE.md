@@ -83,6 +83,43 @@ DOM injection with MutationObserver-based targeting.
 - **budget.js** — Trims content to 4000-word budget, prioritizing by score (upvotes)
 - **formatter.js** — Formats `ContentDocument` to plain text for AI consumption
 
+### Usage Tracking (`src/usage/`)
+Background capture of Claude's weekly usage, shown in the popup as used vs
+unused capacity (#27). Functional core / imperative shell:
+- **claude-usage.js** — pure logic, no chrome/fetch: parse the
+  `/api/organizations/{org}/usage` response, fold a reading into stored weeks
+  and days, pick the org from `/api/organizations`, classify failures (only
+  `account_session_invalid` counts as logged out; Cloudflare's 403 HTML is
+  transient), build the popup's view. Unit-tested in `test/claude-usage.test.js`.
+- **claude-usage-capture.js** — the shell: resolves the org (cookie via the
+  claude.ai content script, else `/api/organizations`), fetches, writes. The
+  only writer of `claudeUsage`. Does nothing while the `claudeUsageEnabled`
+  toggle (sync) is off; stored data is kept.
+- **scheduler.js** — one `chrome.alarms` timer (5 min) for every platform's
+  capture; each platform owns its own fetch, parsing and storage key.
+
+Storage (`chrome.storage.local`, never leaves the device):
+- `claudeUsage[orgId] = { schemaVersion: 2, status, session, weeks }`, where
+  `session = { util, resetsAt, asOf }` is the latest 5-hour window only (no
+  history; an ended window reads as 0 at display time), and
+  `weeks[weekStart] = { weekReset, used, lastReadingAt, days }` and
+  `days[YYYY-MM-DD]` is that day's share of the weekly %. A week's `used` is
+  Claude's own number; days are derived from how it grew between captures
+  (data flows week → days). Growth goes on a day only when the previous
+  capture is ≤45 min old (split across midnight by time); after a longer gap
+  it stays untracked, in the week but on no day. Any capture gives its day an
+  entry (0 = watched, no usage), so a past day with no entry shows `–`. A
+  mid-week limit reset scales the days down at display time. Schema 1 data is
+  rebuilt from the raw log on the first capture after an update. History
+  (week chips, behind the popup's History toggle) and efficiency (average `used` of the last 6 finished weeks)
+  are computed from `weeks`, not stored.
+- `claudeReadings:<orgId>:<weekStart>` — raw `[unixSeconds, util]` log of
+  every successful reading, for auditing and recomputing day attribution.
+- `claudeOrgId` — written by the claude.ai content script (or discovery).
+
+Triggers: install/startup, the 5-min alarm, a claude.ai page load, an
+account switch, and opening the popup (page triggers throttled to 1/min).
+
 ### Cross-Script Communication
 - **background.js** (service worker): One-shot listener for ChatGPT API completion (`/backend-api/f/conversation`). Sends `{ event: 'conversation_completed' }` to content script.
 - **content-script.js** (ChatGPT): Listens for that event, then calls `chatgpt.handleConversationCompleted(claude)` to open Claude with the response.
@@ -108,9 +145,11 @@ DOM injection with MutationObserver-based targeting.
 | File | Purpose |
 |------|---------|
 | `manifest.json` | Extension config, permissions, content script registration |
-| `background.js` | Service worker, ChatGPT API response listener |
+| `background.js` | Service worker: ChatGPT API response listener, usage capture triggers |
 | `src/core/schema.js` | Universal `ContentDocument`/`Item` schema |
 | `src/core/budget.js` | Word budget trimming (default 4000 words) |
 | `src/content-sources/reddit.js` | Reddit DOM read + menu injection |
 | `src/ai-platforms/base.js` | Shared handoff: stash to storage.local, receiveHandoff types+sends on arrival |
 | `src/ui/floating-button.js` | ChatGPT floating button component |
+| `src/usage/claude-usage.js` | Pure usage logic: parse, weeks/days, popup view |
+| `src/usage/claude-usage-capture.js` | Usage capture shell: org, fetch, storage |

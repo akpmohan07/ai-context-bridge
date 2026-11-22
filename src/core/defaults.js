@@ -17,6 +17,11 @@ export const Defaults = {
     // on reply. Off by default — audio should never start unprompted.
     soundsEnabled: false,
 
+    // Claude usage tracking (#27): the background reads claude.ai's usage
+    // endpoint every 5 min for the popup's rings, bar and history. Off stops
+    // every capture; stored history is kept.
+    claudeUsageEnabled: true,
+
     // Floating button on chatgpt.com — summarize & continue, or get Claude's
     // second opinion.
     chatgptEnabled: true,

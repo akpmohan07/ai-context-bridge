@@ -38,6 +38,8 @@ AI Context Bridge is a Chrome extension that bridges content from the web into y
   tag when it's the first message of a chat or there's been a 30+ minute gap
 - **Ambient sounds** (Claude.ai): subtle audio presence during conversations
 - **Default Model** (Claude.ai): pick the model handoffs open in
+- **Unused capacity** (Claude.ai): how much of your weekly Claude limit you've
+  used vs. will let expire, day by day, with past weeks and an efficiency average
 
 ## Installation
 
@@ -93,9 +95,11 @@ timestamp rather than the gap; it self-heals on the next send. Toggle in the pop
 
 **Default Model**: pick a model in the popup to use whenever content is handed off to Claude from Reddit, Medium, or ChatGPT.
 
+**Unused capacity**: Claude shows how much of your weekly limit you've used; the popup shows what you're leaving unused before it resets. Two rings show the current 5-hour session and the week, a bar splits the week into used and unused, a column per day shows when the usage happened, and **History** opens a row of week chips (`15 – 22 Nov`, `8 – 15 Nov`, …) for past weeks and how much of each expired. **Efficiency** is the average share of the weekly limit you used over your last 6 finished weeks. Usage is read in the background every 5 minutes, so it covers Claude Code, the desktop app and mobile too, not just claude.ai tabs. A day shows `–` when no reading happened that day (browser closed or logged out); usage from such gaps counts toward the week but isn't put on a day. The **Usage Tracking** toggle under it turns the background reads off.
+
 ## Privacy
 
-All processing is local. The extension reads page content only when you click a button. No data is sent to any server. No tracking.
+All processing is local. The extension reads page content only when you click a button. To show your unused Claude capacity, it also checks your Claude usage in the background: it reads the same usage numbers as claude.ai's own settings page, using your existing login. It never reads your chats, and stores only usage percentages and times on your device. No data is sent to any other server. No tracking.
 
 ## Architecture
 
