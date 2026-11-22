@@ -61,17 +61,17 @@ tabs:
 Used for two narrow purposes: (1) relaying a "conversation completed" signal back to the specific ChatGPT tab that triggered Summarize and Continue / Get Claude's Opinion, since the webRequest listener can't message a content script directly; (2) reading only the active tab's URL in the popup, to show the relevant platform's settings section first. No tab content is read via this permission.
 
 storage:
-Two uses: (1) chrome.storage.sync stores the user's own feature toggles so they sync across signed-in browsers; (2) chrome.storage.local briefly stages content being handed off from a source page to an AI chat tab, a short-lived key removed immediately once read (under a minute), plus a small per-conversation cache of last-message timestamps for Time Awareness, plus the user's Claude usage history (weekly usage percentages and read times) for the usage view. Nothing is ever sent off-device.
+Two uses: (1) chrome.storage.sync stores the user's own feature toggles so they sync across signed-in browsers; (2) chrome.storage.local briefly stages content being handed off from a source page to an AI chat tab, a short-lived key removed immediately once read (under a minute), plus a small per-conversation cache of last-message timestamps for Time Awareness, plus the user's Claude usage history (weekly usage percentages and read times, and the latest 5-hour session percentage) for the usage view. Nothing is ever sent off-device.
 
 alarms:
-Runs one timer every 5 minutes that reads the user's Claude usage percentage from claude.ai, so the popup's usage view is current and covers usage from Claude's desktop app, mobile and Claude Code, not only claude.ai tabs. No other scheduled work.
+Runs one timer every 5 minutes that, while the popup's Usage Tracking toggle is on (the default), reads the user's Claude usage percentages (weekly and 5-hour session) from claude.ai, so the popup's usage view is current and covers usage from Claude's desktop app, mobile and Claude Code, not only claude.ai tabs. No other scheduled work.
 
 Host permission:
 Each host serves a distinct purpose: reddit.com and medium.com/*.medium.com let a content script read the current Reddit thread or Medium article's own rendered content when the user clicks "Open in AI," and inject that button. chatgpt.com lets a content script inject the floating Assistant Button, read the current conversation for Summarize/second-opinion, and lets the webRequest listener above detect completion of that one specific endpoint. claude.ai lets the background worker read the user's own usage percentages from https://claude.ai/api/organizations/{id}/usage, the same numbers claude.ai's Settings → Usage page shows, using the user's existing login; it never reads conversations. No host permission is requested for Gemini; it is only ever the destination of a user-initiated handoff, never read automatically.
 
 === Data usage declaration ===
 
-Check ONLY: "Website content" (this extension reads visible page content on click; nothing else — no PII, health, financial, auth, personal communications as a messaging system, location, web history log, or user-activity monitoring).
+Check ONLY: "Website content" (this extension reads visible page content on click and, while the popup's Usage Tracking toggle is on, the user's own Claude usage percentages from claude.ai's usage endpoint; nothing else — no PII, health, financial, auth, personal communications as a messaging system, location, web history log, or user-activity monitoring; usage numbers stay on the device).
 Certify all three "I do not..." disclosures: true for this codebase.
 Privacy policy URL: https://github.com/akpmohan07/ai-context-bridge/blob/main/PRIVACY.md
 
