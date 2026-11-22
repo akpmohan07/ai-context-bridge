@@ -15,7 +15,9 @@ jobs:
         with:
           node-version: 22
       - run: npm ci
-      - run: npm test
+      # Tests plus the coverage floors in vitest.config.js: this job is the
+      # deterministic merge gate (required on main); e2e below is not.
+      - run: npm run test:coverage
 
   e2e:
     runs-on: ubuntu-latest
