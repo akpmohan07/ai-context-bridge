@@ -1,7 +1,8 @@
 import { describe, it, expect } from 'vitest';
 import {
   parseUsage, classifyFailure, selectOrgId, backoffMs, readingsKey, appendReading, localDayKey, applyReading,
-  currentWeek, summarize, formatTimeLeft, usageView, weekStrip, formatShortDate, formatResetAt,
+  splitByDay, rebuildWeeks, currentWeek, summarize, formatTimeLeft, usageView, weekStrip, formatShortDate,
+  formatResetAt, formatWeekRange, efficiency,
 } from '../src/usage/claude-usage.js';
 
 const HOUR = 60 * 60 * 1000;
@@ -29,6 +30,12 @@ const RESET2 = '2026-10-11T17:00:00.000Z';
 
 const reading = (util, asOf, weekStart = WEEK1, weekReset = RESET1) =>
   ({ asOf, util, weekStart, weekReset });
+
+// A local wall-clock moment as ISO, so day keys don't depend on the test
+// machine's timezone. at(30, 8) = 30 Sep 2026 08:00 local.
+const at = (day, h, m = 0, month = 9) => new Date(2026, month - 1, day, h, m).toISOString();
+const MIN = 60 * 1000;
+const plus = (iso, ms) => new Date(Date.parse(iso) + ms).toISOString();
 
 describe('parseUsage', () => {
   it('reads the weekly window from a real response', () => {
@@ -153,91 +160,104 @@ describe('reading log', () => {
 
 describe('applyReading', () => {
   const week = (s, start = WEEK1) => s.weeks[start];
+  const fold = (...readings) => readings.reduce((s, r) => applyReading(s, r), {});
 
-  it('first ever capture creates the week but no daily usage (no baseline)', () => {
-    const s = applyReading({}, reading(30, '2026-09-30T08:00:00Z'), '2026-09-30');
-    expect(week(s)).toEqual({ weekReset: RESET1, used: 30, firstReadingAt: '2026-09-30T08:00:00Z', lastReadingAt: '2026-09-30T08:00:00Z', days: {} });
+  it('first ever capture: the day is watched, but usage before it has no day', () => {
+    const s = fold(reading(30, at(30, 8)));
+    expect(week(s)).toEqual({ weekReset: RESET1, used: 30, lastReadingAt: at(30, 8), days: { '2026-09-30': 0 } });
   });
 
-  it('same week: the day accumulates the growth between captures', () => {
-    let s = applyReading({}, reading(31, '2026-09-30T02:00:00Z'), '2026-09-30');
-    s = applyReading(s, reading(36, '2026-09-30T05:30:00Z'), '2026-09-30');
-    s = applyReading(s, reading(44, '2026-09-30T09:30:00Z'), '2026-09-30');
-    s = applyReading(s, reading(47, '2026-09-30T16:30:00Z'), '2026-09-30');
-    expect(week(s).days).toEqual({ '2026-09-30': 16 });
-    expect(week(s).used).toBe(47);
+  it('close captures put the growth between them on the day', () => {
+    const s = fold(reading(31, at(30, 9)), reading(33, at(30, 9, 5)), reading(36, at(30, 9, 10)), reading(36, at(30, 9, 50)));
+    expect(week(s).days).toEqual({ '2026-09-30': 5 });
+    expect(week(s).used).toBe(36);
   });
 
-  it('a new local day starts its own entry; the old one is left as is', () => {
-    let s = applyReading({}, reading(30, '2026-09-30T08:00:00Z'), '2026-09-30');
-    s = applyReading(s, reading(35, '2026-09-30T12:00:00Z'), '2026-09-30');
-    s = applyReading(s, reading(38, '2026-10-01T04:00:00Z'), '2026-10-01');
-    expect(week(s).days).toEqual({ '2026-09-30': 5, '2026-10-01': 3 });
+  it('growth after a long gap stays untracked, but the day is still watched', () => {
+    const s = fold(reading(30, at(30, 8)), reading(35, at(30, 8, 5)), reading(50, at(1, 14, 0, 10)));
+    expect(week(s).days).toEqual({ '2026-09-30': 5, '2026-10-01': 0 });
+    expect(week(s).used).toBe(50);
   });
 
-  it('no growth writes no day entry', () => {
-    let s = applyReading({}, reading(30, '2026-09-30T08:00:00Z'), '2026-09-30');
-    s = applyReading(s, reading(30, '2026-09-30T08:15:00Z'), '2026-09-30');
-    expect(week(s).days).toEqual({});
+  it('growth across midnight is split by time between the two days', () => {
+    const s = fold(reading(40, at(30, 23, 50)), reading(43, at(1, 0, 5, 10)));
+    expect(week(s).days).toEqual({ '2026-09-30': 2, '2026-10-01': 1 });
   });
 
-  it('a mid-week limit reset (usage drops) counts as zero, not negative', () => {
-    let s = applyReading({}, reading(40, '2026-09-30T08:00:00Z'), '2026-09-30');
-    s = applyReading(s, reading(5, '2026-09-30T09:00:00Z'), '2026-09-30');
-    s = applyReading(s, reading(8, '2026-09-30T10:00:00Z'), '2026-09-30');
-    expect(week(s).days).toEqual({ '2026-09-30': 3 });
+  it('a mid-week limit reset (usage drops) adds nothing and keeps past days', () => {
+    const s = fold(reading(38, at(30, 7, 55)), reading(40, at(30, 8)), reading(5, at(30, 8, 5)), reading(8, at(30, 8, 10)));
+    expect(week(s).days).toEqual({ '2026-09-30': 5 });
     expect(week(s).used).toBe(8);
   });
 
-  it('the reset day is split between the two weeks it belongs to', () => {
-    let s = applyReading({}, reading(49, '2026-10-04T10:00:00Z'), '2026-10-04');
-    s = applyReading(s, reading(55, '2026-10-04T16:30:00Z'), '2026-10-04');
-    s = applyReading(s, reading(2, '2026-10-04T17:15:00Z', WEEK2, RESET2), '2026-10-04');
-    expect(week(s, WEEK1)).toMatchObject({ weekReset: RESET1, used: 55, lastReadingAt: '2026-10-04T16:30:00Z', days: { '2026-10-04': 6 } });
-    expect(week(s, WEEK2)).toEqual({ weekReset: RESET2, used: 2, firstReadingAt: '2026-10-04T17:15:00Z', lastReadingAt: '2026-10-04T17:15:00Z', days: { '2026-10-04': 2 } });
+  it('a new week right after the reset counts up from 0; the old week freezes', () => {
+    const before = plus(RESET1, -10 * MIN), after = plus(RESET1, 15 * MIN);
+    const s = fold(reading(54, plus(before, -5 * MIN)), reading(55, before), reading(2, after, WEEK2, RESET2));
+    expect(week(s, WEEK1)).toMatchObject({ used: 55, lastReadingAt: before });
+    expect(week(s, WEEK2).used).toBe(2);
+    const sum = Object.values(week(s, WEEK2).days).reduce((a, d) => a + d, 0);
+    expect(sum).toBe(2);
   });
 
-  it("a new week first seen long after its reset keeps that usage off any day", () => {
-    let s = applyReading({}, reading(55, '2026-10-04T16:30:00Z'), '2026-10-04');
-    s = applyReading(s, reading(20, '2026-10-06T09:00:00Z', WEEK2, RESET2), '2026-10-06');
-    expect(week(s, WEEK2).days).toEqual({});
-    expect(week(s, WEEK2).firstReadingAt).toBe('2026-10-06T09:00:00Z');
-  });
-
-  it('firstReadingAt stays put as the week goes on', () => {
-    let s = applyReading({}, reading(30, '2026-09-30T08:00:00Z'), '2026-09-30');
-    s = applyReading(s, reading(35, '2026-10-01T08:00:00Z'), '2026-10-01');
-    expect(week(s).firstReadingAt).toBe('2026-09-30T08:00:00Z');
+  it('a new week first seen long after its reset keeps that usage off any day', () => {
+    const s = fold(reading(55, plus(RESET1, -HOUR)), reading(20, at(6, 9, 0, 10), WEEK2, RESET2));
+    expect(week(s, WEEK2).days).toEqual({ '2026-10-06': 0 });
   });
 
   it('skipped weeks simply have no record', () => {
-    let s = applyReading({}, reading(20, '2026-09-28T10:00:00Z'), '2026-09-28');
     const later = '2026-10-18T17:00:00.000Z';
-    s = applyReading(s, reading(10, '2026-10-19T10:00:00Z', later, '2026-10-25T17:00:00.000Z'), '2026-10-19');
+    const s = fold(reading(20, at(28, 10)), reading(10, at(19, 10, 0, 10), later, '2026-10-25T17:00:00.000Z'));
     expect(Object.keys(s.weeks)).toEqual([WEEK1, later]);
   });
 
-  it('ignores a reading older than the stored one', () => {
-    const before = applyReading({}, reading(40, '2026-09-30T10:00:00Z'), '2026-09-30');
-    expect(applyReading(before, reading(35, '2026-09-30T09:00:00Z'), '2026-09-30')).toEqual(before);
+  it("ignores a reading older than the account's latest, from any week", () => {
+    const s = fold(reading(55, plus(RESET1, -HOUR)), reading(3, plus(RESET1, HOUR), WEEK2, RESET2));
+    expect(applyReading(s, reading(56, plus(RESET1, -30 * MIN)))).toEqual(s);
   });
 
   it('does not mutate its input', () => {
-    const s0 = applyReading({}, reading(30, '2026-09-30T08:00:00Z'), '2026-09-30');
+    const s0 = fold(reading(30, at(30, 8)));
     const snapshot = JSON.stringify(s0);
-    applyReading(s0, reading(40, '2026-09-30T09:00:00Z'), '2026-09-30');
+    applyReading(s0, reading(40, at(30, 8, 5)));
     expect(JSON.stringify(s0)).toBe(snapshot);
   });
 
-  it("a week's days add up to its growth since the first capture", () => {
-    let s = {};
+  it("with no gaps, a week's days add up to its growth since the first capture", () => {
     const utils = [12, 12.5, 19, 19, 26.25, 31, 44, 47.75];
-    utils.forEach((u, i) => {
-      const asOf = new Date(Date.parse('2026-09-28T00:00:00Z') + i * 9 * HOUR).toISOString();
-      s = applyReading(s, reading(u, asOf), asOf.slice(0, 10));
-    });
+    const s = fold(...utils.map((u, i) => reading(u, plus(at(30, 22), i * 20 * MIN))));
     const sum = Object.values(week(s).days).reduce((a, d) => a + d, 0);
     expect(sum).toBeCloseTo(47.75 - 12, 5);
+  });
+});
+
+describe('splitByDay', () => {
+  it('one day takes it all', () => {
+    expect(splitByDay(Date.parse(at(30, 9)), Date.parse(at(30, 9, 20)), 4)).toEqual({ '2026-09-30': 4 });
+  });
+
+  it('shares add up exactly across midnight', () => {
+    const shares = splitByDay(Date.parse(at(30, 23, 40)), Date.parse(at(1, 0, 10, 10)), 1);
+    expect(shares['2026-09-30'] + shares['2026-10-01']).toBe(1);
+    expect(shares['2026-09-30']).toBeCloseTo(0.67, 2);
+  });
+});
+
+describe('rebuildWeeks', () => {
+  const sec = (iso) => Date.parse(iso) / 1000;
+
+  it('recomputes a logged week exactly as live capture would have', () => {
+    const readings = [reading(30, at(30, 8)), reading(33, at(30, 8, 5)), reading(40, at(1, 12, 0, 10))];
+    const live = readings.reduce((s, r) => applyReading(s, r), {}).weeks;
+    const old = { [WEEK1]: { weekReset: RESET1, used: 40, firstReadingAt: at(30, 8), lastReadingAt: at(1, 12, 0, 10), days: { '2026-10-01': 7, '2026-09-30': 3 } } };
+    const logs = { [WEEK1]: readings.map(r => [sec(r.asOf), r.util]) };
+    expect(rebuildWeeks(old, logs)).toEqual(live);
+  });
+
+  it('a week without a log keeps its numbers; first-to-last days count as watched', () => {
+    const old = { [WEEK1]: { weekReset: RESET1, used: 31, firstReadingAt: at(29, 10), lastReadingAt: at(1, 9, 0, 10), days: { '2026-09-30': 6 } } };
+    expect(rebuildWeeks(old, {})).toEqual({
+      [WEEK1]: { weekReset: RESET1, used: 31, lastReadingAt: at(1, 9, 0, 10), days: { '2026-09-29': 0, '2026-09-30': 6, '2026-10-01': 0 } },
+    });
   });
 });
 
@@ -284,30 +304,56 @@ describe('weekStrip', () => {
   const wed = new Date(2026, 8, 30, 15, 0);
 
   it('seven slots Sun…Sat with past / today / future', () => {
-    const { slots } = weekStrip(wk({ used: 0, firstReadingAt: start.toISOString(), days: {} }), wed);
+    const { slots } = weekStrip(wk({ used: 0, days: {} }), wed);
     expect(slots.map(s => s.label)).toEqual(['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']);
     expect(slots.map(s => s.when)).toEqual(['past', 'past', 'past', 'today', 'future', 'future', 'future']);
   });
 
-  it('days before tracking began are untracked; their usage has no day', () => {
-    const week = wk({ used: 32, firstReadingAt: new Date(2026, 8, 30, 9, 0).toISOString(), days: { '2026-09-30': 4 } });
-    const { slots, untracked } = weekStrip(week, wed);
-    expect(slots.slice(0, 4).map(s => s.used)).toEqual([null, null, null, 4]);
-    expect(slots.slice(0, 3).every(s => s.untracked)).toBe(true);
+  it('days nobody watched are untracked; their usage has no day', () => {
+    const { slots, untracked } = weekStrip(wk({ used: 32, days: { '2026-09-28': 0, '2026-09-30': 4 } }), wed);
+    expect(slots.slice(0, 4).map(s => s.used)).toEqual([null, 0, null, 4]);
+    expect(slots.slice(0, 4).map(s => s.untracked)).toEqual([true, false, true, false]);
     expect(untracked).toBe(28);
   });
 
-  it('a tracked day with no usage is 0, not untracked', () => {
-    const week = wk({ used: 9, firstReadingAt: start.toISOString(), days: { '2026-09-27': 5, '2026-09-29': 4 } });
-    const { slots, untracked } = weekStrip(week, wed);
-    expect(slots.slice(0, 4).map(s => s.used)).toEqual([5, 0, 4, 0]);
-    expect(slots.some(s => s.untracked)).toBe(false);
+  it('the sliver of the reset day before Sunday folds into the first slot', () => {
+    const week = wk({ used: 3, days: { '2026-09-26': 1, '2026-09-27': 2 } });
+    expect(weekStrip(week, wed).slots[0].used).toBe(3);
+  });
+
+  it('after a mid-week limit reset, days scale down to the new total', () => {
+    const { slots, untracked } = weekStrip(wk({ used: 10, days: { '2026-09-27': 15, '2026-09-28': 5, '2026-09-30': 0 } }), wed);
+    expect(slots.slice(0, 2).map(s => s.used)).toEqual([7.5, 2.5]);
     expect(untracked).toBe(0);
   });
 
-  it('the sliver of the reset day before Sunday folds into the first slot', () => {
-    const week = wk({ used: 3, firstReadingAt: start.toISOString(), days: { '2026-09-26': 1, '2026-09-27': 2 } });
-    expect(weekStrip(week, wed).slots[0].used).toBe(3);
+  it('a finished week is all past', () => {
+    const { slots } = weekStrip(wk({ used: 5, days: {} }), new Date(2026, 9, 10));
+    expect(slots.every(s => s.when === 'past' && s.untracked)).toBe(true);
+  });
+});
+
+describe('formatWeekRange', () => {
+  it('one month, or both months when it crosses one', () => {
+    expect(formatWeekRange(new Date(2026, 10, 15, 17), new Date(2026, 10, 22, 17))).toBe('15 – 22 Nov');
+    expect(formatWeekRange(new Date(2026, 9, 25, 17), new Date(2026, 10, 1, 17))).toBe('25 Oct – 1 Nov');
+    expect(formatWeekRange(new Date(2026, 11, 28, 17), new Date(2027, 0, 4, 17))).toBe('28 Dec – 4 Jan');
+  });
+});
+
+describe('efficiency', () => {
+  const w = (resetDay, used) => ({ weekReset: new Date(2026, 9, resetDay).toISOString(), used });
+  const now = new Date(2026, 9, 30);
+
+  it('averages the last finished weeks, newest first, ignoring the current one', () => {
+    const weeks = { a: w(4, 40), b: w(11, 20), c: w(18, 100), d: w(25, 60), cur: w(32, 5) };
+    expect(efficiency(weeks, now)).toEqual({ pct: 55, weeks: 4 });
+    expect(efficiency(weeks, now, 2)).toEqual({ pct: 80, weeks: 2 });
+  });
+
+  it('caps overage at 100 and is null before any week finishes', () => {
+    expect(efficiency({ a: w(25, 130) }, now)).toEqual({ pct: 100, weeks: 1 });
+    expect(efficiency({ cur: w(32, 5) }, now)).toBeNull();
   });
 });
 
@@ -322,36 +368,51 @@ describe('formatResetAt', () => {
 describe('usageView', () => {
   const now = new Date(Date.parse(RESET1) - (3 * 24 + 22) * HOUR);
   const ago = (ms) => `${Math.round(ms / 60000)} min`;
-  const account = (state, weeks = { [WEEK1]: { weekReset: RESET1, used: 31.6, lastReadingAt: now.toISOString(), days: {} } }) => ({
+  const CUR = { weekReset: RESET1, used: 31.6, lastReadingAt: now.toISOString(), days: {} };
+  const account = (state, weeks = { [WEEK1]: CUR }) => ({
     status: { state, lastSuccess: new Date(now - 4 * 60000).toISOString() },
     weeks,
   });
+  const PREV = '2026-09-20T17:00:00.000Z';
+  const OLD = '2026-09-13T17:00:00.000Z';
+  const history = {
+    [OLD]: { weekReset: PREV, used: 70, lastReadingAt: PREV, days: {} },
+    [PREV]: { weekReset: WEEK1, used: 55, lastReadingAt: '2026-09-27T16:30:00Z', days: { '2026-09-25': 4 } },
+    [WEEK1]: CUR,
+  };
 
   it('shows used/unused, the day strip, and when it resets', () => {
     const v = usageView('org', account('ok'), now, ago);
-    expect(v).toMatchObject({ used: 31.6, available: 68, resetsIn: '3d 22h', resetsAt: formatResetAt(RESET1), note: null });
+    expect(v).toMatchObject({ weekStart: WEEK1, past: false, used: 31.6, available: 68, resetsIn: '3d 22h', resetsAt: formatResetAt(RESET1), note: null });
     expect(v.strip.slots).toHaveLength(7);
     expect(v.strip.untracked).toBe(31.6);
-    expect(v.pattern).toBe(`Last week's unused % shows here after ${formatShortDate(RESET1)}`);
+    expect(v.efficiency).toEqual({ pct: null, text: `Efficiency shows here after ${formatShortDate(RESET1)}` });
   });
 
-  it("reports last week's expired capacity once a week has finished", () => {
-    const PREV = '2026-09-20T17:00:00.000Z';
-    const weeks = {
-      [PREV]: { weekReset: WEEK1, used: 55, lastReadingAt: '2026-09-27T16:30:00Z', days: {} },
-      [WEEK1]: { weekReset: RESET1, used: 31.6, lastReadingAt: now.toISOString(), days: {} },
-    };
-    expect(usageView('org', account('ok', weeks), now, ago).pattern).toBe('Last week: 45% expired unused');
+  it('lists every week newest first, labelled by its dates', () => {
+    const { weeks } = usageView('org', account('ok', history), now, ago);
+    expect(weeks.map(w => w.weekStart)).toEqual([WEEK1, PREV, OLD]);
+    expect(weeks[0]).toEqual({ weekStart: WEEK1, label: formatWeekRange(WEEK1, RESET1), used: 31.6, current: true });
+    expect(weeks.slice(1).every(w => !w.current)).toBe(true);
   });
 
-  it('names the week when the last finished one is not the previous week', () => {
-    const OLD = '2026-09-06T17:00:00.000Z', OLD_RESET = '2026-09-13T17:00:00.000Z';
-    const weeks = {
-      [OLD]: { weekReset: OLD_RESET, used: 70, lastReadingAt: OLD_RESET, days: {} },
-      [WEEK1]: { weekReset: RESET1, used: 31.6, lastReadingAt: now.toISOString(), days: {} },
-    };
-    expect(usageView('org', account('ok', weeks), now, ago).pattern)
-      .toBe(`Week to ${formatShortDate(OLD_RESET)}: 30% expired unused`);
+  it('averages finished weeks into the efficiency line', () => {
+    expect(usageView('org', account('ok', history), now, ago).efficiency)
+      .toEqual({ pct: 63, text: 'efficiency · avg of last 2 weeks' });
+    const one = { [PREV]: history[PREV], [WEEK1]: CUR };
+    expect(usageView('org', account('ok', one), now, ago).efficiency).toEqual({ pct: 55, text: 'efficiency · last week' });
+  });
+
+  it('a selected past week shows what expired, with its own days', () => {
+    const v = usageView('org', account('ok', history), now, ago, PREV);
+    expect(v).toMatchObject({ weekStart: PREV, past: true, used: 55, available: 45 });
+    expect(v.strip.slots.every(s => s.when === 'past')).toBe(true);
+    expect(v.resetsIn).toBe('3d 22h'); // still the current week's countdown
+  });
+
+  it('an unknown or current selection falls back to the current week', () => {
+    expect(usageView('org', account('ok', history), now, ago, 'gone').weekStart).toBe(WEEK1);
+    expect(usageView('org', account('ok', history), now, ago, WEEK1).past).toBe(false);
   });
 
   it('keeps the last numbers while logged out, with a note', () => {

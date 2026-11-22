@@ -18,10 +18,12 @@
       <div class="section-label">Claude.ai</div>
       <!-- Usage (#27): the bar is the week's capacity (blue used, green
            unused); the strip under it is the days the blue came from. The
-           replay grows each day's column together with its share of the bar. -->
+           replay grows each day's column together with its share of the bar.
+           Chips above switch to a past week (grey: what expired). -->
       <div class="setting-row usage-row" id="claudeUsage">
         <div class="setting-desc usage-message" hidden></div>
         <div class="usage-main" hidden>
+          <div class="usage-weeks" role="tablist" aria-label="Week" hidden></div>
           <div class="usage-track">
             <div class="usage-pops">
               <span class="usage-pop used"></span>
@@ -37,7 +39,7 @@
           </div>
           <div class="usage-strip"></div>
           <div class="setting-desc usage-reset"></div>
-          <div class="setting-desc usage-pattern"></div>
+          <div class="setting-desc usage-eff"></div>
           <div class="setting-desc usage-note" hidden></div>
         </div>
       </div>

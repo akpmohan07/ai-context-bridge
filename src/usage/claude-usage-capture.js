@@ -4,9 +4,11 @@
 // the claude.ai content script, or from /api/organizations when claude.ai was
 // never opened. All decisions live in claude-usage.js; this file only does
 // chrome + fetch.
-import { parseUsage, classifyFailure, applyReading, selectOrgId, backoffMs, readingsKey, appendReading } from './claude-usage.js';
+import { parseUsage, classifyFailure, applyReading, rebuildWeeks, selectOrgId, backoffMs, readingsKey, appendReading } from './claude-usage.js';
 
-const SCHEMA_VERSION = 1;
+// 2: days carry a 0 entry when watched, and only usage between close-together
+// captures lands on a day. Older data is rebuilt from the raw reading log.
+const SCHEMA_VERSION = 2;
 const API = 'https://claude.ai/api';
 // A claude.ai page load or popup open also triggers a capture; don't hammer
 // the API when several open at once.
@@ -43,12 +45,15 @@ export async function captureClaudeUsage(trigger, { source = 'background' } = {}
 
 async function captureOrg(orgId, trigger, source, { canRediscover }) {
     const { claudeUsage = {} } = await chrome.storage.local.get('claudeUsage');
-    const account = claudeUsage[orgId] ?? { schemaVersion: SCHEMA_VERSION, status: {}, weeks: {} };
+    let account = claudeUsage[orgId] ?? { schemaVersion: SCHEMA_VERSION, status: {}, weeks: {} };
     const now = new Date();
     const lastAttempt = Date.parse(account.status.lastAttempt);
     if (source === 'page' && lastAttempt && now - lastAttempt < MIN_GAP_MS) return;
     if (source === 'background' && account.status.state === 'logged_out'
         && now - lastAttempt < backoffMs(account.status.fails ?? 0)) return;
+    // Whatever this attempt's outcome, it saves the account, so the upgrade
+    // sticks.
+    if ((account.schemaVersion ?? 1) < SCHEMA_VERSION) account = await upgrade(orgId, account);
 
     const status = { ...account.status, lastAttempt: now.toISOString() };
     const save = (next) => chrome.storage.local.set({ claudeUsage: { ...claudeUsage, [orgId]: next } });
@@ -87,7 +92,7 @@ async function captureOrg(orgId, trigger, source, { canRediscover }) {
         claudeUsage: {
             ...claudeUsage,
             [orgId]: {
-                schemaVersion: SCHEMA_VERSION,
+                ...account,
                 status: { ...status, state: 'ok', fails: 0, lastSuccess: now.toISOString(), lastError: null },
                 weeks,
             },
@@ -95,4 +100,13 @@ async function captureOrg(orgId, trigger, source, { canRediscover }) {
         [logKey]: appendReading(log, parsed.reading),
     });
     console.log('[ACB] claude usage (%s): %s%% used', trigger, parsed.reading.util);
+}
+
+// Schema 1 → 2: recompute every week from its raw reading log.
+async function upgrade(orgId, account) {
+    const keys = Object.keys(account.weeks ?? {}).map(weekStart => readingsKey(orgId, weekStart));
+    const stored = keys.length ? await chrome.storage.local.get(keys) : {};
+    const logs = Object.fromEntries(Object.keys(account.weeks ?? {}).map(weekStart => [weekStart, stored[readingsKey(orgId, weekStart)]]));
+    console.log('[ACB] claude usage: upgrading stored weeks to schema %d', SCHEMA_VERSION);
+    return { ...account, schemaVersion: SCHEMA_VERSION, weeks: rebuildWeeks(account.weeks, logs) };
 }

@@ -18,7 +18,7 @@ export default defineBackground(() => {
     console.log('[ACB] migrated timerEnabled →', timerEnabled);
   });
 
-  // Usage capture (#27): one shared timer for every platform, every 15 min,
+  // Usage capture (#27): one shared timer for every platform, every 5 min,
   // plus on install/startup. A claude.ai page load or account switch captures
   // just Claude.
   chrome.runtime.onInstalled.addListener(() => { scheduleUsageCapture(); captureUsage('installed'); });

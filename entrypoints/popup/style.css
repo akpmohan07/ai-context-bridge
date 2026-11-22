@@ -125,6 +125,62 @@ body {
     margin-top: 0;
 }
 
+/* Week chips: one per stored week, newest first, shaded up to its used %. */
+.usage-weeks {
+    display: flex;
+    gap: 6px;
+    overflow-x: auto;
+    padding: 2px 2px 6px;
+    margin-bottom: 4px;
+    scrollbar-width: thin;
+}
+
+.usage-chip {
+    flex: none;
+    position: relative;
+    overflow: hidden;
+    border: 1px solid var(--popup-border);
+    border-radius: 999px;
+    padding: 3px 10px;
+    font: inherit;
+    font-size: 11px;
+    color: var(--popup-text);
+    white-space: nowrap;
+    cursor: pointer;
+    background: linear-gradient(90deg,
+        color-mix(in srgb, var(--usage-used) 20%, transparent) var(--chip-used, 0%),
+        transparent var(--chip-used, 0%));
+}
+
+.usage-chip.selected {
+    border-color: var(--usage-used);
+    color: #fff;
+    font-weight: 600;
+    background: linear-gradient(90deg,
+        color-mix(in srgb, var(--usage-used) 80%, #000) var(--chip-used, 0%),
+        var(--usage-used) var(--chip-used, 0%));
+}
+
+.usage-chip:focus-visible {
+    outline: 2px solid var(--usage-used);
+    outline-offset: 1px;
+}
+
+/* A past week: what expired is grey, not green. */
+.usage-row.past .usage-fill {
+    background: color-mix(in srgb, var(--popup-text-weak) 40%, transparent);
+}
+
+.usage-row.past .usage-pop.unused {
+    background: var(--popup-text-weak);
+}
+
+.usage-eff b {
+    color: var(--popup-text);
+    font-weight: 700;
+    font-size: 13px;
+}
+
 /* Room above the bar for the day labels that pop during the replay. */
 .usage-track {
     position: relative;

@@ -104,6 +104,8 @@ modelSelect.addEventListener('change', (e) => {
 // they can't drift apart. Click skips; reduced-motion shows the end state.
 // Opening the popup also asks for a fresh reading (throttled in the
 // background); if one lands mid-replay it's shown once the replay ends.
+// The chips above the bar switch to a past week, drawn without a replay: grey
+// where capacity expired instead of green.
 const FILL_MS = 900;
 const PAUSE_MS = 250;
 const UNTRACKED_MS = 600;
@@ -113,10 +115,11 @@ const COL_PX = 32;
 const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 let replay = null; // { skip } while a replay is running
 let refreshAfterReplay = false; // a reading landed mid-replay; show it after
+let selectedWeek = null; // weekStart of the chip picked; null = current week
 
 async function renderClaudeUsage({ animate }) {
   const { claudeOrgId, claudeUsage = {} } = await chrome.storage.local.get(['claudeOrgId', 'claudeUsage']);
-  const view = usageView(claudeOrgId, claudeUsage[claudeOrgId], new Date(), formatElapsed);
+  const view = usageView(claudeOrgId, claudeUsage[claudeOrgId], new Date(), formatElapsed, selectedWeek);
   const block = document.getElementById('claudeUsage');
   const main = block.querySelector('.usage-main');
   const message = block.querySelector('.usage-message');
@@ -126,10 +129,16 @@ async function renderClaudeUsage({ animate }) {
   main.hidden = !!view.message;
   if (view.message) return;
 
+  block.classList.toggle('past', view.past);
+  renderWeekChips(block.querySelector('.usage-weeks'), view);
+
   const reset = block.querySelector('.usage-reset');
-  reset.replaceChildren(Object.assign(document.createElement('b'), { textContent: view.resetsIn }),
-                        ` left · resets ${view.resetsAt}`);
-  block.querySelector('.usage-pattern').textContent = view.pattern;
+  const bold = (text) => Object.assign(document.createElement('b'), { textContent: text });
+  if (view.past) reset.replaceChildren(bold(`${view.available}%`), ' expired unused that week');
+  else reset.replaceChildren(bold(view.resetsIn), ` left · resets ${view.resetsAt}`);
+  const eff = block.querySelector('.usage-eff');
+  if (view.efficiency.pct === null) eff.replaceChildren(view.efficiency.text);
+  else eff.replaceChildren(bold(`${view.efficiency.pct}%`), ` ${view.efficiency.text}`);
   const note = block.querySelector('.usage-note');
   note.hidden = !view.note;
   note.textContent = view.note ?? '';
@@ -150,7 +159,7 @@ async function renderClaudeUsage({ animate }) {
                  + '<div class="strip-val"></div><div class="strip-label"></div>';
     el.querySelector('.strip-label').textContent = slot.when === 'today' ? 'Today' : slot.label;
     const mark = el.querySelector('.strip-mark');
-    if (slot.untracked) { mark.textContent = '–'; el.title = `${slot.label}: before tracking started`; }
+    if (slot.untracked) { mark.textContent = '–'; el.title = `${slot.label}: not tracked (no readings that day)`; }
     else if (slot.when === 'future') { mark.textContent = '·'; el.title = `${slot.label}: ahead`; }
     else el.title = `${slot.label}: ${Math.round(slot.used)}% of your week`;
     return { slot, el, fill: el.querySelector('.strip-fill'), val: el.querySelector('.strip-val'), mark };
@@ -169,7 +178,7 @@ async function renderClaudeUsage({ animate }) {
     fill.style.width = `${capacity}%`;
     usedBar.style.width = `${used}%`;
     usedLabel.textContent = `Used ${Math.round(used)}%`;
-    unusedLabel.textContent = `Unused ${Math.round(Math.max(0, capacity - used))}%`;
+    unusedLabel.textContent = `${view.past ? 'Expired' : 'Unused'} ${Math.round(Math.max(0, capacity - used))}%`;
     usedLabel.style.left = `${clamp(used / 2)}%`;
     // Centred on the unused part's final extent, so it doesn't collide with
     // "Used" while the green is still filling in.
@@ -184,12 +193,12 @@ async function renderClaudeUsage({ animate }) {
     }
     for (const d of days) d.el.classList.toggle('lit', d.slot.when === 'today');
     beacon.style.left = `${view.used}%`;
-    beacon.hidden = view.available <= 0;
+    beacon.hidden = view.past || view.available <= 0;
     replay = null;
     if (refreshAfterReplay) { refreshAfterReplay = false; renderClaudeUsage({ animate: false }); }
   };
 
-  if (!animate || reduceMotion) {
+  if (!animate || reduceMotion || view.past) {
     finish();
     return;
   }
@@ -209,7 +218,7 @@ async function renderClaudeUsage({ animate }) {
   await sleep(PAUSE_MS);
   if (skipped) return;
 
-  // Usage from before tracking: the untracked days show "–" as it flows in.
+  // Usage with no known day: the untracked days show "–" as it flows in.
   let used = 0;
   if (untracked > 0) {
     for (const d of days) if (d.slot.untracked) d.mark.style.opacity = '1';
@@ -227,6 +236,32 @@ async function renderClaudeUsage({ animate }) {
     used += d.slot.used;
   }
   if (!skipped) finish();
+}
+
+// One chip per stored week, newest first, labelled with its dates and shaded
+// up to its used %, so the row also reads as a trend. Hidden until there's a
+// second week to switch to.
+function renderWeekChips(row, view) {
+  row.hidden = view.weeks.length < 2;
+  if (row.hidden) return;
+  row.replaceChildren(...view.weeks.map(week => {
+    const chip = document.createElement('button');
+    const selected = week.weekStart === view.weekStart;
+    chip.className = `usage-chip${selected ? ' selected' : ''}`;
+    chip.setAttribute('role', 'tab');
+    chip.setAttribute('aria-selected', String(selected));
+    chip.title = `${week.current ? 'This week' : week.label}: ${Math.round(week.used)}% used`;
+    chip.style.setProperty('--chip-used', `${week.used}%`);
+    chip.textContent = week.label;
+    chip.addEventListener('click', (e) => {
+      e.stopPropagation(); // the block's click skips the replay
+      replay?.skip();
+      selectedWeek = week.current ? null : week.weekStart;
+      renderClaudeUsage({ animate: false });
+    });
+    return chip;
+  }));
+  row.querySelector('.selected')?.scrollIntoView({ block: 'nearest', inline: 'nearest' });
 }
 
 const clamp = (pct) => Math.min(90, Math.max(10, pct));

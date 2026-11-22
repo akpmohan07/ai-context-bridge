@@ -8,6 +8,8 @@
 //     schemaVersion, status,
 //     weeks: { [weekStart]: { weekReset, used, lastReadingAt,
 //                             days: { [YYYY-MM-DD]: used } } },
+// A day has an entry once any capture happened on it (0 = watched, no usage);
+// a past day with no entry wasn't watched (browser closed, logged out…).
 //   }
 // One record per Claude account (org), so an account switch never mixes data.
 // A week's `used` is the API's weekly total as-is; its `days` are derived from
@@ -103,46 +105,105 @@ export function localDayKey(date) {
     return `${d.getFullYear()}-${mm}-${dd}`;
 }
 
-// A new week's first reading can only be pinned to a day if it came right
-// after the reset; later than this, we don't know which days that usage fell on.
-const FRESH_WEEK_MS = 60 * 60 * 1000;
+// Usage between two captures can only be put on a day when they're close
+// together: after a longer gap (browser closed, asleep, logged out, using
+// another account) we can't tell when it happened, so it stays untracked —
+// in the week's total, on no day.
+const MAX_GAP_MS = 45 * 60 * 1000;
+
+// Latest reading across all of an account's weeks, as ms (null: none yet).
+function lastReadingTime(weeks) {
+    let last = null;
+    for (const week of Object.values(weeks)) {
+        const t = Date.parse(week.lastReadingAt);
+        if (!Number.isNaN(t) && (last === null || t > last)) last = t;
+    }
+    return last;
+}
+
+// Spread `amount` over the local days between two moments, in proportion to
+// time — usage between 23:50 and 00:05 lands mostly on the earlier day. The
+// last day takes the rounding remainder so the shares add up exactly.
+export function splitByDay(from, to, amount) {
+    if (!(to > from)) return { [localDayKey(to)]: amount };
+    const shares = {};
+    let t = from;
+    let left = amount;
+    while (t < to) {
+        const d = new Date(t);
+        const end = Math.min(to, new Date(d.getFullYear(), d.getMonth(), d.getDate() + 1).getTime());
+        const share = end === to ? left : round2((amount * (end - t)) / (to - from));
+        const key = localDayKey(t);
+        shares[key] = round2((shares[key] ?? 0) + share);
+        left = round2(left - share);
+        t = end;
+    }
+    return shares;
+}
 
 // Fold one reading into an account's weeks. Returns new objects (inputs are
-// not mutated). The current week's record doubles as the "previous value" the
-// daily delta is measured against, and the delta goes to that week's day:
-//   same week  → delta = util − previous (negative = limit reset → 0)
-//   new week   → delta = util if the reading is within an hour of the reset
-//                (the week counts up from 0), else 0 — usage from before we
-//                started watching this week stays untracked (no day)
-// `firstReadingAt` marks when this week's tracking began: days before it are
-// untracked, days after it with no entry had no usage.
-// A reading older than the stored one (out of order) is ignored.
-export function applyReading({ weeks = {} }, reading, dayKey = localDayKey(reading.asOf)) {
+// not mutated). Growth since the previous reading:
+//   same week → util − previous (negative = a limit reset → 0)
+//   new week  → util (a week counts up from 0 at its reset)
+// It goes on a day only when the previous reading (from any week) is at most
+// MAX_GAP_MS old, split across midnight if the gap spans one; otherwise it's
+// untracked. The reading's own day always gets an entry, marking it watched.
+// A reading older than the account's latest one (out of order) is ignored.
+export function applyReading({ weeks = {} }, reading) {
     const { asOf, util, weekStart, weekReset } = reading;
+    const t = Date.parse(asOf);
+    const prevAt = lastReadingTime(weeks);
+    if (prevAt !== null && t < prevAt) return { weeks };
+
     const prev = weeks[weekStart];
-
-    if (prev && Date.parse(asOf) < Date.parse(prev.lastReadingAt)) {
-        return { weeks };
+    const growth = round2(prev ? Math.max(0, util - prev.used) : util);
+    const days = { ...(prev?.days ?? {}) };
+    if (growth > 0 && prevAt !== null && t - prevAt <= MAX_GAP_MS) {
+        const from = Math.max(prevAt, Date.parse(weekStart));
+        for (const [key, share] of Object.entries(splitByDay(from, t, growth))) {
+            days[key] = round2((days[key] ?? 0) + share);
+        }
     }
+    const today = localDayKey(asOf);
+    if (!(today in days)) days[today] = 0;
 
-    let delta;
-    if (prev) delta = Math.max(0, util - prev.used);
-    else delta = Date.parse(asOf) - Date.parse(weekStart) <= FRESH_WEEK_MS ? util : 0;
-    delta = round2(delta);
+    return { weeks: { ...weeks, [weekStart]: { weekReset, used: util, lastReadingAt: asOf, days } } };
+}
 
-    const days = prev?.days ?? {};
-    return {
-        weeks: {
-            ...weeks,
-            [weekStart]: {
-                weekReset,
-                used: util,
-                firstReadingAt: prev?.firstReadingAt ?? asOf,
-                lastReadingAt: asOf,
-                days: delta > 0 ? { ...days, [dayKey]: round2((days[dayKey] ?? 0) + delta) } : days,
-            },
-        },
-    };
+// Schema 1 → 2: rebuild the weeks from the raw reading log with the rules
+// above. `logs` is { [weekStart]: [[unixSeconds, util], …] }. A week with no
+// log (captured before the log existed) keeps its numbers; its days from the
+// first capture to the last count as watched, which is what schema 1 meant.
+export function rebuildWeeks(weeks = {}, logs = {}) {
+    const readings = [];
+    const kept = {};
+    for (const [weekStart, week] of Object.entries(weeks)) {
+        const log = logs[weekStart];
+        if (Array.isArray(log) && log.length) {
+            for (const [sec, util] of log) {
+                readings.push({ asOf: new Date(sec * 1000).toISOString(), util, weekStart, weekReset: week.weekReset });
+            }
+        } else {
+            kept[weekStart] = legacyWeek(week);
+        }
+    }
+    readings.sort((a, b) => Date.parse(a.asOf) - Date.parse(b.asOf));
+    let account = { weeks: {} };
+    for (const reading of readings) account = applyReading(account, reading);
+    return { ...kept, ...account.weeks };
+}
+
+function legacyWeek({ firstReadingAt, ...week }) {
+    const days = { ...(week.days ?? {}) };
+    const first = new Date(firstReadingAt ?? week.lastReadingAt);
+    const lastKey = localDayKey(week.lastReadingAt);
+    if (!Number.isNaN(first.getTime())) {
+        for (let d = first; localDayKey(d) <= lastKey; d = new Date(d.getFullYear(), d.getMonth(), d.getDate() + 1)) {
+            const key = localDayKey(d);
+            if (!(key in days)) days[key] = 0;
+        }
+    }
+    return { ...week, days };
 }
 
 // Raw reading log (#27): every successful reading, kept alongside the derived
@@ -203,33 +264,58 @@ export function formatShortDate(date) {
 // that starts Sat night. Each slot is the local day at that 24h slice's
 // midpoint; a sliver of the reset day before the first slot folds into it.
 //   { label, key, used, when: 'past'|'today'|'future', untracked }
-// `used` is the day's % of the weekly limit (0 = tracked, no usage). Days
-// before tracking began this week are `untracked` (used: null) — their usage
-// is in the week total but not on any day. Also returns `untracked`, the
-// weekly % that has no day.
+// `used` is the day's % of the weekly limit (0 = watched, no usage). A past
+// day nobody watched is `untracked` (used: null). Also returns `untracked`,
+// the weekly % that has no day. A mid-week limit reset lowers the week's total
+// but not the days already counted, so then the days are scaled down to add
+// up to it.
 export function weekStrip(week, now) {
     const start = Date.parse(week.weekStart);
     const todayKey = localDayKey(now);
-    const firstKey = localDayKey(week.firstReadingAt ?? week.lastReadingAt ?? now);
     const days = week.days ?? {};
 
     const slots = Array.from({ length: 7 }, (_, i) => {
         const mid = new Date(start + i * 86400000 + 43200000);
-        return { label: WEEKDAYS[mid.getDay()], key: localDayKey(mid), used: 0 };
+        return { label: WEEKDAYS[mid.getDay()], key: localDayKey(mid), used: 0, watched: false };
     });
     for (const [key, used] of Object.entries(days)) {
         const slot = slots.find(s => s.key === key) ?? (key < slots[0].key ? slots[0] : slots[6]);
-        slot.used = round2(slot.used + used);
+        slot.used += used;
+        slot.watched = true;
     }
 
     const tracked = Object.values(days).reduce((sum, used) => sum + used, 0);
+    const scale = tracked > week.used && tracked > 0 ? week.used / tracked : 1;
     const untracked = Math.max(0, round2(week.used - tracked));
     for (const slot of slots) {
         slot.when = slot.key < todayKey ? 'past' : slot.key === todayKey ? 'today' : 'future';
-        slot.untracked = slot.when !== 'future' && slot.key < firstKey && slot.used === 0;
-        if (slot.untracked) slot.used = null;
+        slot.untracked = slot.when !== 'future' && !slot.watched;
+        slot.used = slot.untracked ? null : round2(slot.used * scale);
+        delete slot.watched;
     }
     return { slots, untracked };
+}
+
+// "15 – 22 Nov", or "25 Oct – 1 Nov" across a month, in local time.
+export function formatWeekRange(weekStart, weekReset) {
+    const a = new Date(weekStart);
+    const b = new Date(weekReset);
+    return a.getMonth() === b.getMonth() && a.getFullYear() === b.getFullYear()
+        ? `${a.getDate()} – ${b.getDate()} ${MONTHS[b.getMonth()]}`
+        : `${formatShortDate(a)} – ${formatShortDate(b)}`;
+}
+
+// Efficiency: how much of the paid weekly capacity actually got used, as the
+// average of the last `n` finished weeks' totals. null until a week finishes.
+export const EFFICIENCY_WEEKS = 6;
+export function efficiency(weeks, now, n = EFFICIENCY_WEEKS) {
+    const finished = Object.values(weeks ?? {})
+        .filter(w => Date.parse(w.weekReset) <= now)
+        .sort((a, b) => Date.parse(b.weekReset) - Date.parse(a.weekReset))
+        .slice(0, n);
+    if (!finished.length) return null;
+    const pct = finished.reduce((sum, w) => sum + Math.min(100, w.used), 0) / finished.length;
+    return { pct: Math.round(pct), weeks: finished.length };
 }
 
 // "Sat 10:30 PM" / "Sun 6 PM" in local time (":00" dropped).
@@ -241,25 +327,23 @@ export function formatResetAt(date) {
     return `${WEEKDAYS[d.getDay()]} ${time} ${h < 12 ? 'AM' : 'PM'}`;
 }
 
-// The pattern line under the bar: what happened to the last finished week.
-function patternLine(weeks, current) {
-    const finished = Object.entries(weeks ?? {})
-        .filter(([, w]) => Date.parse(w.weekReset) <= Date.parse(current.weekStart))
-        .sort(([a], [b]) => b.localeCompare(a));
-    if (!finished.length) return `Last week's unused % shows here after ${formatShortDate(current.weekReset)}`;
-    const [, last] = finished[0];
-    const unused = Math.round(100 - last.used);
-    return last.weekReset === current.weekStart
-        ? `Last week: ${unused}% expired unused`
-        : `Week to ${formatShortDate(last.weekReset)}: ${unused}% expired unused`;
+// The efficiency line under the bar.
+function efficiencyLine(weeks, current, now) {
+    const eff = efficiency(weeks, now);
+    if (!eff) return { pct: null, text: `Efficiency shows here after ${formatShortDate(current.weekReset)}` };
+    return { pct: eff.pct, text: eff.weeks === 1 ? 'efficiency · last week' : `efficiency · avg of last ${eff.weeks} weeks` };
 }
 
 // What the popup's usage block shows, from stored data alone. Either
-// { message } (nothing to draw) or { used, available, strip, resetsAt,
-// resetsIn, pattern, note }: the bar (used vs unused) and the day strip it's
-// made of. `account` is claudeUsage[orgId]
-// (undefined before the first capture); `formatAgo(ms)` renders "5 min" etc.
-export function usageView(orgId, account, now, formatAgo) {
+// { message } (nothing to draw) or the selected week:
+//   { weekStart, past, used, available, strip, resetsAt, resetsIn,
+//     weeks, efficiency, note }
+// `available` is what's left (past week: what expired). `weeks` is the chip
+// row, newest first: { weekStart, label, used, current }. `selected` is a
+// weekStart to show instead of the current week. `account` is
+// claudeUsage[orgId] (undefined before the first capture); `formatAgo(ms)`
+// renders "5 min" etc.
+export function usageView(orgId, account, now, formatAgo, selected = null) {
     if (!orgId) return { message: 'Log in to claude.ai to start tracking' };
     if (!account) return { message: 'Waiting for the first reading' };
 
@@ -267,20 +351,34 @@ export function usageView(orgId, account, now, formatAgo) {
     if (state === 'no_weekly_limit') return { message: 'Your plan has no weekly limit' };
     if (state === 'broken') return { message: "Can't read usage, needs an extension update" };
 
-    const week = currentWeek(account.weeks);
-    if (!week) {
+    const current = currentWeek(account.weeks);
+    if (!current) {
         return { message: state === 'logged_out' ? 'Logged out, log in to claude.ai to resume' : "Couldn't reach Claude, will retry" };
     }
-    const { unused, msLeft } = summarize(week, now);
+    const { msLeft } = summarize(current, now);
     if (msLeft === 0) return { message: 'New week started, updating' };
 
+    const pick = selected && selected !== current.weekStart && account.weeks[selected];
+    const week = pick ? { weekStart: selected, ...pick } : current;
+    const used = Math.min(100, week.used);
+
     return {
-        used: Math.min(100, week.used),
-        available: Math.round(unused),
+        weekStart: week.weekStart,
+        past: !!pick,
+        used,
+        available: Math.round(100 - used),
         strip: weekStrip(week, now),
-        resetsAt: formatResetAt(week.weekReset),
+        resetsAt: formatResetAt(current.weekReset),
         resetsIn: formatTimeLeft(msLeft),
-        pattern: patternLine(account.weeks, week),
+        weeks: Object.entries(account.weeks)
+            .sort(([, a], [, b]) => Date.parse(b.weekReset) - Date.parse(a.weekReset))
+            .map(([weekStart, w]) => ({
+                weekStart,
+                label: formatWeekRange(weekStart, w.weekReset),
+                used: Math.min(100, w.used),
+                current: weekStart === current.weekStart,
+            })),
+        efficiency: efficiencyLine(account.weeks, current, now),
         // Freshness only matters when capture is failing; the last known
         // numbers stay visible either way.
         note: state === 'error' || state === 'logged_out'
