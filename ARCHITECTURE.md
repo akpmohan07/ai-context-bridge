@@ -98,11 +98,18 @@ unused capacity (#27). Functional core / imperative shell:
   capture; each platform owns its own fetch, parsing and storage key.
 
 Storage (`chrome.storage.local`, never leaves the device):
-- `claudeUsage[orgId] = { schemaVersion, status, weeks }`, where
-  `weeks[weekStart] = { weekReset, used, firstReadingAt, lastReadingAt, days }`
-  and `days[YYYY-MM-DD]` is that day's share of the weekly %. A week's `used`
-  is Claude's own number; days are derived from how it grew between captures
-  (data flows week → days). Month/year views are computed, not stored.
+- `claudeUsage[orgId] = { schemaVersion: 2, status, weeks }`, where
+  `weeks[weekStart] = { weekReset, used, lastReadingAt, days }` and
+  `days[YYYY-MM-DD]` is that day's share of the weekly %. A week's `used` is
+  Claude's own number; days are derived from how it grew between captures
+  (data flows week → days). Growth goes on a day only when the previous
+  capture is ≤45 min old (split across midnight by time); after a longer gap
+  it stays untracked, in the week but on no day. Any capture gives its day an
+  entry (0 = watched, no usage), so a past day with no entry shows `–`. A
+  mid-week limit reset scales the days down at display time. Schema 1 data is
+  rebuilt from the raw log on the first capture after an update. History
+  (week chips) and efficiency (average `used` of the last 6 finished weeks)
+  are computed from `weeks`, not stored.
 - `claudeReadings:<orgId>:<weekStart>` — raw `[unixSeconds, util]` log of
   every successful reading, for auditing and recomputing day attribution.
 - `claudeOrgId` — written by the claude.ai content script (or discovery).

@@ -23,6 +23,7 @@ Full feature catalog. See [ARCHITECTURE.md](../ARCHITECTURE.md) for architecture
 | Claude: Time Awareness | N/A | Claude | Feature |
 | Claude: Presence (ambient sound) | N/A | Claude | Feature |
 | Claude: Default Model preference | N/A | Claude | Feature |
+| Claude: Unused capacity (weekly usage, day strip, week history, efficiency) | N/A | Claude | Feature |
 | Popup: feature toggles | Core | N/A | Feature |
 | Core content pipeline (schema/budget/formatter) | Core | N/A | Feature |
 
@@ -30,7 +31,7 @@ Full feature catalog. See [ARCHITECTURE.md](../ARCHITECTURE.md) for architecture
 
 | Item | Source | AI Platform | Type |
 |---|---|---|---|
-| Vitest unit suite (L1, 75 tests) | Testing | N/A | Test |
+| Vitest unit suite (L1, 133 tests) | Testing | N/A | Test |
 | Playwright E2E scaffold | Testing | N/A | Test |
 | Medium E2E (3 destinations) | Testing | N/A | Test |
 | ChatGPT E2E (guest mode) | Testing | N/A | Test |
